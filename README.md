@@ -2,8 +2,8 @@
 **Deliverables:**
 
 * **Interactive Dashboard (music-dashboard):**
-* https://musicdashboard.streamlit.app/
-* A visual dashboard with multiple tabs showing engagement metrics, country analysis, hidden gems, and benchmarks. The dashboard is interactive and allows you to explore the data visually.
+  * https://musicdashboard.streamlit.app/
+  * A visual dashboard with multiple tabs showing engagement metrics, country analysis, hidden gems, and benchmarks. The dashboard is interactive and allows you to explore the data visually.
 
 * **SQL Queries (sql-queries):** A comprehensive set of SQL queries that could be used to extract the insights from the music data. These queries are properly commented and organized by analysis objective.
 
