@@ -10,3 +10,4 @@
   * A comprehensive set of SQL queries that could be used to extract the insights from the music data. These queries are properly commented and organized by analysis objective.
 
 * **Summary Report (summary-report):** A concise one-page report detailing the key findings from the analysis, including success indicators, trends, hidden gems, and improvement areas.
+  * Please see "SummaryReport.md"
