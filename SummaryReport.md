@@ -1,5 +1,6 @@
 # Music Data Analysis: Summary Report
 *Analysis of UGC Music Uploads (01/2023-01/2025)*
+
 *Author: Linlin Zhang (lz2981@columbia.edu)*
 
 ## 1. Early Indicators of Success
