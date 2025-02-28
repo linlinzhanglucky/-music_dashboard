@@ -1,5 +1,6 @@
 # Music Data Analysis: Summary Report
 *Analysis of UGC Music Uploads (01/2023-01/2025)*
+*Author: Linlin Zhang (lz2981@columbia.edu)*
 
 ## 1. Early Indicators of Success
 
@@ -61,7 +62,7 @@ These tracks demonstrate engagement ratios 45-72% above platform average, sugges
 
 ## 4. Areas for Improvement
 
-The analysis highlights several data limitations impacting predictive accuracy:
+I would like to highlight several data limitations impacting predictive accuracy:
 
 * **Temporal granularity**: Monthly aggregation masks weekly growth patterns critical for early detection of viral potential
 * **Genre/mood classification**: Absence of content tagging limits discovery algorithm refinement and cross-genre analysis
@@ -83,4 +84,4 @@ For **talent acquisition and content strategy**:
 * Develop content strategy emphasizing curated DJ mixes for Nigerian and Ghanaian markets
 * Implement A/B testing of playlist strategies specifically for US-based content
 
-*Linlin Zhang*
+
