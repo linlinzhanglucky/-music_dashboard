@@ -3,6 +3,8 @@
 
 *Author: Linlin Zhang (lz2981@columbia.edu)*
 
+> **Note on Song Identification**: Throughout this report, songs are identified by both title and artist name to prevent confusion between songs that share the same title but have different artists. When appropriate, the unique music_id is also included to ensure precise identification.
+
 ## 1. Early Indicators of Success
 
 This analysis identifies **download-to-play ratio** as the most reliable predictor of long-term song success. With a platform-wide average of 0.199, songs exhibiting ratios above 0.3 demonstrate exceptional user commitment and significantly higher retention. The strongest predictors of success are:
@@ -12,9 +14,9 @@ This analysis identifies **download-to-play ratio** as the most reliable predict
 3. **Favorites-to-play ratio** (R² = 0.43 correlation with artist account follows)
 
 The most successful tracks demonstrate balanced engagement metrics with particularly strong download ratios:
-* **"Have Mercy" by Shane Eli** (34.67 download ratio, 207,866 plays)
-* **"Pluto" by Shallipopi** (10.61 download ratio, 3,990 plays)
-* **"Joy is coming" by Fido** (6.01 download ratio, 5,976 plays)
+* **"Have Mercy" by Shane Eli** (music_id: 1, 34.67 download ratio, 207,866 plays)
+* **"Pluto" by Shallipopi** (music_id: 23455165, 10.61 download ratio, 3,990 plays)
+* **"Joy is coming" by Fido** (music_id: 37403686, 6.01 download ratio, 5,976 plays)
 
 The extraordinary performance of "Have Mercy" (with downloads 34.7x plays) warrants further investigation as a potential viral phenomenon or platform anomaly. This extreme outlier significantly exceeds typical engagement patterns and might represent a unique growth case study.
 
@@ -34,17 +36,17 @@ The extraordinary performance of "Have Mercy" (with downloads 34.7x plays) warra
 
 The algorithm identified these high-potential tracks that demonstrate exceptional engagement despite moderate play counts:
 
-1. **"juju" by Big smur lee** (32,581 plays, 1.25 engagement score)
+1. **"juju" by Big smur lee** (music_id: 31809979, 32,581 plays, 1.25 engagement score)
    * Strong download ratio of 4.08
    * Balanced engagement metrics (favorites: 0.049, playlists: 0.044)
    * Showing 6.8x higher favorite ratio than platform average
 
-2. **"Medicine after death" by Mohbad** (4,019 plays, 1.24 engagement score)
+2. **"Medicine after death" by Mohbad** (music_id: 26325473, 4,019 plays, 1.24 engagement score)
    * Strong download ratio of 4.06
    * Balanced metrics across all engagement types
    * Artist with consistent quality (236 songs in dataset)
 
-3. **"Twe Twe (remix)" by Kizz Daniel** (8,614 plays, 1.23 engagement score)
+3. **"Twe Twe (remix)" by Kizz Daniel** (music_id: 29326228, 8,614 plays, 1.23 engagement score)
    * Above-average metrics across all engagement types
    * Download ratio of 4.03, 20x platform average
    * Demonstrates consistent performance in both Nigerian and Ghanaian markets
