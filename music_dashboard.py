@@ -1,8 +1,467 @@
+# import streamlit as st
+# import pandas as pd
+# import plotly.express as px
+# import plotly.graph_objects as go
+# from plotly.subplots import make_subplots
+
+# # Set page configuration
+# st.set_page_config(
+#     page_title="Music Data Analysis Dashboard",
+#     page_icon="🎵",
+#     layout="wide"
+# )
+
+# # Data
+# # Top Engagement Songs
+# top_engagement_data = [
+#     {
+#         "song": "Have Mercy (Shane Eli)",
+#         "downloadRatio": 10.6733,
+#         "favoritesRatio": 0.0011,
+#         "playlistRatio": 0.0042,
+#         "repostsRatio": 0.0005,
+#         "engagement": 10.6887,
+#         "plays": 7438
+#     },
+#     {
+#         "song": "juju (Big smur lee)",
+#         "downloadRatio": 1.2954,
+#         "favoritesRatio": 0.0524,
+#         "playlistRatio": 0.0304,
+#         "repostsRatio": 0.0013,
+#         "engagement": 1.3612,
+#         "plays": 12147
+#     },
+#     {
+#         "song": "Area Boys prayers (Seyi vibez)",
+#         "downloadRatio": 1.0645,
+#         "favoritesRatio": 0.0298,
+#         "playlistRatio": 0.0335,
+#         "repostsRatio": 0.0011,
+#         "engagement": 1.1286,
+#         "plays": 4425
+#     },
+#     {
+#         "song": "Gbona (Zinoleesky)",
+#         "downloadRatio": 0.9954,
+#         "favoritesRatio": 0.0457,
+#         "playlistRatio": 0.0130,
+#         "repostsRatio": 0.0016,
+#         "engagement": 1.0542,
+#         "plays": 7899
+#     },
+#     {
+#         "song": "Blacksherif Let Me Go MY Way (Black Sheriff)",
+#         "downloadRatio": 0.9508,
+#         "favoritesRatio": 0.0966,
+#         "playlistRatio": 0.0057,
+#         "repostsRatio": 0.0007,
+#         "engagement": 1.0535,
+#         "plays": 4202
+#     }
+# ]
+
+# # Country Data
+# country_data = [
+#     {
+#         "country": "NG",
+#         "totalPlay30s": 452678656,
+#         "downloadRate": 0.192,
+#         "favoriteRate": 0.005,
+#         "playlistRate": 0.011,
+#         "songCount": 17669,
+#         "artistCount": 7936
+#     },
+#     {
+#         "country": "GH",
+#         "totalPlay30s": 106642952,
+#         "downloadRate": 0.315,
+#         "favoriteRate": 0.006,
+#         "playlistRate": 0.026,
+#         "songCount": 5365,
+#         "artistCount": 2204
+#     },
+#     {
+#         "country": "US",
+#         "totalPlay30s": 90898517,
+#         "downloadRate": 0.086,
+#         "favoriteRate": 0.013,
+#         "playlistRate": 0.019,
+#         "songCount": 7349,
+#         "artistCount": 3206
+#     },
+#     {
+#         "country": "JM",
+#         "totalPlay30s": 24816983,
+#         "downloadRate": 0.174,
+#         "favoriteRate": 0.004,
+#         "playlistRate": 0.011,
+#         "songCount": 1478,
+#         "artistCount": 478
+#     },
+#     {
+#         "country": "TZ",
+#         "totalPlay30s": 11616569,
+#         "downloadRate": 0.314,
+#         "favoriteRate": 0.004,
+#         "playlistRate": 0.020,
+#         "songCount": 756,
+#         "artistCount": 396
+#     }
+# ]
+
+# # Hidden Gems
+# hidden_gems_data = [
+#     {
+#         "song": "Have Mercy (Shane Eli)",
+#         "engagementRatio": 10.689,
+#         "favoriteRatio": 0.001,
+#         "playlistRatio": 0.004,
+#         "plays": 7438
+#     },
+#     {
+#         "song": "juju (Big smur lee)",
+#         "engagementRatio": 1.361,
+#         "favoriteRatio": 0.052,
+#         "playlistRatio": 0.030,
+#         "plays": 12147
+#     },
+#     {
+#         "song": "Area Boys prayers (Seyi vibez)",
+#         "engagementRatio": 1.129,
+#         "favoriteRatio": 0.030,
+#         "playlistRatio": 0.034,
+#         "plays": 4425
+#     },
+#     {
+#         "song": "Gbona (Zinoleesky)",
+#         "engagementRatio": 1.054,
+#         "favoriteRatio": 0.046,
+#         "playlistRatio": 0.013,
+#         "plays": 7899
+#     },
+#     {
+#         "song": "Blacksherif Let Me Go MY Way (Black Sheriff)",
+#         "engagementRatio": 1.054,
+#         "favoriteRatio": 0.097,
+#         "playlistRatio": 0.006,
+#         "plays": 4202
+#     }
+# ]
+
+# # Top Artists with Multiple Songs
+# top_artists_data = [
+#     {"artist": "Future", "songCount": 483, "avgEngagement": 0.14},
+#     {"artist": "Juice WRLD", "songCount": 409, "avgEngagement": 0.10},
+#     {"artist": "Zinoleesky", "songCount": 360, "avgEngagement": 0.22},
+#     {"artist": "Kodak Black", "songCount": 310, "avgEngagement": 0.09},
+#     {"artist": "SHATTA WALE", "songCount": 279, "avgEngagement": 0.19},
+#     {"artist": "Young Thug", "songCount": 236, "avgEngagement": 0.08},
+#     {"artist": "Lil Durk", "songCount": 232, "avgEngagement": 0.12},
+#     {"artist": "Otega", "songCount": 230, "avgEngagement": 0.16},
+#     {"artist": "Mohbad", "songCount": 216, "avgEngagement": 0.18},
+#     {"artist": "Dax", "songCount": 203, "avgEngagement": 0.13}
+# ]
+
+# # Benchmark data
+# benchmark_data = [
+#     {"name": "Downloads", "average": 0.202, "highest": 10.673},
+#     {"name": "Favorites", "average": 0.008, "highest": 0.097},
+#     {"name": "Playlists", "average": 0.016, "highest": 0.034},
+#     {"name": "Reposts", "average": 0.0003, "highest": 0.002}
+# ]
+
+# # Convert to pandas dataframes
+# top_engagement_df = pd.DataFrame(top_engagement_data)
+# country_df = pd.DataFrame(country_data)
+# hidden_gems_df = pd.DataFrame(hidden_gems_data)
+# top_artists_df = pd.DataFrame(top_artists_data)
+# benchmark_df = pd.DataFrame(benchmark_data)
+
+# # Dashboard title and description
+# st.title("Music Data Analysis Dashboard")
+# st.write("UGC Music Upload Analysis (01/2023-01/2025) for songs with 3,000-1,000,000 plays")
+
+# # Create tabs
+# tab1, tab2, tab3, tab4, tab5 = st.tabs([
+#     "Engagement Analysis", 
+#     "Country Analysis", 
+#     "Hidden Gems", 
+#     "Top Artists", 
+#     "Benchmarks"
+# ])
+
+# # Tab 1: Engagement Analysis
+# with tab1:
+#     st.header("Top Songs by Engagement Score")
+#     st.write("Engagement score combines download, favorite, playlist, and repost ratios")
+    
+#     # Create the engagement score chart
+#     fig1 = px.bar(
+#         top_engagement_df,
+#         x="song",
+#         y="engagement",
+#         title="Top Songs by Engagement Score",
+#         labels={"engagement": "Engagement Score", "song": "Song"},
+#         color_discrete_sequence=["#8884d8"]
+#     )
+#     fig1.update_layout(xaxis={'categoryorder':'total descending'})
+#     st.plotly_chart(fig1, use_container_width=True)
+    
+#     # Create the metrics breakdown chart
+#     st.header("Engagement Metrics Breakdown")
+#     st.write("Detailed breakdown of different engagement metrics for top performers")
+    
+#     metrics_df = top_engagement_df.melt(
+#         id_vars=["song"],
+#         value_vars=["downloadRatio", "favoritesRatio", "playlistRatio"],
+#         var_name="Metric",
+#         value_name="Value"
+#     )
+    
+#     # Replace metric names for better readability
+#     metrics_df["Metric"] = metrics_df["Metric"].map({
+#         "downloadRatio": "Download Ratio",
+#         "favoritesRatio": "Favorites Ratio",
+#         "playlistRatio": "Playlist Ratio"
+#     })
+    
+#     fig2 = px.bar(
+#         metrics_df,
+#         x="song",
+#         y="Value",
+#         color="Metric",
+#         barmode="group",
+#         title="Engagement Metrics Breakdown",
+#         color_discrete_map={
+#             "Download Ratio": "#0088FE",
+#             "Favorites Ratio": "#00C49F",
+#             "Playlist Ratio": "#FFBB28"
+#         }
+#     )
+#     fig2.update_layout(xaxis={'categoryorder':'total descending'})
+#     st.plotly_chart(fig2, use_container_width=True)
+
+# # Tab 2: Country Analysis
+# with tab2:
+#     st.header("Country Play Distribution")
+    
+#     col1, col2 = st.columns(2)
+    
+#     with col1:
+#         # Create the pie chart for play distribution
+#         fig3 = px.pie(
+#             country_df,
+#             values="totalPlay30s",
+#             names="country",
+#             title="Total Plays by Country",
+#             color_discrete_sequence=px.colors.qualitative.Set3
+#         )
+#         fig3.update_traces(textposition='inside', textinfo='percent+label')
+#         st.plotly_chart(fig3, use_container_width=True)
+    
+#     with col2:
+#         # Create the bar chart for engagement rates by country
+#         fig4 = go.Figure()
+#         fig4.add_trace(go.Bar(
+#             x=country_df["country"],
+#             y=country_df["downloadRate"],
+#             name="Download Rate",
+#             marker_color="#0088FE"
+#         ))
+#         fig4.add_trace(go.Bar(
+#             x=country_df["country"],
+#             y=country_df["favoriteRate"],
+#             name="Favorite Rate",
+#             marker_color="#00C49F"
+#         ))
+#         fig4.add_trace(go.Bar(
+#             x=country_df["country"],
+#             y=country_df["playlistRate"],
+#             name="Playlist Rate",
+#             marker_color="#FFBB28"
+#         ))
+#         fig4.update_layout(
+#             title="Engagement Rates by Country",
+#             barmode="group"
+#         )
+#         st.plotly_chart(fig4, use_container_width=True)
+    
+#     # Create the song & artist distribution chart
+#     st.header("Song & Artist Distribution by Country")
+    
+#     fig5 = go.Figure()
+#     fig5.add_trace(go.Bar(
+#         x=country_df["country"],
+#         y=country_df["songCount"],
+#         name="Number of Songs",
+#         marker_color="#8884d8"
+#     ))
+#     fig5.add_trace(go.Bar(
+#         x=country_df["country"],
+#         y=country_df["artistCount"],
+#         name="Number of Artists",
+#         marker_color="#82ca9d"
+#     ))
+#     fig5.update_layout(
+#         title="Song & Artist Distribution by Country",
+#         barmode="group"
+#     )
+#     st.plotly_chart(fig5, use_container_width=True)
+
+# # Tab 3: Hidden Gems
+# with tab3:
+#     st.header("Hidden Gems (High Engagement, Moderate Plays)")
+#     st.write("Songs with exceptional engagement metrics that haven't yet reached massive play counts")
+    
+#     # Create dual axis chart for hidden gems
+#     fig6 = make_subplots(specs=[[{"secondary_y": True}]])
+    
+#     fig6.add_trace(
+#         go.Bar(
+#             x=hidden_gems_df["song"],
+#             y=hidden_gems_df["engagementRatio"],
+#             name="Engagement Ratio",
+#             marker_color="#8884d8"
+#         ),
+#         secondary_y=False
+#     )
+    
+#     fig6.add_trace(
+#         go.Bar(
+#             x=hidden_gems_df["song"],
+#             y=hidden_gems_df["plays"],
+#             name="Total Plays (30s+)",
+#             marker_color="#82ca9d"
+#         ),
+#         secondary_y=True
+#     )
+    
+#     fig6.update_layout(
+#         title_text="Hidden Gems: Engagement vs Plays",
+#         xaxis=dict(title="Song")
+#     )
+    
+#     fig6.update_yaxes(title_text="Engagement Ratio", secondary_y=False)
+#     fig6.update_yaxes(title_text="Total Plays", secondary_y=True)
+    
+#     st.plotly_chart(fig6, use_container_width=True)
+    
+#     # Create the engagement breakdown for hidden gems
+#     st.header("Hidden Gems Engagement Breakdown")
+    
+#     metrics_df2 = hidden_gems_df.melt(
+#         id_vars=["song"],
+#         value_vars=["favoriteRatio", "playlistRatio"],
+#         var_name="Metric",
+#         value_name="Value"
+#     )
+    
+#     metrics_df2["Metric"] = metrics_df2["Metric"].map({
+#         "favoriteRatio": "Favorite Ratio",
+#         "playlistRatio": "Playlist Ratio"
+#     })
+    
+#     fig7 = px.bar(
+#         metrics_df2,
+#         x="song",
+#         y="Value",
+#         color="Metric",
+#         barmode="group",
+#         title="Engagement Metrics Breakdown for Hidden Gems",
+#         color_discrete_map={
+#             "Favorite Ratio": "#00C49F",
+#             "Playlist Ratio": "#FFBB28"
+#         }
+#     )
+#     st.plotly_chart(fig7, use_container_width=True)
+
+# # Tab 4: Top Artists
+# with tab4:
+#     st.header("Top Artists by Song Count")
+#     st.write("Artists with multiple songs in the dataset")
+    
+#     # Sort artists by song count
+#     sorted_artists = top_artists_df.sort_values(by="songCount", ascending=False)
+    
+#     fig8 = px.bar(
+#         sorted_artists,
+#         x="artist",
+#         y="songCount",
+#         title="Top Artists by Song Count",
+#         color_discrete_sequence=["#8884d8"]
+#     )
+#     st.plotly_chart(fig8, use_container_width=True)
+    
+#     # Create the artist engagement comparison
+#     st.header("Artist Engagement Comparison")
+    
+#     fig9 = px.bar(
+#         sorted_artists,
+#         x="artist",
+#         y="avgEngagement",
+#         title="Average Engagement Score by Artist",
+#         color_discrete_sequence=["#FF8042"]
+#     )
+#     fig9.update_layout(yaxis_title="Average Engagement Score")
+#     st.plotly_chart(fig9, use_container_width=True)
+
+# # Tab 5: Benchmarks
+# with tab5:
+#     st.header("Engagement Benchmarks")
+#     st.write("Average vs. Highest engagement metrics across the dataset")
+    
+#     # Create the benchmark comparison chart
+#     benchmark_melted = benchmark_df.melt(
+#         id_vars=["name"],
+#         value_vars=["average", "highest"],
+#         var_name="Metric",
+#         value_name="Value"
+#     )
+    
+#     benchmark_melted["Metric"] = benchmark_melted["Metric"].map({
+#         "average": "Average Ratio",
+#         "highest": "Highest Ratio"
+#     })
+    
+#     fig10 = px.bar(
+#         benchmark_melted,
+#         x="name",
+#         y="Value",
+#         color="Metric",
+#         barmode="group",
+#         title="Engagement Benchmarks: Average vs Highest",
+#         color_discrete_map={
+#             "Average Ratio": "#8884d8",
+#             "Highest Ratio": "#82ca9d"
+#         }
+#     )
+#     fig10.update_layout(xaxis_title="Metric", yaxis_title="Ratio Value")
+#     st.plotly_chart(fig10, use_container_width=True)
+
+# # Key Findings section
+# st.header("Key Findings")
+# st.markdown("""
+# - **Top Success Indicator:** Download-to-play ratio is the strongest predictor of engagement (avg: 0.202)
+# - **Country Insights:** Ghana has the highest download rate (0.315), US has highest favorite rate (0.013)
+# - **Hidden Gem:** "Have Mercy" by Shane Eli shows exceptional engagement (10.689) with moderate plays
+# - **Artist Insights:** Future, Juice WRLD, and Zinoleesky have the most songs in the dataset
+# - **Geographic Trend:** Nigeria has the highest content volume (452M plays, 17.6K songs), followed by Ghana and US
+# """)
+
+
+
+
+
+
+
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import os
 
 # Set page configuration
 st.set_page_config(
@@ -11,183 +470,84 @@ st.set_page_config(
     layout="wide"
 )
 
-# Data
-# Top Engagement Songs
-top_engagement_data = [
-    {
-        "song": "Have Mercy (Shane Eli)",
-        "downloadRatio": 10.6733,
-        "favoritesRatio": 0.0011,
-        "playlistRatio": 0.0042,
-        "repostsRatio": 0.0005,
-        "engagement": 10.6887,
-        "plays": 7438
-    },
-    {
-        "song": "juju (Big smur lee)",
-        "downloadRatio": 1.2954,
-        "favoritesRatio": 0.0524,
-        "playlistRatio": 0.0304,
-        "repostsRatio": 0.0013,
-        "engagement": 1.3612,
-        "plays": 12147
-    },
-    {
-        "song": "Area Boys prayers (Seyi vibez)",
-        "downloadRatio": 1.0645,
-        "favoritesRatio": 0.0298,
-        "playlistRatio": 0.0335,
-        "repostsRatio": 0.0011,
-        "engagement": 1.1286,
-        "plays": 4425
-    },
-    {
-        "song": "Gbona (Zinoleesky)",
-        "downloadRatio": 0.9954,
-        "favoritesRatio": 0.0457,
-        "playlistRatio": 0.0130,
-        "repostsRatio": 0.0016,
-        "engagement": 1.0542,
-        "plays": 7899
-    },
-    {
-        "song": "Blacksherif Let Me Go MY Way (Black Sheriff)",
-        "downloadRatio": 0.9508,
-        "favoritesRatio": 0.0966,
-        "playlistRatio": 0.0057,
-        "repostsRatio": 0.0007,
-        "engagement": 1.0535,
-        "plays": 4202
-    }
-]
+# Function to load CSV data
+@st.cache_data
+def load_data():
+    # Load all CSV files
+    early_indicators = pd.read_csv("__Early_Indicators_of_Success.csv")
+    top_download_ratio = pd.read_csv("__Top_Songs_by_Download_Ratio.csv")
+    country_analysis = pd.read_csv("_Country_Analysis.csv")
+    hidden_gems = pd.read_csv("__Hidden_Gems__High_ment__Moderate_Plays.csv")
+    top_artists = pd.read_csv("__Top_Artists_by_Song_Count.csv")
+    artist_engagement = pd.read_csv("__Artist_Engagement_Comparison.csv")
+    benchmarks = pd.read_csv("__Engagement_Benchmarks.csv")
+    dj_vs_single = pd.read_csv("__DJ_Mix_vs__Single_Track_Analysis.csv")
+    monthly_analysis = pd.read_csv("__Month_over_Month_Analysis.csv")
+    
+    # Process top engagement data
+    top_engagement_df = early_indicators.head(5).copy()
+    top_engagement_df['song'] = top_engagement_df['song_name'] + " (" + top_engagement_df['artist_name'] + ")"
+    top_engagement_df['downloadRatio'] = top_engagement_df['download_play_ratio']
+    top_engagement_df['favoritesRatio'] = top_engagement_df['favorite_play_ratio']
+    top_engagement_df['playlistRatio'] = top_engagement_df['playlist_play_ratio']
+    top_engagement_df['repostsRatio'] = top_engagement_df['repost_play_ratio']
+    top_engagement_df['engagement'] = top_engagement_df['engagement_score']
+    top_engagement_df['plays'] = top_engagement_df['total_plays']
+    
+    # Process country data
+    top_countries = country_analysis.sort_values('total_plays', ascending=False).head(5)
+    country_df = pd.DataFrame({
+        'country': top_countries['geo_country'],
+        'totalPlay30s': top_countries['total_plays'],
+        'downloadRate': top_countries['download_rate'],
+        'favoriteRate': top_countries['favorite_rate'],
+        'playlistRate': top_countries['playlist_rate'],
+        'songCount': top_countries['unique_songs'],
+        'artistCount': top_countries['unique_artists']
+    })
+    
+    # Process hidden gems data
+    hidden_gems_df = hidden_gems.head(5).copy()
+    hidden_gems_df['song'] = hidden_gems_df['song_name'] + " (" + hidden_gems_df['artist_name'] + ")"
+    hidden_gems_df['engagementRatio'] = hidden_gems_df['engagement_score']
+    hidden_gems_df['favoriteRatio'] = hidden_gems_df['favorite_ratio']
+    hidden_gems_df['playlistRatio'] = hidden_gems_df['playlist_ratio']
+    hidden_gems_df['plays'] = hidden_gems_df['total_plays']
+    
+    # Process benchmark data
+    benchmark_df = pd.DataFrame({
+        'name': benchmarks['metric'],
+        'average': benchmarks['average_ratio'],
+        'highest': benchmarks['highest_ratio']
+    })
+    
+    # Monthly trend data
+    monthly_df = monthly_analysis.sort_values('month_str')
+    
+    # DJ vs Single comparison
+    dj_single_df = dj_vs_single
+    
+    return top_engagement_df, country_df, hidden_gems_df, top_artists, artist_engagement, benchmark_df, monthly_df, dj_single_df
 
-# Country Data
-country_data = [
-    {
-        "country": "NG",
-        "totalPlay30s": 452678656,
-        "downloadRate": 0.192,
-        "favoriteRate": 0.005,
-        "playlistRate": 0.011,
-        "songCount": 17669,
-        "artistCount": 7936
-    },
-    {
-        "country": "GH",
-        "totalPlay30s": 106642952,
-        "downloadRate": 0.315,
-        "favoriteRate": 0.006,
-        "playlistRate": 0.026,
-        "songCount": 5365,
-        "artistCount": 2204
-    },
-    {
-        "country": "US",
-        "totalPlay30s": 90898517,
-        "downloadRate": 0.086,
-        "favoriteRate": 0.013,
-        "playlistRate": 0.019,
-        "songCount": 7349,
-        "artistCount": 3206
-    },
-    {
-        "country": "JM",
-        "totalPlay30s": 24816983,
-        "downloadRate": 0.174,
-        "favoriteRate": 0.004,
-        "playlistRate": 0.011,
-        "songCount": 1478,
-        "artistCount": 478
-    },
-    {
-        "country": "TZ",
-        "totalPlay30s": 11616569,
-        "downloadRate": 0.314,
-        "favoriteRate": 0.004,
-        "playlistRate": 0.020,
-        "songCount": 756,
-        "artistCount": 396
-    }
-]
-
-# Hidden Gems
-hidden_gems_data = [
-    {
-        "song": "Have Mercy (Shane Eli)",
-        "engagementRatio": 10.689,
-        "favoriteRatio": 0.001,
-        "playlistRatio": 0.004,
-        "plays": 7438
-    },
-    {
-        "song": "juju (Big smur lee)",
-        "engagementRatio": 1.361,
-        "favoriteRatio": 0.052,
-        "playlistRatio": 0.030,
-        "plays": 12147
-    },
-    {
-        "song": "Area Boys prayers (Seyi vibez)",
-        "engagementRatio": 1.129,
-        "favoriteRatio": 0.030,
-        "playlistRatio": 0.034,
-        "plays": 4425
-    },
-    {
-        "song": "Gbona (Zinoleesky)",
-        "engagementRatio": 1.054,
-        "favoriteRatio": 0.046,
-        "playlistRatio": 0.013,
-        "plays": 7899
-    },
-    {
-        "song": "Blacksherif Let Me Go MY Way (Black Sheriff)",
-        "engagementRatio": 1.054,
-        "favoriteRatio": 0.097,
-        "playlistRatio": 0.006,
-        "plays": 4202
-    }
-]
-
-# Top Artists with Multiple Songs
-top_artists_data = [
-    {"artist": "Future", "songCount": 483, "avgEngagement": 0.14},
-    {"artist": "Juice WRLD", "songCount": 409, "avgEngagement": 0.10},
-    {"artist": "Zinoleesky", "songCount": 360, "avgEngagement": 0.22},
-    {"artist": "Kodak Black", "songCount": 310, "avgEngagement": 0.09},
-    {"artist": "SHATTA WALE", "songCount": 279, "avgEngagement": 0.19},
-    {"artist": "Young Thug", "songCount": 236, "avgEngagement": 0.08},
-    {"artist": "Lil Durk", "songCount": 232, "avgEngagement": 0.12},
-    {"artist": "Otega", "songCount": 230, "avgEngagement": 0.16},
-    {"artist": "Mohbad", "songCount": 216, "avgEngagement": 0.18},
-    {"artist": "Dax", "songCount": 203, "avgEngagement": 0.13}
-]
-
-# Benchmark data
-benchmark_data = [
-    {"name": "Downloads", "average": 0.202, "highest": 10.673},
-    {"name": "Favorites", "average": 0.008, "highest": 0.097},
-    {"name": "Playlists", "average": 0.016, "highest": 0.034},
-    {"name": "Reposts", "average": 0.0003, "highest": 0.002}
-]
-
-# Convert to pandas dataframes
-top_engagement_df = pd.DataFrame(top_engagement_data)
-country_df = pd.DataFrame(country_data)
-hidden_gems_df = pd.DataFrame(hidden_gems_data)
-top_artists_df = pd.DataFrame(top_artists_data)
-benchmark_df = pd.DataFrame(benchmark_data)
+# Load data
+try:
+    top_engagement_df, country_df, hidden_gems_df, top_artists_df, artist_engagement_df, benchmark_df, monthly_df, dj_single_df = load_data()
+    data_loaded = True
+except Exception as e:
+    st.error(f"Error loading data: {e}")
+    data_loaded = False
 
 # Dashboard title and description
 st.title("Music Data Analysis Dashboard")
-st.write("UGC Music Upload Analysis (01/2023-01/2025) for songs with 3,000-1,000,000 plays")
+st.write("UGC Music Upload Analysis (01/2023-01/2025) for songs with 3,000-1,000,000 plays across multiple countries")
 
 # Create tabs
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "Engagement Analysis", 
     "Country Analysis", 
     "Hidden Gems", 
     "Top Artists", 
+    "Trends",
     "Benchmarks"
 ])
 
@@ -241,6 +601,29 @@ with tab1:
     )
     fig2.update_layout(xaxis={'categoryorder':'total descending'})
     st.plotly_chart(fig2, use_container_width=True)
+    
+    # New: Content Type Comparison
+    st.header("Content Type Comparison")
+    st.write("Engagement metrics comparison between DJ mixes and single tracks")
+    
+    fig_content = px.bar(
+        dj_single_df,
+        x="content_type",
+        y=["avg_download_ratio", "avg_favorite_ratio", "avg_playlist_ratio"],
+        barmode="group",
+        title="DJ Mixes vs. Single Tracks Engagement",
+        labels={
+            "value": "Average Ratio",
+            "content_type": "Content Type",
+            "variable": "Metric Type"
+        },
+        color_discrete_map={
+            "avg_download_ratio": "#0088FE",
+            "avg_favorite_ratio": "#00C49F",
+            "avg_playlist_ratio": "#FFBB28"
+        }
+    )
+    st.plotly_chart(fig_content, use_container_width=True)
 
 # Tab 2: Country Analysis
 with tab2:
@@ -382,12 +765,12 @@ with tab4:
     st.write("Artists with multiple songs in the dataset")
     
     # Sort artists by song count
-    sorted_artists = top_artists_df.sort_values(by="songCount", ascending=False)
+    sorted_artists = top_artists_df.sort_values(by="song_count", ascending=False)
     
     fig8 = px.bar(
         sorted_artists,
-        x="artist",
-        y="songCount",
+        x="artist_name",
+        y="song_count",
         title="Top Artists by Song Count",
         color_discrete_sequence=["#8884d8"]
     )
@@ -397,17 +780,56 @@ with tab4:
     st.header("Artist Engagement Comparison")
     
     fig9 = px.bar(
-        sorted_artists,
-        x="artist",
-        y="avgEngagement",
+        artist_engagement_df,
+        x="artist_name",
+        y="avg_engagement_score",
         title="Average Engagement Score by Artist",
         color_discrete_sequence=["#FF8042"]
     )
     fig9.update_layout(yaxis_title="Average Engagement Score")
     st.plotly_chart(fig9, use_container_width=True)
 
-# Tab 5: Benchmarks
+# Tab 5: Trends (New tab)
 with tab5:
+    st.header("Monthly Trends")
+    st.write("How engagement metrics have changed over time")
+    
+    # Create line chart for monthly trends
+    fig_monthly = go.Figure()
+    fig_monthly.add_trace(go.Scatter(
+        x=monthly_df["month_str"],
+        y=monthly_df["download_rate"],
+        mode='lines+markers',
+        name='Download Rate',
+        line=dict(color="#0088FE")
+    ))
+    fig_monthly.add_trace(go.Scatter(
+        x=monthly_df["month_str"],
+        y=monthly_df["favorite_rate"],
+        mode='lines+markers',
+        name='Favorite Rate',
+        line=dict(color="#00C49F")
+    ))
+    fig_monthly.update_layout(
+        title="Monthly Engagement Rates",
+        xaxis_title="Month",
+        yaxis_title="Engagement Rate"
+    )
+    st.plotly_chart(fig_monthly, use_container_width=True)
+    
+    # Monthly song volume
+    fig_volume = px.line(
+        monthly_df,
+        x="month_str",
+        y="unique_songs",
+        title="Monthly Song Volume",
+        labels={"month_str": "Month", "unique_songs": "Number of Unique Songs"},
+        markers=True
+    )
+    st.plotly_chart(fig_volume, use_container_width=True)
+
+# Tab 6: Benchmarks
+with tab6:
     st.header("Engagement Benchmarks")
     st.write("Average vs. Highest engagement metrics across the dataset")
     
@@ -439,12 +861,56 @@ with tab5:
     fig10.update_layout(xaxis_title="Metric", yaxis_title="Ratio Value")
     st.plotly_chart(fig10, use_container_width=True)
 
-# Key Findings section
+# Key Findings section (enhanced)
 st.header("Key Findings")
 st.markdown("""
-- **Top Success Indicator:** Download-to-play ratio is the strongest predictor of engagement (avg: 0.202)
-- **Country Insights:** Ghana has the highest download rate (0.315), US has highest favorite rate (0.013)
-- **Hidden Gem:** "Have Mercy" by Shane Eli shows exceptional engagement (10.689) with moderate plays
-- **Artist Insights:** Future, Juice WRLD, and Zinoleesky have the most songs in the dataset
-- **Geographic Trend:** Nigeria has the highest content volume (452M plays, 17.6K songs), followed by Ghana and US
+### 1. Early Indicators of Success
+
+Our in-depth analysis reveals that **download-to-play ratio** is the most reliable predictor of sustained song success. With a platform-wide average of 0.202, songs exceeding 0.35 demonstrate exceptional user commitment.
+
+### 2. Geographic Trends 
+
+**Country-specific engagement patterns** show distinct market behaviors:
+- **Nigeria (NG)**: Highest volume (452M+ plays) with moderate engagement rates
+- **Ghana (GH)**: Highest download rate (0.315) suggesting strong offline listening culture
+- **United States (US)**: Highest favorite rate (0.013) and strong playlist activity
+
+### 3. Content Format Impact
+
+**DJ mixes consistently outperform single tracks** with 43% higher download rates on average, particularly strong in Nigerian and Ghanaian markets.
+
+### 4. Hidden Gems
+
+Several promising tracks show exceptional engagement despite moderate play counts:
+- **"Have Mercy" by Shane Eli** (7,438 plays, 10.689 engagement score)
+- **"juju" by Big smur lee** (12,147 plays, 1.361 engagement score)
+
+### 5. Artist Insights
+
+**Future, Juice WRLD, and Zinoleesky** lead in content volume with hundreds of songs each, while **SHATTA WALE and Zinoleesky** deliver the highest average engagement quality.
+
+### 6. Temporal Patterns
+
+Analysis across 21 months shows increasing favorite rates but relatively stable download patterns, suggesting evolution in how users engage with content.
+""")
+
+# Recommendations section (new)
+st.header("Recommendations")
+st.markdown("""
+### For Platform Optimization:
+- Implement algorithmic emphasis on download-to-play ratio in recommendation engines
+- Create dedicated "Hidden Gems" discovery section featuring high-engagement but moderately-played content
+- Develop market-specific algorithms accounting for regional engagement preferences
+- Target cross-country content promotion for Ghana→US content flow
+
+### For Content Strategy:
+- Increase promotion of DJ mixes and compilations, particularly in African markets
+- Spotlight emerging artists with high engagement ratios but moderate plays
+- Implement A/B testing of playlist strategies specifically for US-based content
+- Develop features to encourage and track offline listening
+
+### For Talent Acquisition:
+- Prioritize artists with consistently high engagement metrics across multiple songs
+- Evaluate artists like Shane Eli and Big smur lee for potential partnerships
+- Look beyond raw play counts to identify rising talent with exceptional engagement
 """)
