@@ -453,15 +453,11 @@
 
 
 
-
-
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import os
 
 # Set page configuration
 st.set_page_config(
@@ -530,12 +526,7 @@ def load_data():
     return top_engagement_df, country_df, hidden_gems_df, top_artists, artist_engagement, benchmark_df, monthly_df, dj_single_df
 
 # Load data
-try:
-    top_engagement_df, country_df, hidden_gems_df, top_artists_df, artist_engagement_df, benchmark_df, monthly_df, dj_single_df = load_data()
-    data_loaded = True
-except Exception as e:
-    st.error(f"Error loading data: {e}")
-    data_loaded = False
+top_engagement_df, country_df, hidden_gems_df, top_artists_df, artist_engagement_df, benchmark_df, monthly_df, dj_single_df = load_data()
 
 # Dashboard title and description
 st.title("Music Data Analysis Dashboard")
@@ -554,9 +545,6 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 # Tab 1: Engagement Analysis
 with tab1:
     st.header("Top Songs by Engagement Score")
-    st.write("Engagement score combines download, favorite, playlist, and repost ratios")
-    
-    # Create the engagement score chart
     fig1 = px.bar(
         top_engagement_df,
         x="song",
@@ -568,18 +556,13 @@ with tab1:
     fig1.update_layout(xaxis={'categoryorder':'total descending'})
     st.plotly_chart(fig1, use_container_width=True)
     
-    # Create the metrics breakdown chart
     st.header("Engagement Metrics Breakdown")
-    st.write("Detailed breakdown of different engagement metrics for top performers")
-    
     metrics_df = top_engagement_df.melt(
         id_vars=["song"],
         value_vars=["downloadRatio", "favoritesRatio", "playlistRatio"],
         var_name="Metric",
         value_name="Value"
     )
-    
-    # Replace metric names for better readability
     metrics_df["Metric"] = metrics_df["Metric"].map({
         "downloadRatio": "Download Ratio",
         "favoritesRatio": "Favorites Ratio",
@@ -601,316 +584,3 @@ with tab1:
     )
     fig2.update_layout(xaxis={'categoryorder':'total descending'})
     st.plotly_chart(fig2, use_container_width=True)
-    
-    # New: Content Type Comparison
-    st.header("Content Type Comparison")
-    st.write("Engagement metrics comparison between DJ mixes and single tracks")
-    
-    fig_content = px.bar(
-        dj_single_df,
-        x="content_type",
-        y=["avg_download_ratio", "avg_favorite_ratio", "avg_playlist_ratio"],
-        barmode="group",
-        title="DJ Mixes vs. Single Tracks Engagement",
-        labels={
-            "value": "Average Ratio",
-            "content_type": "Content Type",
-            "variable": "Metric Type"
-        },
-        color_discrete_map={
-            "avg_download_ratio": "#0088FE",
-            "avg_favorite_ratio": "#00C49F",
-            "avg_playlist_ratio": "#FFBB28"
-        }
-    )
-    st.plotly_chart(fig_content, use_container_width=True)
-
-# Tab 2: Country Analysis
-with tab2:
-    st.header("Country Play Distribution")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        # Create the pie chart for play distribution
-        fig3 = px.pie(
-            country_df,
-            values="totalPlay30s",
-            names="country",
-            title="Total Plays by Country",
-            color_discrete_sequence=px.colors.qualitative.Set3
-        )
-        fig3.update_traces(textposition='inside', textinfo='percent+label')
-        st.plotly_chart(fig3, use_container_width=True)
-    
-    with col2:
-        # Create the bar chart for engagement rates by country
-        fig4 = go.Figure()
-        fig4.add_trace(go.Bar(
-            x=country_df["country"],
-            y=country_df["downloadRate"],
-            name="Download Rate",
-            marker_color="#0088FE"
-        ))
-        fig4.add_trace(go.Bar(
-            x=country_df["country"],
-            y=country_df["favoriteRate"],
-            name="Favorite Rate",
-            marker_color="#00C49F"
-        ))
-        fig4.add_trace(go.Bar(
-            x=country_df["country"],
-            y=country_df["playlistRate"],
-            name="Playlist Rate",
-            marker_color="#FFBB28"
-        ))
-        fig4.update_layout(
-            title="Engagement Rates by Country",
-            barmode="group"
-        )
-        st.plotly_chart(fig4, use_container_width=True)
-    
-    # Create the song & artist distribution chart
-    st.header("Song & Artist Distribution by Country")
-    
-    fig5 = go.Figure()
-    fig5.add_trace(go.Bar(
-        x=country_df["country"],
-        y=country_df["songCount"],
-        name="Number of Songs",
-        marker_color="#8884d8"
-    ))
-    fig5.add_trace(go.Bar(
-        x=country_df["country"],
-        y=country_df["artistCount"],
-        name="Number of Artists",
-        marker_color="#82ca9d"
-    ))
-    fig5.update_layout(
-        title="Song & Artist Distribution by Country",
-        barmode="group"
-    )
-    st.plotly_chart(fig5, use_container_width=True)
-
-# Tab 3: Hidden Gems
-with tab3:
-    st.header("Hidden Gems (High Engagement, Moderate Plays)")
-    st.write("Songs with exceptional engagement metrics that haven't yet reached massive play counts")
-    
-    # Create dual axis chart for hidden gems
-    fig6 = make_subplots(specs=[[{"secondary_y": True}]])
-    
-    fig6.add_trace(
-        go.Bar(
-            x=hidden_gems_df["song"],
-            y=hidden_gems_df["engagementRatio"],
-            name="Engagement Ratio",
-            marker_color="#8884d8"
-        ),
-        secondary_y=False
-    )
-    
-    fig6.add_trace(
-        go.Bar(
-            x=hidden_gems_df["song"],
-            y=hidden_gems_df["plays"],
-            name="Total Plays (30s+)",
-            marker_color="#82ca9d"
-        ),
-        secondary_y=True
-    )
-    
-    fig6.update_layout(
-        title_text="Hidden Gems: Engagement vs Plays",
-        xaxis=dict(title="Song")
-    )
-    
-    fig6.update_yaxes(title_text="Engagement Ratio", secondary_y=False)
-    fig6.update_yaxes(title_text="Total Plays", secondary_y=True)
-    
-    st.plotly_chart(fig6, use_container_width=True)
-    
-    # Create the engagement breakdown for hidden gems
-    st.header("Hidden Gems Engagement Breakdown")
-    
-    metrics_df2 = hidden_gems_df.melt(
-        id_vars=["song"],
-        value_vars=["favoriteRatio", "playlistRatio"],
-        var_name="Metric",
-        value_name="Value"
-    )
-    
-    metrics_df2["Metric"] = metrics_df2["Metric"].map({
-        "favoriteRatio": "Favorite Ratio",
-        "playlistRatio": "Playlist Ratio"
-    })
-    
-    fig7 = px.bar(
-        metrics_df2,
-        x="song",
-        y="Value",
-        color="Metric",
-        barmode="group",
-        title="Engagement Metrics Breakdown for Hidden Gems",
-        color_discrete_map={
-            "Favorite Ratio": "#00C49F",
-            "Playlist Ratio": "#FFBB28"
-        }
-    )
-    st.plotly_chart(fig7, use_container_width=True)
-
-# Tab 4: Top Artists
-with tab4:
-    st.header("Top Artists by Song Count")
-    st.write("Artists with multiple songs in the dataset")
-    
-    # Sort artists by song count
-    sorted_artists = top_artists_df.sort_values(by="song_count", ascending=False)
-    
-    fig8 = px.bar(
-        sorted_artists,
-        x="artist_name",
-        y="song_count",
-        title="Top Artists by Song Count",
-        color_discrete_sequence=["#8884d8"]
-    )
-    st.plotly_chart(fig8, use_container_width=True)
-    
-    # Create the artist engagement comparison
-    st.header("Artist Engagement Comparison")
-    
-    fig9 = px.bar(
-        artist_engagement_df,
-        x="artist_name",
-        y="avg_engagement_score",
-        title="Average Engagement Score by Artist",
-        color_discrete_sequence=["#FF8042"]
-    )
-    fig9.update_layout(yaxis_title="Average Engagement Score")
-    st.plotly_chart(fig9, use_container_width=True)
-
-# Tab 5: Trends (New tab)
-with tab5:
-    st.header("Monthly Trends")
-    st.write("How engagement metrics have changed over time")
-    
-    # Create line chart for monthly trends
-    fig_monthly = go.Figure()
-    fig_monthly.add_trace(go.Scatter(
-        x=monthly_df["month_str"],
-        y=monthly_df["download_rate"],
-        mode='lines+markers',
-        name='Download Rate',
-        line=dict(color="#0088FE")
-    ))
-    fig_monthly.add_trace(go.Scatter(
-        x=monthly_df["month_str"],
-        y=monthly_df["favorite_rate"],
-        mode='lines+markers',
-        name='Favorite Rate',
-        line=dict(color="#00C49F")
-    ))
-    fig_monthly.update_layout(
-        title="Monthly Engagement Rates",
-        xaxis_title="Month",
-        yaxis_title="Engagement Rate"
-    )
-    st.plotly_chart(fig_monthly, use_container_width=True)
-    
-    # Monthly song volume
-    fig_volume = px.line(
-        monthly_df,
-        x="month_str",
-        y="unique_songs",
-        title="Monthly Song Volume",
-        labels={"month_str": "Month", "unique_songs": "Number of Unique Songs"},
-        markers=True
-    )
-    st.plotly_chart(fig_volume, use_container_width=True)
-
-# Tab 6: Benchmarks
-with tab6:
-    st.header("Engagement Benchmarks")
-    st.write("Average vs. Highest engagement metrics across the dataset")
-    
-    # Create the benchmark comparison chart
-    benchmark_melted = benchmark_df.melt(
-        id_vars=["name"],
-        value_vars=["average", "highest"],
-        var_name="Metric",
-        value_name="Value"
-    )
-    
-    benchmark_melted["Metric"] = benchmark_melted["Metric"].map({
-        "average": "Average Ratio",
-        "highest": "Highest Ratio"
-    })
-    
-    fig10 = px.bar(
-        benchmark_melted,
-        x="name",
-        y="Value",
-        color="Metric",
-        barmode="group",
-        title="Engagement Benchmarks: Average vs Highest",
-        color_discrete_map={
-            "Average Ratio": "#8884d8",
-            "Highest Ratio": "#82ca9d"
-        }
-    )
-    fig10.update_layout(xaxis_title="Metric", yaxis_title="Ratio Value")
-    st.plotly_chart(fig10, use_container_width=True)
-
-# Key Findings section (enhanced)
-st.header("Key Findings")
-st.markdown("""
-### 1. Early Indicators of Success
-
-Our in-depth analysis reveals that **download-to-play ratio** is the most reliable predictor of sustained song success. With a platform-wide average of 0.202, songs exceeding 0.35 demonstrate exceptional user commitment.
-
-### 2. Geographic Trends 
-
-**Country-specific engagement patterns** show distinct market behaviors:
-- **Nigeria (NG)**: Highest volume (452M+ plays) with moderate engagement rates
-- **Ghana (GH)**: Highest download rate (0.315) suggesting strong offline listening culture
-- **United States (US)**: Highest favorite rate (0.013) and strong playlist activity
-
-### 3. Content Format Impact
-
-**DJ mixes consistently outperform single tracks** with 43% higher download rates on average, particularly strong in Nigerian and Ghanaian markets.
-
-### 4. Hidden Gems
-
-Several promising tracks show exceptional engagement despite moderate play counts:
-- **"Have Mercy" by Shane Eli** (7,438 plays, 10.689 engagement score)
-- **"juju" by Big smur lee** (12,147 plays, 1.361 engagement score)
-
-### 5. Artist Insights
-
-**Future, Juice WRLD, and Zinoleesky** lead in content volume with hundreds of songs each, while **SHATTA WALE and Zinoleesky** deliver the highest average engagement quality.
-
-### 6. Temporal Patterns
-
-Analysis across 21 months shows increasing favorite rates but relatively stable download patterns, suggesting evolution in how users engage with content.
-""")
-
-# Recommendations section (new)
-st.header("Recommendations")
-st.markdown("""
-### For Platform Optimization:
-- Implement algorithmic emphasis on download-to-play ratio in recommendation engines
-- Create dedicated "Hidden Gems" discovery section featuring high-engagement but moderately-played content
-- Develop market-specific algorithms accounting for regional engagement preferences
-- Target cross-country content promotion for Ghana→US content flow
-
-### For Content Strategy:
-- Increase promotion of DJ mixes and compilations, particularly in African markets
-- Spotlight emerging artists with high engagement ratios but moderate plays
-- Implement A/B testing of playlist strategies specifically for US-based content
-- Develop features to encourage and track offline listening
-
-### For Talent Acquisition:
-- Prioritize artists with consistently high engagement metrics across multiple songs
-- Evaluate artists like Shane Eli and Big smur lee for potential partnerships
-- Look beyond raw play counts to identify rising talent with exceptional engagement
-""")
