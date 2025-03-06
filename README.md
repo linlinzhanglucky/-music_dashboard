@@ -9,5 +9,5 @@
   * Please see "SummaryReport.md": https://github.com/linlinzhanglucky/-music_dashboard/blob/main/SummaryReport.md
 
 * **SQL Queries (sql-queries):**
-  * All SQL files in SqlQueries/ folder: [https://github.com/linlinzhanglucky/-music_dashboard/tree/main/SqlQueries](https://github.com/linlinzhanglucky/-music_dashboard/tree/main/SqlQueries/newSQL)
+  * All SQL files in SqlQueries/ folder: https://github.com/linlinzhanglucky/-music_dashboard/tree/main/SqlQueries/newSQL
   * A comprehensive set of SQL queries that could be used to extract the insights from the music data. These queries are properly commented and organized by analysis objective.
