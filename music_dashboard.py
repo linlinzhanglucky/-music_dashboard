@@ -191,7 +191,7 @@ def load_scouting_tracker():
         raw_df = pd.read_csv(data)
         
         # Display raw data for debugging
-        if st.checkbox("Show raw data: https://docs.google.com/spreadsheets/d/1Hl9rBKPrQIcylijeLKPbpTMqnWWf1It0fWvu1jC5Wow/edit?gid=0#gid=0"):
+        if st.checkbox("Show raw data: https://docs.google.com/spreadsheets/d/1fkd2RMzHaUGsahUXB6_86dogYLruoHIpu9aThOo3cRY/edit?gid=0#gid=0"):
             st.write("Raw data from CSV:")
             st.dataframe(raw_df)
         
