@@ -167,183 +167,130 @@ st.sidebar.info(
     """
 )
 
-
 def load_scouting_tracker():
     """Function to display the A&R Scouting Tracker tab"""
-    
+
     st.header("A&R Scouting Tracker")
     st.write("View of Jordan and Jalen's AMD A&R scouting selections")
-    
+
     # Published CSV URL
-    # csv_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRtf5SfkX9mOZjzPrzmhjGBWbNVYAhhLnM4nGz_6jWzPDpPnDe-3vFjIwoXSIhbmHaHpr-rOasi8yUO/pub?output=csv"  #original 
-    csv_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2Q-L96f18C7C-EMCzIoCxR8bdphMkPNcpske5xGYzr6lmztcsqaJgmyTFmXHhu7mjrqvR8MsgfWJT/pub?output=csv" #mycopy
-    
+    csv_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2Q-L96f18C7C-EMCzIoCxR8bdphMkPNcpske5xGYzr6lmztcsqaJgmyTFmXHhu7mjrqvR8MsgfWJT/pub?output=csv"
+
     try:
         # Load data
         response = requests.get(csv_url)
-        
-        # Check if request was successful
+
         if response.status_code != 200:
             st.error(f"Failed to load data: Status code {response.status_code}")
             return
-            
-        # Parse CSV
+
         data = StringIO(response.text)
         raw_df = pd.read_csv(data)
-        
-        # Display raw data for debugging
+
+        # Debug: Show raw data
         if st.checkbox("Show raw data: https://docs.google.com/spreadsheets/d/1fkd2RMzHaUGsahUXB6_86dogYLruoHIpu9aThOo3cRY/edit?gid=0#gid=0"):
             st.write("Raw data from CSV:")
             st.dataframe(raw_df)
-        
-        # Clean up the data
-        # Find the header row (with "Date", "Artist Name", etc.)
+
+        # Find header row
         header_row = None
         for i, row in raw_df.iterrows():
             row_str = ' '.join([str(val) for val in row.values])
             if "Date" in row_str and "Artist Name" in row_str:
                 header_row = i
                 break
-        
+
         if header_row is None:
             st.error("Could not find the header row in the sheet")
             st.write("Available columns:", raw_df.columns.tolist())
             return
-            
-        # Get the real headers and data
+
         headers = raw_df.iloc[header_row].tolist()
-        
-        # Create a new dataframe with clean data
+
+        # Create clean dataframe
         clean_df = pd.DataFrame(columns=headers)
-        
-        # Add data rows
         for i in range(header_row + 1, len(raw_df)):
             row_data = raw_df.iloc[i].tolist()
-            # Only add if the row is not entirely empty
             if not all(pd.isna(val) or val == '' for val in row_data):
                 clean_df.loc[len(clean_df)] = row_data
-        
-        # Replace NaN with empty strings to avoid JSON errors
+
         clean_df = clean_df.fillna('')
-        
-        # Verify we have data
+
         if len(clean_df) == 0:
             st.warning("No data found after processing")
             return
-        
-        # Extract filter options, ensuring they're not empty
-        platform_options = []
-        if "On Platform" in clean_df.columns:
-            platform_options = [opt for opt in clean_df["On Platform"].unique() if opt]
-        
-        genre_options = []
-        if "Genre" in clean_df.columns:
-            genre_options = [opt for opt in clean_df["Genre"].unique() if opt]
-        
-        geo_options = []
-        if "Geo" in clean_df.columns:
-            geo_options = [opt for opt in clean_df["Geo"].unique() if opt]
-        
-        # Add filters
+
+        # Extract filter options
+        platform_options = [opt for opt in clean_df["On Platform"].unique() if "On Platform" in clean_df.columns and opt]
+        genre_options = [opt for opt in clean_df["Genre"].unique() if "Genre" in clean_df.columns and opt]
+        geo_options = [opt for opt in clean_df["Geo"].unique() if "Geo" in clean_df.columns and opt]
+        feed_partner_options = [opt for opt in clean_df["Feed Partner"].unique() if "Feed Partner" in clean_df.columns and opt]
+
+        # Display filters
         st.subheader("Filters")
-        
-        # Create 3 columns for filters
-        col1, col2, col3 = st.columns(3)
-        
-        # Filter by On Platform status
+        col1, col2, col3, col4 = st.columns(4)
+
         with col1:
-            if platform_options:
-                selected_platform = st.multiselect(
-                    "On Platform Status",
-                    options=platform_options,
-                    default=platform_options
-                )
-            else:
-                selected_platform = []
-        
-        # Filter by Genre
+            selected_platform = st.multiselect("On Platform Status", options=platform_options, default=platform_options)
+
         with col2:
-            if genre_options:
-                selected_genres = st.multiselect(
-                    "Genre",
-                    options=genre_options,
-                    default=genre_options
-                )
-            else:
-                selected_genres = []
-        
-        # Filter by Geography
+            selected_genres = st.multiselect("Genre", options=genre_options, default=genre_options)
+
         with col3:
-            if geo_options:
-                selected_geos = st.multiselect(
-                    "Geography",
-                    options=geo_options,
-                    default=geo_options
-                )
-            else:
-                selected_geos = []
-        
+            selected_geos = st.multiselect("Geography", options=geo_options, default=geo_options)
+
+        with col4:
+            selected_feed_partners = st.multiselect("Feed Partner", options=feed_partner_options, default=feed_partner_options)
+
         # Apply filters
         filtered_df = clean_df.copy()
-        
-        if "On Platform" in clean_df.columns and selected_platform:
+
+        if selected_platform:
             filtered_df = filtered_df[filtered_df["On Platform"].isin(selected_platform)]
-            
-        if "Genre" in clean_df.columns and selected_genres:
+        if selected_genres:
             filtered_df = filtered_df[filtered_df["Genre"].isin(selected_genres)]
-            
-        if "Geo" in clean_df.columns and selected_geos:
+        if selected_geos:
             filtered_df = filtered_df[filtered_df["Geo"].isin(selected_geos)]
-        
-        # Display the filtered data as text instead of dataframe to avoid JSON errors
+        if selected_feed_partners:
+            filtered_df = filtered_df[filtered_df["Feed Partner"].isin(selected_feed_partners)]
+
+        # Display scouting results
         st.subheader("Scouting Results")
-        
-        # Convert column names to actual columns
         column_names = filtered_df.columns.tolist()
-        
-        # Use a simpler approach to display data
+
         for i, row in filtered_df.iterrows():
             with st.expander(f"{row.get('Artist Name', '')} - {row.get('Song Name', '')}"):
                 for col in column_names:
                     if col in ["Artist Name", "Song Name"]:
-                        continue  # Already in the expander title
-                    
+                        continue
                     value = row.get(col, '')
-                    
-                    # Special handling for links
                     if col == "Social Media Link" and value:
                         st.markdown(f"**{col}:** [{value}]({value})")
                     else:
                         st.markdown(f"**{col}:** {value}")
-        
-        # Display analytics
+
+        # Analytics
         st.subheader("Analytics")
-        
-        # Key metrics
         met1, met2, met3 = st.columns(3)
-        
         met1.metric("Total Tracks", len(filtered_df))
-        
+
         if "Genre" in filtered_df.columns:
             genre_count = len([g for g in filtered_df["Genre"].unique() if g])
             met2.metric("Unique Genres", genre_count)
-            
+
         if "Geo" in filtered_df.columns:
             geo_count = len([g for g in filtered_df["Geo"].unique() if g])
             met3.metric("Countries", geo_count)
-        
+
         # Visualizations
-        # Only create if we have data to visualize
         if len(filtered_df) > 0:
             viz1, viz2 = st.columns(2)
-            
+
             with viz1:
                 if "Genre" in filtered_df.columns:
-                    # Get non-empty genres and their counts
                     genre_counts = filtered_df["Genre"].value_counts().reset_index()
                     genre_counts.columns = ["Genre", "Count"]
                     genre_counts = genre_counts[genre_counts["Genre"] != ""]
-                    
                     if not genre_counts.empty:
                         fig1 = px.pie(
                             genre_counts,
@@ -353,14 +300,12 @@ def load_scouting_tracker():
                             hole=0.4
                         )
                         st.plotly_chart(fig1, use_container_width=True)
-            
+
             with viz2:
                 if "Geo" in filtered_df.columns:
-                    # Get non-empty geos and their counts
                     geo_counts = filtered_df["Geo"].value_counts().reset_index()
                     geo_counts.columns = ["Geography", "Count"]
                     geo_counts = geo_counts[geo_counts["Geography"] != ""]
-                    
                     if not geo_counts.empty:
                         fig2 = px.bar(
                             geo_counts,
@@ -370,10 +315,219 @@ def load_scouting_tracker():
                             color="Count"
                         )
                         st.plotly_chart(fig2, use_container_width=True)
-    
+
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
-        st.exception(e)  # This will show the full traceback
+        st.exception(e)
+
+
+
+# def load_scouting_tracker():
+#     """Function to display the A&R Scouting Tracker tab"""
+    
+#     st.header("A&R Scouting Tracker")
+#     st.write("View of Jordan and Jalen's AMD A&R scouting selections")
+    
+#     # Published CSV URL
+#     # csv_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRtf5SfkX9mOZjzPrzmhjGBWbNVYAhhLnM4nGz_6jWzPDpPnDe-3vFjIwoXSIhbmHaHpr-rOasi8yUO/pub?output=csv"  #original 
+#     csv_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2Q-L96f18C7C-EMCzIoCxR8bdphMkPNcpske5xGYzr6lmztcsqaJgmyTFmXHhu7mjrqvR8MsgfWJT/pub?output=csv" #mycopy
+    
+#     try:
+#         # Load data
+#         response = requests.get(csv_url)
+        
+#         # Check if request was successful
+#         if response.status_code != 200:
+#             st.error(f"Failed to load data: Status code {response.status_code}")
+#             return
+            
+#         # Parse CSV
+#         data = StringIO(response.text)
+#         raw_df = pd.read_csv(data)
+        
+#         # Display raw data for debugging
+#         if st.checkbox("Show raw data: https://docs.google.com/spreadsheets/d/1fkd2RMzHaUGsahUXB6_86dogYLruoHIpu9aThOo3cRY/edit?gid=0#gid=0"):
+#             st.write("Raw data from CSV:")
+#             st.dataframe(raw_df)
+        
+#         # Clean up the data
+#         # Find the header row (with "Date", "Artist Name", etc.)
+#         header_row = None
+#         for i, row in raw_df.iterrows():
+#             row_str = ' '.join([str(val) for val in row.values])
+#             if "Date" in row_str and "Artist Name" in row_str:
+#                 header_row = i
+#                 break
+        
+#         if header_row is None:
+#             st.error("Could not find the header row in the sheet")
+#             st.write("Available columns:", raw_df.columns.tolist())
+#             return
+            
+#         # Get the real headers and data
+#         headers = raw_df.iloc[header_row].tolist()
+        
+#         # Create a new dataframe with clean data
+#         clean_df = pd.DataFrame(columns=headers)
+        
+#         # Add data rows
+#         for i in range(header_row + 1, len(raw_df)):
+#             row_data = raw_df.iloc[i].tolist()
+#             # Only add if the row is not entirely empty
+#             if not all(pd.isna(val) or val == '' for val in row_data):
+#                 clean_df.loc[len(clean_df)] = row_data
+        
+#         # Replace NaN with empty strings to avoid JSON errors
+#         clean_df = clean_df.fillna('')
+        
+#         # Verify we have data
+#         if len(clean_df) == 0:
+#             st.warning("No data found after processing")
+#             return
+        
+#         # Extract filter options, ensuring they're not empty
+#         platform_options = []
+#         if "On Platform" in clean_df.columns:
+#             platform_options = [opt for opt in clean_df["On Platform"].unique() if opt]
+        
+#         genre_options = []
+#         if "Genre" in clean_df.columns:
+#             genre_options = [opt for opt in clean_df["Genre"].unique() if opt]
+        
+#         geo_options = []
+#         if "Geo" in clean_df.columns:
+#             geo_options = [opt for opt in clean_df["Geo"].unique() if opt]
+        
+#         # Add filters
+#         st.subheader("Filters")
+        
+#         # Create 3 columns for filters
+#         col1, col2, col3 = st.columns(3)
+        
+#         # Filter by On Platform status
+#         with col1:
+#             if platform_options:
+#                 selected_platform = st.multiselect(
+#                     "On Platform Status",
+#                     options=platform_options,
+#                     default=platform_options
+#                 )
+#             else:
+#                 selected_platform = []
+        
+#         # Filter by Genre
+#         with col2:
+#             if genre_options:
+#                 selected_genres = st.multiselect(
+#                     "Genre",
+#                     options=genre_options,
+#                     default=genre_options
+#                 )
+#             else:
+#                 selected_genres = []
+        
+#         # Filter by Geography
+#         with col3:
+#             if geo_options:
+#                 selected_geos = st.multiselect(
+#                     "Geography",
+#                     options=geo_options,
+#                     default=geo_options
+#                 )
+#             else:
+#                 selected_geos = []
+        
+#         # Apply filters
+#         filtered_df = clean_df.copy()
+        
+#         if "On Platform" in clean_df.columns and selected_platform:
+#             filtered_df = filtered_df[filtered_df["On Platform"].isin(selected_platform)]
+            
+#         if "Genre" in clean_df.columns and selected_genres:
+#             filtered_df = filtered_df[filtered_df["Genre"].isin(selected_genres)]
+            
+#         if "Geo" in clean_df.columns and selected_geos:
+#             filtered_df = filtered_df[filtered_df["Geo"].isin(selected_geos)]
+        
+#         # Display the filtered data as text instead of dataframe to avoid JSON errors
+#         st.subheader("Scouting Results")
+        
+#         # Convert column names to actual columns
+#         column_names = filtered_df.columns.tolist()
+        
+#         # Use a simpler approach to display data
+#         for i, row in filtered_df.iterrows():
+#             with st.expander(f"{row.get('Artist Name', '')} - {row.get('Song Name', '')}"):
+#                 for col in column_names:
+#                     if col in ["Artist Name", "Song Name"]:
+#                         continue  # Already in the expander title
+                    
+#                     value = row.get(col, '')
+                    
+#                     # Special handling for links
+#                     if col == "Social Media Link" and value:
+#                         st.markdown(f"**{col}:** [{value}]({value})")
+#                     else:
+#                         st.markdown(f"**{col}:** {value}")
+        
+#         # Display analytics
+#         st.subheader("Analytics")
+        
+#         # Key metrics
+#         met1, met2, met3 = st.columns(3)
+        
+#         met1.metric("Total Tracks", len(filtered_df))
+        
+#         if "Genre" in filtered_df.columns:
+#             genre_count = len([g for g in filtered_df["Genre"].unique() if g])
+#             met2.metric("Unique Genres", genre_count)
+            
+#         if "Geo" in filtered_df.columns:
+#             geo_count = len([g for g in filtered_df["Geo"].unique() if g])
+#             met3.metric("Countries", geo_count)
+        
+#         # Visualizations
+#         # Only create if we have data to visualize
+#         if len(filtered_df) > 0:
+#             viz1, viz2 = st.columns(2)
+            
+#             with viz1:
+#                 if "Genre" in filtered_df.columns:
+#                     # Get non-empty genres and their counts
+#                     genre_counts = filtered_df["Genre"].value_counts().reset_index()
+#                     genre_counts.columns = ["Genre", "Count"]
+#                     genre_counts = genre_counts[genre_counts["Genre"] != ""]
+                    
+#                     if not genre_counts.empty:
+#                         fig1 = px.pie(
+#                             genre_counts,
+#                             values="Count",
+#                             names="Genre",
+#                             title="Genre Distribution",
+#                             hole=0.4
+#                         )
+#                         st.plotly_chart(fig1, use_container_width=True)
+            
+#             with viz2:
+#                 if "Geo" in filtered_df.columns:
+#                     # Get non-empty geos and their counts
+#                     geo_counts = filtered_df["Geo"].value_counts().reset_index()
+#                     geo_counts.columns = ["Geography", "Count"]
+#                     geo_counts = geo_counts[geo_counts["Geography"] != ""]
+                    
+#                     if not geo_counts.empty:
+#                         fig2 = px.bar(
+#                             geo_counts,
+#                             x="Geography",
+#                             y="Count",
+#                             title="Geographic Distribution",
+#                             color="Count"
+#                         )
+#                         st.plotly_chart(fig2, use_container_width=True)
+    
+#     except Exception as e:
+#         st.error(f"An error occurred: {str(e)}")
+#         st.exception(e)  # This will show the full traceback
 
 
 
