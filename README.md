@@ -15,7 +15,11 @@ Overview:
 * Event Types: Plays (30+ seconds), favorites, shares, downloads, playlist adds
 * Geographic Scope: Global data with country-specific breakdowns for Nigeria, Ghana, US, UK, and other key markets
 
-[Key Insights]:
+[ArtistRank Recommendations]:
+* 1. Bloody Civilian
+* 2. FAVE
+* 3. Khaid
+* 4. Odumodu Blvck
 
 
 # music_dashboard
