@@ -1,3 +1,21 @@
+#APR3
+* **Interactive Dashboard (music-dashboard):**
+  * https://musicdashboard.streamlit.app/
+
+**Intern - Weekly Report:**
+* **Week1 - Apr3**
+Detailed Analysis/Explanation: https://docs.google.com/document/d/1HUVM9YE0x0-w_aizbGGEnIJq1OWfQANks122s3nZwDw/edit?usp=sharing
+
+Overview:
+[Data Range and Collection]
+* Time Period: All metrics reflect the last 30 days (March 4 - April 3, 2025) compared against the previous 30 days (February 2 - March 3, 2025)
+* Data Sources: Audiomack platform events database (dw01.events and dw01.music tables)
+* Event Types: Plays (30+ seconds), favorites, shares, downloads, playlist adds
+* Geographic Scope: Global data with country-specific breakdowns for Nigeria, Ghana, US, UK, and other key markets
+
+[Key Insights]:
+
+
 # music_dashboard
 **Deliverables:**
 
