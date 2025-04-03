@@ -1,6 +1,7 @@
-# APR3
-* **Interactive Dashboard (music-dashboard):**
+# Interactive Dashboard (music-dashboard)
   * https://musicdashboard.streamlit.app/
+
+# APR3
 
 **Intern - Weekly Report:**
 * **Week1 - Apr3**
