@@ -5,6 +5,10 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 # from streamlit_gsheets import GSheetsConnection
 import json
+# for A&R
+import requests
+from io import StringIO
+
 
 # Set page configuration
 st.set_page_config(
@@ -1159,7 +1163,7 @@ def show_scouting_tracker():
             st.exception(e)
 
 # Call the function in your tab
-with tab7:  # Replace with your actual tab reference
+with tab7:  
     show_scouting_tracker()
 
 
