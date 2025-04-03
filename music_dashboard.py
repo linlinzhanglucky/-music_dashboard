@@ -177,8 +177,8 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "Geographic Insights", 
     "Growing Artists", 
     "Recommendations",
-    "A&R Scouting Tracker (JJ)",
-    "Methodology & Explanations"
+    "Methodology & Explanations",
+    "A&R Scouting Tracker (JJ)"
 ])
 
 # Tab 1: Overview
