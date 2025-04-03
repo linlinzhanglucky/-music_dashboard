@@ -986,136 +986,174 @@ ORDER BY
     """)
 
 
+# Code for the Scouting Tracker tab
 with tab7:
     st.header("A&R Scouting Tracker")
     st.write("View of Jordan and Jalen's AMD A&R scouting selections")
     
-    # Direct link to the published CSV version of the sheet
+    # Use the published CSV link provided
     csv_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2Q-L96f18C7C-EMCzIoCxR8bdphMkPNcpske5xGYzr6lmztcsqaJgmyTFmXHhu7mjrqvR8MsgfWJT/pub?output=csv"
     
-    # Load the data
+    # Load the data with better error handling
     @st.cache_data(ttl=300)  # Cache for 5 minutes
     def load_scouting_data():
         try:
-            df = pd.read_csv(csv_url)
-            return df
+            # Use requests to get the raw CSV data
+            response = requests.get(csv_url)
+            response.raise_for_status()  # Raise an exception for HTTP errors
+            
+            # Read CSV from the response content
+            data = StringIO(response.text)
+            df = pd.read_csv(data)
+            return df, None
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 401:
+                return None, "Error loading scouting data: HTTP Error 401: Unauthorized. Please check sheet permissions."
+            else:
+                return None, f"Error loading scouting data: {str(e)}"
         except Exception as e:
-            st.error(f"Error loading scouting data: {e}")
-            return pd.DataFrame()
+            return None, f"Error loading scouting data: {str(e)}"
     
-    scouting_df = load_scouting_data()
+    scouting_df, error_msg = load_scouting_data()
     
-    # Display a message if the sheet is not found or empty
-    if scouting_df.empty:
+    # Display error if any
+    if error_msg:
+        st.error(error_msg)
+        st.stop()
+    
+    # Display a message if the sheet is empty
+    if scouting_df is None or scouting_df.empty:
         st.warning("No data available in the scouting tracker")
-    else:
-        # Clean and prepare the data
-        # Skip header rows if needed (adjust based on your sheet structure)
-        if len(scouting_df) > 2:
-            # Assuming row 3 contains column headers and data starts from row 4
-            column_names = scouting_df.iloc[2].tolist()
-            scouting_df = scouting_df.iloc[3:].reset_index(drop=True)
-            scouting_df.columns = column_names
+        st.stop()
+    
+    # Clean and prepare the data
+    try:
+        # Make a copy to avoid modifying the cached data
+        df = scouting_df.copy()
         
-        # Filter out empty rows
-        scouting_df = scouting_df.dropna(how='all')
+        # Display the raw data for debugging
+        if st.checkbox("Show raw data"):
+            st.dataframe(df)
         
-        # Display filters
-        st.subheader("Filter Tracks")
+        # Clean the data - approach depends on the actual structure
+        # If the first row contains the actual headers (common with Google Sheets export)
+        if df.shape[0] > 0 and "Legend" in str(df.iloc[0].values):
+            # Find the row with column headers
+            header_row_idx = None
+            for i, row in df.iterrows():
+                if "Date" in str(row.values) and "Artist Name" in str(row.values):
+                    header_row_idx = i
+                    break
+            
+            if header_row_idx is not None:
+                # Set the correct headers and skip to the data
+                headers = df.iloc[header_row_idx].tolist()
+                df = df.iloc[header_row_idx+1:].reset_index(drop=True)
+                df.columns = headers
+            else:
+                # Fallback if we can't find the header row
+                st.warning("Could not identify the header row. Using default column names.")
         
-        # Genre filter
-        available_genres = scouting_df['Genre'].dropna().unique()
-        selected_genres = st.multiselect(
-            "Select Genres",
-            options=available_genres,
-            default=available_genres
-        )
+        # Drop completely empty rows
+        df = df.dropna(how='all')
         
-        # Geography filter
-        available_geos = scouting_df['Geo'].dropna().unique()
-        selected_geos = st.multiselect(
-            "Select Geographies",
-            options=available_geos,
-            default=available_geos
-        )
-        
-        # On Platform filter
-        platform_options = ['Y', 'N']
-        selected_platform = st.multiselect(
-            "On Audiomack Platform",
-            options=platform_options,
-            default=platform_options
-        )
-        
-        # Apply filters
-        filtered_df = scouting_df.copy()
-        
-        if selected_genres:
-            filtered_df = filtered_df[filtered_df['Genre'].isin(selected_genres)]
-        
-        if selected_geos:
-            filtered_df = filtered_df[filtered_df['Geo'].isin(selected_geos)]
-        
-        if selected_platform:
-            filtered_df = filtered_df[filtered_df['On Platform'].isin(selected_platform)]
-        
-        # Display the filtered data
+        # Display the processed data
         st.subheader("Scouting Results")
-        st.dataframe(
-            filtered_df,
-            use_container_width=True,
-            hide_index=True
-        )
+        
+        # Filter controls
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            if "Genre" in df.columns:
+                available_genres = [g for g in df["Genre"].dropna().unique() if g]
+                if available_genres:
+                    selected_genres = st.multiselect(
+                        "Filter by Genre",
+                        options=available_genres,
+                        default=available_genres
+                    )
+                    if selected_genres:
+                        df = df[df["Genre"].isin(selected_genres)]
+        
+        with col2:
+            if "Geo" in df.columns:
+                available_geos = [g for g in df["Geo"].dropna().unique() if g]
+                if available_geos:
+                    selected_geos = st.multiselect(
+                        "Filter by Geography",
+                        options=available_geos,
+                        default=available_geos
+                    )
+                    if selected_geos:
+                        df = df[df["Geo"].isin(selected_geos)]
+        
+        with col3:
+            if "On Platform" in df.columns:
+                available_platform = [p for p in df["On Platform"].dropna().unique() if p]
+                if available_platform:
+                    selected_platform = st.multiselect(
+                        "On Platform Status",
+                        options=available_platform,
+                        default=available_platform
+                    )
+                    if selected_platform:
+                        df = df[df["On Platform"].isin(selected_platform)]
+        
+        # Show the filtered data
+        st.dataframe(df, use_container_width=True)
         
         # Analytics
         st.subheader("Analytics")
         
-        col1, col2, col3 = st.columns(3)
+        metric_col1, metric_col2, metric_col3 = st.columns(3)
         
-        with col1:
-            st.metric("Total Tracks Scouted", len(filtered_df))
+        with metric_col1:
+            st.metric("Total Tracks", len(df))
         
-        with col2:
-            if 'Genre' in filtered_df.columns:
-                genre_count = filtered_df['Genre'].nunique()
-                st.metric("Unique Genres", genre_count)
+        with metric_col2:
+            if "Genre" in df.columns:
+                st.metric("Unique Genres", df["Genre"].nunique())
         
-        with col3:
-            if 'Geo' in filtered_df.columns:
-                geo_count = filtered_df['Geo'].nunique()
-                st.metric("Geographic Regions", geo_count)
+        with metric_col3:
+            if "Geo" in df.columns:
+                st.metric("Geographic Regions", df["Geo"].nunique())
         
         # Visualizations
-        col1, col2 = st.columns(2)
+        viz_col1, viz_col2 = st.columns(2)
         
-        with col1:
-            if 'Genre' in filtered_df.columns and not filtered_df['Genre'].isna().all():
-                genre_counts = filtered_df['Genre'].value_counts().reset_index()
-                genre_counts.columns = ['Genre', 'Count']
+        with viz_col1:
+            if "Genre" in df.columns and not df["Genre"].isna().all():
+                genre_counts = df["Genre"].value_counts().reset_index()
+                genre_counts.columns = ["Genre", "Count"]
                 
-                fig = px.pie(
+                fig1 = px.pie(
                     genre_counts,
-                    values='Count',
-                    names='Genre',
+                    values="Count",
+                    names="Genre",
                     title="Genre Distribution",
                     hole=0.4
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig1, use_container_width=True)
         
-        with col2:
-            if 'Geo' in filtered_df.columns and not filtered_df['Geo'].isna().all():
-                geo_counts = filtered_df['Geo'].value_counts().reset_index()
-                geo_counts.columns = ['Geography', 'Count']
+        with viz_col2:
+            if "Geo" in df.columns and not df["Geo"].isna().all():
+                geo_counts = df["Geo"].value_counts().reset_index()
+                geo_counts.columns = ["Geography", "Count"]
                 
-                fig = px.bar(
+                fig2 = px.bar(
                     geo_counts,
-                    x='Geography',
-                    y='Count',
+                    x="Geography",
+                    y="Count",
                     title="Geographic Distribution",
-                    color='Count'
+                    color="Count"
                 )
-                st.plotly_chart(fig, use_container_width=True)
-
+                st.plotly_chart(fig2, use_container_width=True)
+    
+    except Exception as e:
+        st.error(f"Error processing data: {str(e)}")
+        st.write("Please check the structure of your Google Sheet and make sure it matches the expected format.")
+        if st.checkbox("Show exception details"):
+            st.exception(e)
 
 
 
