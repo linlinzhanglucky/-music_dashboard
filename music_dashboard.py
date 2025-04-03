@@ -991,7 +991,7 @@ with tab7:
     st.write("View of Jordan and Jalen's AMD A&R scouting selections")
     
     # Direct link to the published CSV version of the sheet
-    csv_url = "https://docs.google.com/spreadsheets/d/1fkd2RMzHaUGsahUXB6_86dogYLruoHIpu9aThOo3cRY/export?format=csv"
+    csv_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRtf5SfkX9mOZjzPrzmhjGBWbNVYAhhLnM4nGz_6jWzPDpPnDe-3vFjIwoXSIhbmHaHpr-rOasi8yUO/pub?output=csv"
     
     # Load the data
     @st.cache_data(ttl=300)  # Cache for 5 minutes
