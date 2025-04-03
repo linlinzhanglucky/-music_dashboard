@@ -130,11 +130,11 @@ except Exception as e:
 
 # Dashboard title and description
 st.title("🎵 Audiomack ArtistRank Dashboard")
-st.write("Analysis dashboard for the ArtistRank tool development - Week 1")
-st.write("Time Period: All metrics reflect the last 30 days (March 4 - April 3, 2025) compared against the previous 30 days (February 2 - March 3, 2025)")
-st.write("Data Sources: Audiomack platform events database (dw01.events and dw01.music tables)")
-st.write("Event Types: Plays (30+ seconds), favorites, shares, downloads, playlist adds")
-st.write("Geographic Scope: Global data with country-specific breakdowns for Nigeria, Ghana, US, UK, and other key markets")
+st.write("Analysis dashboard for the ArtistRank tool development - Week 1") 
+# st.write("Time Period: All metrics reflect the last 30 days (March 4 - April 3, 2025) compared against the previous 30 days (February 2 - March 3, 2025)")
+# st.write("Data Sources: Audiomack platform events database (dw01.events and dw01.music tables)")
+# st.write("Event Types: Plays (30+ seconds), favorites, shares, downloads, playlist adds")
+# st.write("Geographic Scope: Global data with country-specific breakdowns for Nigeria, Ghana, US, UK, and other key markets")
 
 # Create sidebar for filtering
 st.sidebar.header("Filters")
