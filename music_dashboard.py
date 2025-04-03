@@ -978,7 +978,8 @@ ORDER BY
 # Footer
 st.markdown("---")
 st.caption("Audiomack ArtistRank Dashboard | Last updated: April 3, 2025")
-st.caption("Created by LinLin for Audiomack Internship Program")
+st.caption("Made with ❤️ by LinLin for Audiomack Internship Program")
+st.caption("Supervisor: Jacob & Ryan; A&R Researcher: Jalen & Jordan")
 
 # import streamlit as st
 # import pandas as pd
