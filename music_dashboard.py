@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -690,6 +689,8 @@ ORDER BY
     artist_momentum_score DESC
 LIMIT 100;
     ''', language='sql')
+
+
     
     # Next steps for ArtistRank development
     st.subheader("Next Steps for ArtistRank Development")
