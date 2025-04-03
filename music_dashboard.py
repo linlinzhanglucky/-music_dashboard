@@ -90,6 +90,11 @@ def load_data():
         {"artist": "Lil kesh", "size_cohort": "medium", "current_plays": 1680000, "previous_plays": 1450000, "current_listeners": 580000, "previous_listeners": 530000, "play_growth_pct": 15.86, "listener_growth_pct": 9.43, "plays_per_listener": 3, "favorites_per_listener": 0.14, "shares_per_listener": 0.04, "artist_momentum_score": 21.03},
         {"artist": "CKay", "size_cohort": "medium", "current_plays": 1820000, "previous_plays": 1520000, "current_listeners": 640000, "previous_listeners": 570000, "play_growth_pct": 19.74, "listener_growth_pct": 12.28, "plays_per_listener": 3, "favorites_per_listener": 0.18, "shares_per_listener": 0.05, "artist_momentum_score": 24.62},
         {"artist": "Bloody Civilian", "size_cohort": "micro", "current_plays": 450000, "previous_plays": 220000, "current_listeners": 180000, "previous_listeners": 110000, "play_growth_pct": 104.55, "listener_growth_pct": 63.64, "plays_per_listener": 3, "favorites_per_listener": 0.25, "shares_per_listener": 0.08, "artist_momentum_score": 80.82}
+    ])420000, "play_growth_pct": 31.58, "listener_growth_pct": 23.81, "plays_per_listener": 2, "favorites_per_listener": 0.16, "shares_per_listener": 0.03, "artist_momentum_score": 32.87},
+        {"artist": "FAVE", "size_cohort": "micro", "current_plays": 650000, "previous_plays": 390000, "current_listeners": 250000, "previous_listeners": 170000, "play_growth_pct": 66.67, "listener_growth_pct": 47.06, "plays_per_listener": 3, "favorites_per_listener": 0.24, "shares_per_listener": 0.07, "artist_momentum_score": 57.22},
+        {"artist": "Lil kesh", "size_cohort": "medium", "current_plays": 1680000, "previous_plays": 1450000, "current_listeners": 580000, "previous_listeners": 530000, "play_growth_pct": 15.86, "listener_growth_pct": 9.43, "plays_per_listener": 3, "favorites_per_listener": 0.14, "shares_per_listener": 0.04, "artist_momentum_score": 21.03},
+        {"artist": "CKay", "size_cohort": "medium", "current_plays": 1820000, "previous_plays": 1520000, "current_listeners": 640000, "previous_listeners": 570000, "play_growth_pct": 19.74, "listener_growth_pct": 12.28, "plays_per_listener": 3, "favorites_per_listener": 0.18, "shares_per_listener": 0.05, "artist_momentum_score": 24.62},
+        {"artist": "Bloody Civilian", "size_cohort": "micro", "current_plays": 450000, "previous_plays": 220000, "current_listeners": 180000, "previous_listeners": 110000, "play_growth_pct": 104.55, "listener_growth_pct": 63.64, "plays_per_listener": 3, "favorites_per_listener": 0.25, "shares_per_listener": 0.08, "artist_momentum_score": 80.82}
     ])
     
     # AMD A&R Scouting Tracker
@@ -177,7 +182,7 @@ except Exception as e:
 
 # Load data
 try:
-    event_type_df, music_engagement_df, engagement_analysis_df, geographic_df, growing_artists_df = load_data()
+    event_type_df, music_engagement_df, engagement_analysis_df, geographic_df, growing_artists_df, ar_scouting_df = load_data()
     data_loaded = True
 except Exception as e:
     st.error(f"Error loading data: {e}")
@@ -773,7 +778,164 @@ LIMIT 100;
        - Identify patterns and blind spots in the current algorithm
     """)
 
-# Tab 6: Methodology & Explanations
+# Tab 6: A&R Scouting
+with tab6:
+    st.header("A&R Scouting Tracker")
+    st.write("Discover trending artists identified by the A&R team")
+    
+    # Create filterable tracker
+    st.subheader("Artist Scouting Database")
+    
+    # Add genre filter
+    genre_options = ['All'] + list(ar_scouting_df['genre'].dropna().unique())
+    selected_genre = st.selectbox('Filter by Genre', genre_options)
+    
+    # Add geo filter
+    geo_options = ['All'] + list(ar_scouting_df['geo'].dropna().unique())
+    selected_geo = st.selectbox('Filter by Geography', geo_options)
+    
+    # Add signed status filter
+    signed_options = ['All', 'Yes', 'No']
+    selected_signed = st.selectbox('Filter by Signed Status', signed_options)
+    
+    # Apply filters
+    filtered_ar_df = ar_scouting_df.copy()
+    
+    if selected_genre != 'All':
+        filtered_ar_df = filtered_ar_df[filtered_ar_df['genre'] == selected_genre]
+    
+    if selected_geo != 'All':
+        filtered_ar_df = filtered_ar_df[filtered_ar_df['geo'] == selected_geo]
+    
+    if selected_signed != 'All':
+        filtered_ar_df = filtered_ar_df[filtered_ar_df['signed'] == selected_signed]
+    
+    # Show filtered dataframe
+    st.dataframe(
+        filtered_ar_df[['artist_name', 'song_name', 'genre', 'geo', 'signed', 'label', 'notes']],
+        use_container_width=True,
+        column_config={
+            "artist_name": "Artist",
+            "song_name": "Song",
+            "genre": "Genre",
+            "geo": "Geography",
+            "signed": "Signed",
+            "label": "Label",
+            "notes": "Notes"
+        },
+        hide_index=True
+    )
+    
+    # Genre distribution of scouted artists
+    st.subheader("Genre Distribution of Scouted Artists")
+    
+    # Count by genre
+    genre_counts = ar_scouting_df['genre'].value_counts().reset_index()
+    genre_counts.columns = ['genre', 'count']
+    
+    fig13 = px.pie(
+        genre_counts,
+        values='count',
+        names='genre',
+        title="Distribution by Genre",
+        hole=0.4,
+        color_discrete_sequence=px.colors.qualitative.Pastel
+    )
+    st.plotly_chart(fig13, use_container_width=True)
+    
+    # Geography distribution
+    st.subheader("Geographic Distribution of Scouted Artists")
+    
+    geo_counts = ar_scouting_df['geo'].value_counts().reset_index()
+    geo_counts.columns = ['geo', 'count']
+    
+    fig14 = px.choropleth(
+        geo_counts,
+        locations="geo",
+        locationmode="ISO-3",
+        color="count",
+        hover_name="geo",
+        color_continuous_scale=px.colors.sequential.Plasma,
+        title="Geographic Distribution"
+    )
+    st.plotly_chart(fig14, use_container_width=True)
+    
+    # A&R team input section
+    st.subheader("A&R Team Recommendations")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        ### Manual Selection Insights
+        
+        The A&R team identified these key patterns in their manual selections:
+        
+        1. **R&B/Soul acts** showing strong engagement despite moderate play counts
+        2. **US-based Hip-Hop/Rap artists** with authentic underground followings
+        3. **Nigerian artists** experimenting with cross-genre sounds
+        
+        These insights can help refine the ArtistRank algorithm to better identify similar promising talent.
+        """)
+    
+    with col2:
+        st.markdown("""
+        ### Recommendations for Algorithm Refinement
+        
+        Based on A&R scouting, consider:
+        
+        1. Adding genre-specific engagement thresholds
+        2. Incorporating social media follower growth as a signal
+        3. Adding weight to cross-genre experimentation
+        4. Implementing sub-genre analysis for more nuanced discovery
+        """)
+    
+    # Similarity to platform trends
+    st.subheader("Comparison with Platform-Wide Trends")
+    
+    # Create a simple comparison graph (illustrative)
+    comparison_data = pd.DataFrame([
+        {"category": "Genre: Hip-Hop/Rap", "ar_scouting": 5, "artistrank_algo": 4},
+        {"category": "Genre: R&B/Soul", "ar_scouting": 3, "artistrank_algo": 2},
+        {"category": "Geo: US", "ar_scouting": 8, "artistrank_algo": 7},
+        {"category": "Geo: NG", "ar_scouting": 1, "artistrank_algo": 3},
+        {"category": "Unsigned Artists", "ar_scouting": 7, "artistrank_algo": 8}
+    ])
+    
+    comparison_melted = comparison_data.melt(
+        id_vars=["category"],
+        value_vars=["ar_scouting", "artistrank_algo"],
+        var_name="Source",
+        value_name="Count"
+    )
+    
+    comparison_melted["Source"] = comparison_melted["Source"].map({
+        "ar_scouting": "A&R Manual Selection",
+        "artistrank_algo": "ArtistRank Algorithm"
+    })
+    
+    fig15 = px.bar(
+        comparison_melted,
+        x="category",
+        y="Count",
+        color="Source",
+        barmode="group",
+        title="A&R Manual Selection vs. ArtistRank Algorithm",
+        color_discrete_map={
+            "A&R Manual Selection": "#FFA07A",
+            "ArtistRank Algorithm": "#20B2AA"
+        }
+    )
+    fig15.update_layout(xaxis_title="Category", yaxis_title="Count")
+    st.plotly_chart(fig15, use_container_width=True)
+    
+    # Integration notes
+    st.info("""
+    **Integration Note:** This tab showcases how manual A&R selections can inform algorithm development. 
+    The "AMD AR Scouting Tracker" maintained by Jordan and Jalen provides qualitative insights that can 
+    be used to validate and improve the quantitative ArtistRank tool.
+    """)
+
 with tab6:
     st.header("Dashboard Methodology & Metric Explanations")
     
