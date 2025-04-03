@@ -1002,7 +1002,7 @@ LIMIT 100;
     ### Week 1 (Done):
     
     1. **ArtistRank dashboard**
-    2. **Mian thing: Recommend artists & Artist Momentum Score methodology and its components**
+    2. **Main thing: Recommend artists & Artist Momentum Score methodology and its components**
     """)
 
 
