@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from streamlit_gsheets import GSheetsConnection
 import json
 
 # Set page configuration
@@ -162,12 +163,21 @@ st.sidebar.info(
 )
 
 # Create tabs
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+# tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+#     "Overview", 
+#     "Engagement Analysis", 
+#     "Geographic Insights", 
+#     "Growing Artists", 
+#     "Recommendations",
+#     "Methodology & Explanations"
+# ])
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "Overview", 
     "Engagement Analysis", 
     "Geographic Insights", 
     "Growing Artists", 
     "Recommendations",
+    "A&R Scouting Tracker (JJ)",
     "Methodology & Explanations"
 ])
 
@@ -974,6 +984,164 @@ ORDER BY
     
     Last data refresh: April 3, 2025, 4:00 AM EST
     """)
+
+
+# Add this to your imports at the top of the file
+from streamlit_gsheets import GSheetsConnection
+
+# In your tabs definition, add the Scouting Tracker tab
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
+    "Overview", 
+    "Engagement Analysis", 
+    "Geographic Insights", 
+    "Growing Artists", 
+    "Recommendations",
+    "A&R Scouting",
+    "Scouting Tracker",
+    "Methodology & Explanations"
+])
+
+# Add code for the Scouting Tracker tab
+with tab7:
+    st.header("A&R Scouting Tracker")
+    st.write("Real-time view of Jordan and Jalen's AMD A&R scouting selections")
+    
+    # Create a connection to the Google Sheet
+    conn = st.connection("gsheets", type=GSheetsConnection)
+    
+    # Read the data
+    scouting_df = conn.read(worksheet="Sheet1", ttl="5m")
+    
+    # Clean and prepare the data
+    # Filter out any completely empty rows
+    scouting_df = scouting_df.dropna(how='all')
+    
+    # Skip the legend rows (first two rows) and keep only the data
+    if len(scouting_df) > 2:
+        scouting_df = scouting_df[2:].reset_index(drop=True)
+    
+    # Rename columns to match the sheet structure
+    scouting_df.columns = ['Number', 'Date', 'On Platform', 'Artist Name', 'Song Name', 
+                           'Genre', 'Geo', 'Label', 'Feed Partner', 'Artist Profile', 
+                           'Social Media Link', 'Notes']
+    
+    # Add selector for JL/JW top selects
+    select_view = st.radio(
+        "View Selections",
+        ["All Tracks", "JL Top Selects", "JW Top Selects"],
+        horizontal=True
+    )
+    
+    # Filter data based on selection
+    filtered_df = scouting_df.copy()
+    
+    # Remove rows with empty Artist Name (likely empty rows in the sheet)
+    filtered_df = filtered_df[filtered_df['Artist Name'].notna()]
+    
+    # Create tabs for song categories
+    on_platform_options = st.multiselect(
+        "On Platform Status",
+        ["Y", "N"],
+        default=["Y", "N"]
+    )
+    
+    filtered_df = filtered_df[filtered_df['On Platform'].isin(on_platform_options)]
+    
+    # Add genre filter
+    if 'Genre' in filtered_df.columns:
+        available_genres = filtered_df['Genre'].dropna().unique()
+        selected_genres = st.multiselect(
+            "Filter by Genre",
+            options=available_genres,
+            default=available_genres
+        )
+        if selected_genres:
+            filtered_df = filtered_df[filtered_df['Genre'].isin(selected_genres)]
+    
+    # Add geo filter
+    if 'Geo' in filtered_df.columns:
+        available_geos = filtered_df['Geo'].dropna().unique()
+        selected_geos = st.multiselect(
+            "Filter by Geography",
+            options=available_geos,
+            default=available_geos
+        )
+        if selected_geos:
+            filtered_df = filtered_df[filtered_df['Geo'].isin(selected_geos)]
+    
+    # Show the filtered data
+    st.dataframe(
+        filtered_df,
+        use_container_width=True,
+        column_config={
+            'Number': st.column_config.NumberColumn(format="%d"),
+            'Artist Name': st.column_config.TextColumn("Artist"),
+            'Song Name': st.column_config.TextColumn("Song"),
+            'On Platform': st.column_config.TextColumn("On Audiomack"),
+            'Social Media Link': st.column_config.LinkColumn("Social Link"),
+            'Notes': st.column_config.TextColumn("Notes", width="large")
+        },
+        hide_index=True
+    )
+    
+    # Analytics section
+    st.subheader("Analytics")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric("Total Tracks Scouted", f"{len(filtered_df)}")
+    
+    with col2:
+        platform_counts = filtered_df['On Platform'].value_counts()
+        on_platform = platform_counts.get('Y', 0)
+        off_platform = platform_counts.get('N', 0)
+        st.metric("On Platform", f"{on_platform} ({int(on_platform/len(filtered_df)*100)}%)")
+    
+    with col3:
+        if 'Geo' in filtered_df.columns:
+            unique_geos = filtered_df['Geo'].nunique()
+            st.metric("Geographic Regions", f"{unique_geos}")
+    
+    # Visualizations
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if 'Genre' in filtered_df.columns:
+            st.subheader("Genre Distribution")
+            genre_counts = filtered_df['Genre'].value_counts().reset_index()
+            genre_counts.columns = ['Genre', 'Count']
+            
+            fig1 = px.pie(
+                genre_counts,
+                values='Count',
+                names='Genre',
+                title="Genre Distribution of Scouted Tracks",
+                hole=0.4,
+                color_discrete_sequence=px.colors.qualitative.Pastel
+            )
+            st.plotly_chart(fig1, use_container_width=True)
+    
+    with col2:
+        if 'Geo' in filtered_df.columns:
+            st.subheader("Geographic Distribution")
+            geo_counts = filtered_df['Geo'].value_counts().reset_index()
+            geo_counts.columns = ['Geo', 'Count']
+            
+            fig2 = px.bar(
+                geo_counts,
+                x='Geo',
+                y='Count',
+                title="Geographic Distribution of Scouted Tracks",
+                color='Count',
+                color_continuous_scale=px.colors.sequential.Viridis
+            )
+            st.plotly_chart(fig2, use_container_width=True)
+
+
+
+
+
 
 # Footer
 st.markdown("---")
