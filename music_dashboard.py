@@ -1320,7 +1320,8 @@ ORDER BY
 
 # Call the function in your tab
 with tab7:  
-    show_scouting_tracker()
+    # show_scouting_tracker()
+    load_scouting_tracker()
 
 
 
