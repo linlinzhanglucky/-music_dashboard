@@ -578,14 +578,15 @@ with week_tabs[0]:
     )
     
     # Create tabs
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7= st.tabs([
-        "AMD Artist Performance", 
-        "Cross-Border Opportunities",
-        "Editorial Playlists", 
-        "Engagement Analysis",
-        "Discovery Channels",
-        "A&R Scouting Tracker",
-        "💬 Chatbot"
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8= st.tabs([
+        "🎨 AMD Artist Performance", 
+        "🌍 Cross-Border Opportunities",
+        "🤔 Editorial Playlists", 
+        "🙋 Engagement Analysis",
+        "🌟 Discovery Channels",
+        "📊 A&R Scouting Tracker",
+        "💬 Chatbot",
+        "😈 linlin Weekly Report"
     ])
     
     # Tab 1: AMD Artist Performance
@@ -1399,7 +1400,8 @@ with week_tabs[0]:
         #     # Save reply
         #     st.session_state.chat_history.append({"role": "assistant", "content": reply})
 
-
+    with tab8：
+        st.markdown("[Linlin's weekly report](https://docs.google.com/document/d/1HUVM9YE0x0-w_aizbGGEnIJq1OWfQANks122s3nZwDw/edit?usp=sharing)")
 
 
 # Week 1 content (previous)
