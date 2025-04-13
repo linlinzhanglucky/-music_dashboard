@@ -127,7 +127,8 @@ def load_scouting_tracker():
         clean_df = clean_df.fillna('')
         
         # Clean column names to avoid invisible characters
-        clean_df.columns = [col.strip() for col in clean_df.columns]
+        clean_df.columns = [str(col).strip() for col in clean_df.columns]
+
 
 
     
