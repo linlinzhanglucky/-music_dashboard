@@ -9,6 +9,26 @@ import numpy as np
 import datetime
 
 
+
+
+# Set page configuration
+st.set_page_config(
+    page_title="Audiomack ArtistRank Dashboard - Week 2",
+    page_icon="🎵",
+    layout="wide"
+)
+
+
+
+# Create main tab structure to separate Week 1 and Week 2
+week_tabs = st.tabs(["Week 2 (Current)", "Week 1 (Previous)"])
+
+
+
+
+
+
+
 mode = st.radio("Select Theme Mode:", ["Light", "Dark"], horizontal=True)
 
 if mode == "Dark":
@@ -32,18 +52,6 @@ else:
 
 
 
-
-# Set page configuration
-st.set_page_config(
-    page_title="Audiomack ArtistRank Dashboard - Week 2",
-    page_icon="🎵",
-    layout="wide"
-)
-
-
-
-# Create main tab structure to separate Week 1 and Week 2
-week_tabs = st.tabs(["Week 2 (Current)", "Week 1 (Previous)"])
 
 
 
