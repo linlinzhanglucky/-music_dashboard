@@ -9,6 +9,30 @@ import numpy as np
 import datetime
 
 
+mode = st.radio("Select Theme Mode:", ["Light", "Dark"], horizontal=True)
+
+if mode == "Dark":
+    st.markdown("""
+        <style>
+        body {
+            background-color: #0E1117;
+            color: #FAFAFA;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+else:
+    st.markdown("""
+        <style>
+        body {
+            background-color: #FFFFFF;
+            color: #000000;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+
+
+
 # Set page configuration
 st.set_page_config(
     page_title="Audiomack ArtistRank Dashboard - Week 2",
