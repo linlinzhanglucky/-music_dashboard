@@ -118,7 +118,6 @@ def load_scouting_tracker():
 
         #debug
         # Extract headers from detected header row
-        headers = raw_df.iloc[header_row].tolist()
         clean_df = raw_df.iloc[header_row + 1:].copy()
         clean_df.columns = headers
         clean_df = clean_df.reset_index(drop=True)
@@ -132,7 +131,7 @@ def load_scouting_tracker():
 
 
     
-        clean_df = clean_df.fillna('')
+        # clean_df = clean_df.fillna('')
 
         if len(clean_df) == 0:
             st.warning("No data found after processing")
