@@ -109,13 +109,29 @@ def load_scouting_tracker():
 
         headers = raw_df.iloc[header_row].tolist()
 
-        # Create clean dataframe
-        clean_df = pd.DataFrame(columns=headers)
-        for i in range(header_row + 1, len(raw_df)):
-            row_data = raw_df.iloc[i].tolist()
-            if not all(pd.isna(val) or val == '' for val in row_data):
-                clean_df.loc[len(clean_df)] = row_data
+        # # Create clean dataframe
+        # clean_df = pd.DataFrame(columns=headers)
+        # for i in range(header_row + 1, len(raw_df)):
+        #     row_data = raw_df.iloc[i].tolist()
+        #     if not all(pd.isna(val) or val == '' for val in row_data):
+        #         clean_df.loc[len(clean_df)] = row_data
 
+        #debug
+        # Extract headers from detected header row
+        headers = raw_df.iloc[header_row].tolist()
+        clean_df = raw_df.iloc[header_row + 1:].copy()
+        clean_df.columns = headers
+        clean_df = clean_df.reset_index(drop=True)
+        
+        # Drop any rows where all fields are empty (fully blank)
+        clean_df = clean_df.dropna(how='all')
+        clean_df = clean_df.fillna('')
+        
+        # Clean column names to avoid invisible characters
+        clean_df.columns = [col.strip() for col in clean_df.columns]
+
+
+    
         clean_df = clean_df.fillna('')
 
         if len(clean_df) == 0:
