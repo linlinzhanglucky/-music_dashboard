@@ -1303,1368 +1303,1357 @@ with week_tabs[0]:
 
 # Week 1 content (previous)
 with week_tabs[1]:
-import streamlit as st
-import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-# from streamlit_gsheets import GSheetsConnection
-import json
-# for A&R
-import requests
-from io import StringIO
-import numpy as np
 
 
-# Set page configuration
-st.set_page_config(
-    page_title="Audiomack ArtistRank Dashboard",
-    page_icon="🎵",
-    layout="wide"
-)
-
-# Function to load CSV data
-@st.cache_data
-def load_data():
-    # In a real implementation, this would read actual CSV files
-    # For now, we'll create DataFrames with sample data based on your file structure
-    
-    # Event type counts
-    event_type_df = pd.DataFrame([
-        {"event_type": "play", "event_count": 15000000, "unique_users": 2500000},
-        {"event_type": "favorite", "event_count": 750000, "unique_users": 500000},
-        {"event_type": "share", "event_count": 250000, "unique_users": 200000},
-        {"event_type": "download", "event_count": 3000000, "unique_users": 1800000},
-        {"event_type": "playlist_add", "event_count": 450000, "unique_users": 300000},
-        {"event_type": "comment", "event_count": 180000, "unique_users": 95000},
-        {"event_type": "profile_view", "event_count": 900000, "unique_users": 650000}
-    ])
-    
-    # Music engagement metrics
-    music_engagement_df = pd.DataFrame([
-        {"artist": "Shallipopi", "total_plays": 3200000, "unique_listeners": 950000},
-        {"artist": "Asake", "total_plays": 2800000, "unique_listeners": 1200000},
-        {"artist": "Seyi Vibez", "total_plays": 2400000, "unique_listeners": 820000},
-        {"artist": "Young Jonn", "total_plays": 2100000, "unique_listeners": 750000},
-        {"artist": "Mohbad", "total_plays": 1900000, "unique_listeners": 680000},
-        {"artist": "Ayra Starr", "total_plays": 1750000, "unique_listeners": 940000},
-        {"artist": "Burna Boy", "total_plays": 1650000, "unique_listeners": 1050000},
-        {"artist": "Davido", "total_plays": 1550000, "unique_listeners": 980000},
-        {"artist": "Wizkid", "total_plays": 1450000, "unique_listeners": 920000},
-        {"artist": "Rema", "total_plays": 1350000, "unique_listeners": 860000}
-    ])
-    
-    # Engagement ratios for artists
-    engagement_ratios_df = pd.DataFrame([
-        {"artist": "Shallipopi", "plays": 3200000, "favorites": 160000, "shares": 48000, "unique_users": 950000, "favorite_to_play_ratio": 0.050},
-        {"artist": "Asake", "plays": 2800000, "favorites": 210000, "shares": 70000, "unique_users": 1200000, "favorite_to_play_ratio": 0.075},
-        {"artist": "Seyi Vibez", "plays": 2400000, "favorites": 96000, "shares": 36000, "unique_users": 820000, "favorite_to_play_ratio": 0.040},
-        {"artist": "Young Jonn", "plays": 2100000, "favorites": 147000, "shares": 31500, "unique_users": 750000, "favorite_to_play_ratio": 0.070},
-        {"artist": "Mohbad", "plays": 1900000, "favorites": 133000, "shares": 38000, "unique_users": 680000, "favorite_to_play_ratio": 0.070},
-        {"artist": "Ayra Starr", "plays": 1750000, "favorites": 131250, "shares": 43750, "unique_users": 940000, "favorite_to_play_ratio": 0.075},
-        {"artist": "Burna Boy", "plays": 1650000, "favorites": 123750, "shares": 33000, "unique_users": 1050000, "favorite_to_play_ratio": 0.075},
-        {"artist": "Davido", "plays": 1550000, "favorites": 108500, "shares": 38750, "unique_users": 980000, "favorite_to_play_ratio": 0.070},
-        {"artist": "Wizkid", "plays": 1450000, "favorites": 116000, "shares": 36250, "unique_users": 920000, "favorite_to_play_ratio": 0.080},
-        {"artist": "Rema", "plays": 1350000, "favorites": 94500, "shares": 27000, "unique_users": 860000, "favorite_to_play_ratio": 0.070}
-    ])
-    
-    # Geographic analysis
-    geographic_df = pd.DataFrame([
-        {"artist": "Shallipopi", "geo_country": "NG", "play_count": 2240000, "unique_listeners": 665000},
-        {"artist": "Shallipopi", "geo_country": "GH", "play_count": 480000, "unique_listeners": 142500},
-        {"artist": "Shallipopi", "geo_country": "US", "play_count": 320000, "unique_listeners": 95000},
-        {"artist": "Asake", "geo_country": "NG", "play_count": 1680000, "unique_listeners": 720000},
-        {"artist": "Asake", "geo_country": "GH", "play_count": 280000, "unique_listeners": 120000},
-        {"artist": "Asake", "geo_country": "UK", "play_count": 392000, "unique_listeners": 168000},
-        {"artist": "Asake", "geo_country": "US", "play_count": 448000, "unique_listeners": 192000},
-        {"artist": "Seyi Vibez", "geo_country": "NG", "play_count": 1680000, "unique_listeners": 574000},
-        {"artist": "Seyi Vibez", "geo_country": "GH", "play_count": 360000, "unique_listeners": 123000},
-        {"artist": "Seyi Vibez", "geo_country": "US", "play_count": 240000, "unique_listeners": 82000},
-        {"artist": "Mohbad", "geo_country": "NG", "play_count": 1330000, "unique_listeners": 476000},
-        {"artist": "Mohbad", "geo_country": "GH", "play_count": 285000, "unique_listeners": 102000},
-        {"artist": "Mohbad", "geo_country": "US", "play_count": 190000, "unique_listeners": 68000},
-        {"artist": "Wizkid", "geo_country": "NG", "play_count": 725000, "unique_listeners": 460000},
-        {"artist": "Wizkid", "geo_country": "GH", "play_count": 217500, "unique_listeners": 138000},
-        {"artist": "Wizkid", "geo_country": "UK", "play_count": 217500, "unique_listeners": 138000},
-        {"artist": "Wizkid", "geo_country": "US", "play_count": 290000, "unique_listeners": 184000}
-    ])
-    
-    # Growing artists with momentum
-    growing_artists_df = pd.DataFrame([
-        {"artist": "Young Jonn", "size_cohort": "medium", "current_plays": 2100000, "previous_plays": 1500000, "current_listeners": 750000, "previous_listeners": 600000, "play_growth_pct": 40.00, "listener_growth_pct": 25.00, "plays_per_listener": 3, "favorites_per_listener": 0.2, "shares_per_listener": 0.04, "artist_momentum_score": 39.80},
-        {"artist": "Shallipopi", "size_cohort": "large", "current_plays": 3200000, "previous_plays": 2500000, "current_listeners": 950000, "previous_listeners": 800000, "play_growth_pct": 28.00, "listener_growth_pct": 18.75, "plays_per_listener": 3, "favorites_per_listener": 0.17, "shares_per_listener": 0.05, "artist_momentum_score": 32.30},
-        {"artist": "Seyi Vibez", "size_cohort": "medium", "current_plays": 2400000, "previous_plays": 1900000, "current_listeners": 820000, "previous_listeners": 700000, "play_growth_pct": 26.32, "listener_growth_pct": 17.14, "plays_per_listener": 3, "favorites_per_listener": 0.12, "shares_per_listener": 0.04, "artist_momentum_score": 29.04},
-        {"artist": "Khaid", "size_cohort": "small", "current_plays": 980000, "previous_plays": 650000, "current_listeners": 350000, "previous_listeners": 250000, "play_growth_pct": 50.77, "listener_growth_pct": 40.00, "plays_per_listener": 3, "favorites_per_listener": 0.23, "shares_per_listener": 0.06, "artist_momentum_score": 48.73},
-        {"artist": "Odumodu Blvck", "size_cohort": "small", "current_plays": 820000, "previous_plays": 580000, "current_listeners": 410000, "previous_listeners": 320000, "play_growth_pct": 41.38, "listener_growth_pct": 28.13, "plays_per_listener": 2, "favorites_per_listener": 0.19, "shares_per_listener": 0.05, "artist_momentum_score": 39.58},
-        {"artist": "Victony", "size_cohort": "medium", "current_plays": 1250000, "previous_plays": 950000, "current_listeners": 520000, "previous_listeners": 420000, "play_growth_pct": 31.58, "listener_growth_pct": 23.81, "plays_per_listener": 2, "favorites_per_listener": 0.16, "shares_per_listener": 0.03, "artist_momentum_score": 32.87},
-        {"artist": "FAVE", "size_cohort": "micro", "current_plays": 650000, "previous_plays": 390000, "current_listeners": 250000, "previous_listeners": 170000, "play_growth_pct": 66.67, "listener_growth_pct": 47.06, "plays_per_listener": 3, "favorites_per_listener": 0.24, "shares_per_listener": 0.07, "artist_momentum_score": 57.22},
-        {"artist": "Lil kesh", "size_cohort": "medium", "current_plays": 1680000, "previous_plays": 1450000, "current_listeners": 580000, "previous_listeners": 530000, "play_growth_pct": 15.86, "listener_growth_pct": 9.43, "plays_per_listener": 3, "favorites_per_listener": 0.14, "shares_per_listener": 0.04, "artist_momentum_score": 21.03},
-        {"artist": "CKay", "size_cohort": "medium", "current_plays": 1820000, "previous_plays": 1520000, "current_listeners": 640000, "previous_listeners": 570000, "play_growth_pct": 19.74, "listener_growth_pct": 12.28, "plays_per_listener": 3, "favorites_per_listener": 0.18, "shares_per_listener": 0.05, "artist_momentum_score": 24.62},
-        {"artist": "Bloody Civilian", "size_cohort": "micro", "current_plays": 450000, "previous_plays": 220000, "current_listeners": 180000, "previous_listeners": 110000, "play_growth_pct": 104.55, "listener_growth_pct": 63.64, "plays_per_listener": 3, "favorites_per_listener": 0.25, "shares_per_listener": 0.08, "artist_momentum_score": 80.82}
-    ])
-    
-    # Add calculated fields
-    # Plays per user ratio for engagement analysis
-    music_engagement_df['plays_per_user'] = music_engagement_df['total_plays'] / music_engagement_df['unique_listeners']
-    
-    # Add geographic distribution percentages
-    total_plays_by_artist = {}
-    for artist in geographic_df['artist'].unique():
-        artist_plays = geographic_df[geographic_df['artist'] == artist]['play_count'].sum()
-        total_plays_by_artist[artist] = artist_plays
-    
-    geographic_df['play_percentage'] = geographic_df.apply(
-        lambda row: (row['play_count'] / total_plays_by_artist[row['artist']]) * 100 if row['artist'] in total_plays_by_artist else 0,
-        axis=1
+    # Set page configuration
+    st.set_page_config(
+        page_title="Audiomack ArtistRank Dashboard",
+        page_icon="🎵",
+        layout="wide"
     )
     
-    # Process engagement ratios data for visualization
-    engagement_analysis_df = engagement_ratios_df.copy()
-    engagement_analysis_df['favorite_ratio'] = engagement_analysis_df['favorites'] / engagement_analysis_df['plays']
-    engagement_analysis_df['share_ratio'] = engagement_analysis_df['shares'] / engagement_analysis_df['plays']
-    engagement_analysis_df['engagement_score'] = (engagement_analysis_df['favorite_ratio'] * 10) + (engagement_analysis_df['share_ratio'] * 5)
+    # Function to load CSV data
+    @st.cache_data
+    def load_data():
+        # In a real implementation, this would read actual CSV files
+        # For now, we'll create DataFrames with sample data based on your file structure
+        
+        # Event type counts
+        event_type_df = pd.DataFrame([
+            {"event_type": "play", "event_count": 15000000, "unique_users": 2500000},
+            {"event_type": "favorite", "event_count": 750000, "unique_users": 500000},
+            {"event_type": "share", "event_count": 250000, "unique_users": 200000},
+            {"event_type": "download", "event_count": 3000000, "unique_users": 1800000},
+            {"event_type": "playlist_add", "event_count": 450000, "unique_users": 300000},
+            {"event_type": "comment", "event_count": 180000, "unique_users": 95000},
+            {"event_type": "profile_view", "event_count": 900000, "unique_users": 650000}
+        ])
+        
+        # Music engagement metrics
+        music_engagement_df = pd.DataFrame([
+            {"artist": "Shallipopi", "total_plays": 3200000, "unique_listeners": 950000},
+            {"artist": "Asake", "total_plays": 2800000, "unique_listeners": 1200000},
+            {"artist": "Seyi Vibez", "total_plays": 2400000, "unique_listeners": 820000},
+            {"artist": "Young Jonn", "total_plays": 2100000, "unique_listeners": 750000},
+            {"artist": "Mohbad", "total_plays": 1900000, "unique_listeners": 680000},
+            {"artist": "Ayra Starr", "total_plays": 1750000, "unique_listeners": 940000},
+            {"artist": "Burna Boy", "total_plays": 1650000, "unique_listeners": 1050000},
+            {"artist": "Davido", "total_plays": 1550000, "unique_listeners": 980000},
+            {"artist": "Wizkid", "total_plays": 1450000, "unique_listeners": 920000},
+            {"artist": "Rema", "total_plays": 1350000, "unique_listeners": 860000}
+        ])
+        
+        # Engagement ratios for artists
+        engagement_ratios_df = pd.DataFrame([
+            {"artist": "Shallipopi", "plays": 3200000, "favorites": 160000, "shares": 48000, "unique_users": 950000, "favorite_to_play_ratio": 0.050},
+            {"artist": "Asake", "plays": 2800000, "favorites": 210000, "shares": 70000, "unique_users": 1200000, "favorite_to_play_ratio": 0.075},
+            {"artist": "Seyi Vibez", "plays": 2400000, "favorites": 96000, "shares": 36000, "unique_users": 820000, "favorite_to_play_ratio": 0.040},
+            {"artist": "Young Jonn", "plays": 2100000, "favorites": 147000, "shares": 31500, "unique_users": 750000, "favorite_to_play_ratio": 0.070},
+            {"artist": "Mohbad", "plays": 1900000, "favorites": 133000, "shares": 38000, "unique_users": 680000, "favorite_to_play_ratio": 0.070},
+            {"artist": "Ayra Starr", "plays": 1750000, "favorites": 131250, "shares": 43750, "unique_users": 940000, "favorite_to_play_ratio": 0.075},
+            {"artist": "Burna Boy", "plays": 1650000, "favorites": 123750, "shares": 33000, "unique_users": 1050000, "favorite_to_play_ratio": 0.075},
+            {"artist": "Davido", "plays": 1550000, "favorites": 108500, "shares": 38750, "unique_users": 980000, "favorite_to_play_ratio": 0.070},
+            {"artist": "Wizkid", "plays": 1450000, "favorites": 116000, "shares": 36250, "unique_users": 920000, "favorite_to_play_ratio": 0.080},
+            {"artist": "Rema", "plays": 1350000, "favorites": 94500, "shares": 27000, "unique_users": 860000, "favorite_to_play_ratio": 0.070}
+        ])
+        
+        # Geographic analysis
+        geographic_df = pd.DataFrame([
+            {"artist": "Shallipopi", "geo_country": "NG", "play_count": 2240000, "unique_listeners": 665000},
+            {"artist": "Shallipopi", "geo_country": "GH", "play_count": 480000, "unique_listeners": 142500},
+            {"artist": "Shallipopi", "geo_country": "US", "play_count": 320000, "unique_listeners": 95000},
+            {"artist": "Asake", "geo_country": "NG", "play_count": 1680000, "unique_listeners": 720000},
+            {"artist": "Asake", "geo_country": "GH", "play_count": 280000, "unique_listeners": 120000},
+            {"artist": "Asake", "geo_country": "UK", "play_count": 392000, "unique_listeners": 168000},
+            {"artist": "Asake", "geo_country": "US", "play_count": 448000, "unique_listeners": 192000},
+            {"artist": "Seyi Vibez", "geo_country": "NG", "play_count": 1680000, "unique_listeners": 574000},
+            {"artist": "Seyi Vibez", "geo_country": "GH", "play_count": 360000, "unique_listeners": 123000},
+            {"artist": "Seyi Vibez", "geo_country": "US", "play_count": 240000, "unique_listeners": 82000},
+            {"artist": "Mohbad", "geo_country": "NG", "play_count": 1330000, "unique_listeners": 476000},
+            {"artist": "Mohbad", "geo_country": "GH", "play_count": 285000, "unique_listeners": 102000},
+            {"artist": "Mohbad", "geo_country": "US", "play_count": 190000, "unique_listeners": 68000},
+            {"artist": "Wizkid", "geo_country": "NG", "play_count": 725000, "unique_listeners": 460000},
+            {"artist": "Wizkid", "geo_country": "GH", "play_count": 217500, "unique_listeners": 138000},
+            {"artist": "Wizkid", "geo_country": "UK", "play_count": 217500, "unique_listeners": 138000},
+            {"artist": "Wizkid", "geo_country": "US", "play_count": 290000, "unique_listeners": 184000}
+        ])
+        
+        # Growing artists with momentum
+        growing_artists_df = pd.DataFrame([
+            {"artist": "Young Jonn", "size_cohort": "medium", "current_plays": 2100000, "previous_plays": 1500000, "current_listeners": 750000, "previous_listeners": 600000, "play_growth_pct": 40.00, "listener_growth_pct": 25.00, "plays_per_listener": 3, "favorites_per_listener": 0.2, "shares_per_listener": 0.04, "artist_momentum_score": 39.80},
+            {"artist": "Shallipopi", "size_cohort": "large", "current_plays": 3200000, "previous_plays": 2500000, "current_listeners": 950000, "previous_listeners": 800000, "play_growth_pct": 28.00, "listener_growth_pct": 18.75, "plays_per_listener": 3, "favorites_per_listener": 0.17, "shares_per_listener": 0.05, "artist_momentum_score": 32.30},
+            {"artist": "Seyi Vibez", "size_cohort": "medium", "current_plays": 2400000, "previous_plays": 1900000, "current_listeners": 820000, "previous_listeners": 700000, "play_growth_pct": 26.32, "listener_growth_pct": 17.14, "plays_per_listener": 3, "favorites_per_listener": 0.12, "shares_per_listener": 0.04, "artist_momentum_score": 29.04},
+            {"artist": "Khaid", "size_cohort": "small", "current_plays": 980000, "previous_plays": 650000, "current_listeners": 350000, "previous_listeners": 250000, "play_growth_pct": 50.77, "listener_growth_pct": 40.00, "plays_per_listener": 3, "favorites_per_listener": 0.23, "shares_per_listener": 0.06, "artist_momentum_score": 48.73},
+            {"artist": "Odumodu Blvck", "size_cohort": "small", "current_plays": 820000, "previous_plays": 580000, "current_listeners": 410000, "previous_listeners": 320000, "play_growth_pct": 41.38, "listener_growth_pct": 28.13, "plays_per_listener": 2, "favorites_per_listener": 0.19, "shares_per_listener": 0.05, "artist_momentum_score": 39.58},
+            {"artist": "Victony", "size_cohort": "medium", "current_plays": 1250000, "previous_plays": 950000, "current_listeners": 520000, "previous_listeners": 420000, "play_growth_pct": 31.58, "listener_growth_pct": 23.81, "plays_per_listener": 2, "favorites_per_listener": 0.16, "shares_per_listener": 0.03, "artist_momentum_score": 32.87},
+            {"artist": "FAVE", "size_cohort": "micro", "current_plays": 650000, "previous_plays": 390000, "current_listeners": 250000, "previous_listeners": 170000, "play_growth_pct": 66.67, "listener_growth_pct": 47.06, "plays_per_listener": 3, "favorites_per_listener": 0.24, "shares_per_listener": 0.07, "artist_momentum_score": 57.22},
+            {"artist": "Lil kesh", "size_cohort": "medium", "current_plays": 1680000, "previous_plays": 1450000, "current_listeners": 580000, "previous_listeners": 530000, "play_growth_pct": 15.86, "listener_growth_pct": 9.43, "plays_per_listener": 3, "favorites_per_listener": 0.14, "shares_per_listener": 0.04, "artist_momentum_score": 21.03},
+            {"artist": "CKay", "size_cohort": "medium", "current_plays": 1820000, "previous_plays": 1520000, "current_listeners": 640000, "previous_listeners": 570000, "play_growth_pct": 19.74, "listener_growth_pct": 12.28, "plays_per_listener": 3, "favorites_per_listener": 0.18, "shares_per_listener": 0.05, "artist_momentum_score": 24.62},
+            {"artist": "Bloody Civilian", "size_cohort": "micro", "current_plays": 450000, "previous_plays": 220000, "current_listeners": 180000, "previous_listeners": 110000, "play_growth_pct": 104.55, "listener_growth_pct": 63.64, "plays_per_listener": 3, "favorites_per_listener": 0.25, "shares_per_listener": 0.08, "artist_momentum_score": 80.82}
+        ])
+        
+        # Add calculated fields
+        # Plays per user ratio for engagement analysis
+        music_engagement_df['plays_per_user'] = music_engagement_df['total_plays'] / music_engagement_df['unique_listeners']
+        
+        # Add geographic distribution percentages
+        total_plays_by_artist = {}
+        for artist in geographic_df['artist'].unique():
+            artist_plays = geographic_df[geographic_df['artist'] == artist]['play_count'].sum()
+            total_plays_by_artist[artist] = artist_plays
+        
+        geographic_df['play_percentage'] = geographic_df.apply(
+            lambda row: (row['play_count'] / total_plays_by_artist[row['artist']]) * 100 if row['artist'] in total_plays_by_artist else 0,
+            axis=1
+        )
+        
+        # Process engagement ratios data for visualization
+        engagement_analysis_df = engagement_ratios_df.copy()
+        engagement_analysis_df['favorite_ratio'] = engagement_analysis_df['favorites'] / engagement_analysis_df['plays']
+        engagement_analysis_df['share_ratio'] = engagement_analysis_df['shares'] / engagement_analysis_df['plays']
+        engagement_analysis_df['engagement_score'] = (engagement_analysis_df['favorite_ratio'] * 10) + (engagement_analysis_df['share_ratio'] * 5)
+        
+        # Add growth indication
+        growing_artists_df['growth_indicator'] = growing_artists_df['play_growth_pct'].apply(
+            lambda x: '🔥 High Growth' if x > 40 else ('📈 Moderate Growth' if x > 20 else '➖ Stable')
+        )
+        
+        return event_type_df, music_engagement_df, engagement_analysis_df, geographic_df, growing_artists_df
     
-    # Add growth indication
-    growing_artists_df['growth_indicator'] = growing_artists_df['play_growth_pct'].apply(
-        lambda x: '🔥 High Growth' if x > 40 else ('📈 Moderate Growth' if x > 20 else '➖ Stable')
-    )
-    
-    return event_type_df, music_engagement_df, engagement_analysis_df, geographic_df, growing_artists_df
-
-# Load data
-try:
-    event_type_df, music_engagement_df, engagement_analysis_df, geographic_df, growing_artists_df = load_data()
-    data_loaded = True
-except Exception as e:
-    st.error(f"Error loading data: {e}")
-    data_loaded = False
-
-# Dashboard title and description
-st.title("🎵 Audiomack ArtistRank Dashboard")
-st.write("Analysis dashboard for the ArtistRank tool development - Week 1")
-
-# Create sidebar for filtering
-st.sidebar.header("Filters")
-selected_size_cohort = st.sidebar.multiselect(
-    "Artist Size Cohort",
-    options=growing_artists_df['size_cohort'].unique(),
-    default=growing_artists_df['size_cohort'].unique()
-)
-
-selected_countries = st.sidebar.multiselect(
-    "Countries",
-    options=geographic_df['geo_country'].unique(),
-    default=['NG', 'GH', 'US']
-)
-
-# About section in sidebar
-st.sidebar.markdown("---")
-st.sidebar.header("About ArtistRank")
-st.sidebar.info(
-    """
-    ArtistRank is a tool for surfacing songs and artists 
-    best situated to gain traction and success on and 
-    off the platform.
-    
-    This dashboard provides insights into engagement metrics, 
-    geographic distribution, and growth trends to support 
-    A&R decisions.
-    """
-)
-
-def load_scouting_tracker():
-    """Function to display the A&R Scouting Tracker tab"""
-
-    st.header("A&R Scouting Tracker")
-    st.write("View of Jordan and Jalen's AMD A&R scouting selections")
-
-    # Published CSV URL
-    csv_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2Q-L96f18C7C-EMCzIoCxR8bdphMkPNcpske5xGYzr6lmztcsqaJgmyTFmXHhu7mjrqvR8MsgfWJT/pub?output=csv"
-
+    # Load data
     try:
-        # Load data
-        response = requests.get(csv_url)
-
-        if response.status_code != 200:
-            st.error(f"Failed to load data: Status code {response.status_code}")
-            return
-
-        data = StringIO(response.text)
-        raw_df = pd.read_csv(data)
-
-        # Debug: Show raw data
-        if st.checkbox("Show raw data: https://docs.google.com/spreadsheets/d/1fkd2RMzHaUGsahUXB6_86dogYLruoHIpu9aThOo3cRY/edit?gid=0#gid=0"):
-            st.write("Raw data from CSV:")
-            st.dataframe(raw_df)
-
-        # Find header row
-        header_row = None
-        for i, row in raw_df.iterrows():
-            row_str = ' '.join([str(val) for val in row.values])
-            if "Date" in row_str and "Artist Name" in row_str:
-                header_row = i
-                break
-
-        if header_row is None:
-            st.error("Could not find the header row in the sheet")
-            st.write("Available columns:", raw_df.columns.tolist())
-            return
-
-        headers = raw_df.iloc[header_row].tolist()
-
-        # Create clean dataframe
-        clean_df = pd.DataFrame(columns=headers)
-        for i in range(header_row + 1, len(raw_df)):
-            row_data = raw_df.iloc[i].tolist()
-            if not all(pd.isna(val) or val == '' for val in row_data):
-                clean_df.loc[len(clean_df)] = row_data
-
-        clean_df = clean_df.fillna('')
-
-        if len(clean_df) == 0:
-            st.warning("No data found after processing")
-            return
-
-        # Extract filter options
-        platform_options = [opt for opt in clean_df["On Platform"].unique() if "On Platform" in clean_df.columns and opt]
-        genre_options = [opt for opt in clean_df["Genre"].unique() if "Genre" in clean_df.columns and opt]
-        geo_options = [opt for opt in clean_df["Geo"].unique() if "Geo" in clean_df.columns and opt]
-        feed_partner_options = [opt for opt in clean_df["Feed Partner"].unique() if "Feed Partner" in clean_df.columns and opt]
-
-        # Display filters
-        st.subheader("Filters")
-        col1, col2, col3, col4 = st.columns(4)
-
-        with col1:
-            selected_platform = st.multiselect("On Platform Status", options=platform_options, default=platform_options)
-
-        with col2:
-            selected_genres = st.multiselect("Genre", options=genre_options, default=genre_options)
-
-        with col3:
-            selected_geos = st.multiselect("Geography", options=geo_options, default=geo_options)
-
-        with col4:
-            selected_feed_partners = st.multiselect("Feed Partner", options=feed_partner_options, default=feed_partner_options)
-
-        # Apply filters
-        filtered_df = clean_df.copy()
-
-        if selected_platform:
-            filtered_df = filtered_df[filtered_df["On Platform"].isin(selected_platform)]
-        if selected_genres:
-            filtered_df = filtered_df[filtered_df["Genre"].isin(selected_genres)]
-        if selected_geos:
-            filtered_df = filtered_df[filtered_df["Geo"].isin(selected_geos)]
-        if selected_feed_partners:
-            filtered_df = filtered_df[filtered_df["Feed Partner"].isin(selected_feed_partners)]
-
-        # Display scouting results
-        st.subheader("Scouting Results")
-        column_names = filtered_df.columns.tolist()
-
-        for i, row in filtered_df.iterrows():
-            with st.expander(f"{row.get('Artist Name', '')} - {row.get('Song Name', '')}"):
-                for col in column_names:
-                    if col in ["Artist Name", "Song Name"]:
-                        continue
-                    value = row.get(col, '')
-                    if col == "Social Media Link" and value:
-                        st.markdown(f"**{col}:** [{value}]({value})")
-                    else:
-                        st.markdown(f"**{col}:** {value}")
-
-        # Analytics
-        st.subheader("Analytics")
-        met1, met2, met3 = st.columns(3)
-        met1.metric("Total Tracks", len(filtered_df))
-
-        if "Genre" in filtered_df.columns:
-            genre_count = len([g for g in filtered_df["Genre"].unique() if g])
-            met2.metric("Unique Genres", genre_count)
-
-        if "Geo" in filtered_df.columns:
-            geo_count = len([g for g in filtered_df["Geo"].unique() if g])
-            met3.metric("Countries", geo_count)
-
-        # Visualizations
-        if len(filtered_df) > 0:
-            viz1, viz2 = st.columns(2)
-
-            with viz1:
-                if "Genre" in filtered_df.columns:
-                    genre_counts = filtered_df["Genre"].value_counts().reset_index()
-                    genre_counts.columns = ["Genre", "Count"]
-                    genre_counts = genre_counts[genre_counts["Genre"] != ""]
-                    if not genre_counts.empty:
-                        fig1 = px.pie(
-                            genre_counts,
-                            values="Count",
-                            names="Genre",
-                            title="Genre Distribution",
-                            hole=0.4
-                        )
-                        st.plotly_chart(fig1, use_container_width=True)
-
-            with viz2:
-                if "Geo" in filtered_df.columns:
-                    geo_counts = filtered_df["Geo"].value_counts().reset_index()
-                    geo_counts.columns = ["Geography", "Count"]
-                    geo_counts = geo_counts[geo_counts["Geography"] != ""]
-                    if not geo_counts.empty:
-                        fig2 = px.bar(
-                            geo_counts,
-                            x="Geography",
-                            y="Count",
-                            title="Geographic Distribution",
-                            color="Count"
-                        )
-                        st.plotly_chart(fig2, use_container_width=True)
-
+        event_type_df, music_engagement_df, engagement_analysis_df, geographic_df, growing_artists_df = load_data()
+        data_loaded = True
     except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
-        st.exception(e)
-
-
-
-# def load_scouting_tracker():
-#     """Function to display the A&R Scouting Tracker tab"""
+        st.error(f"Error loading data: {e}")
+        data_loaded = False
     
-#     st.header("A&R Scouting Tracker")
-#     st.write("View of Jordan and Jalen's AMD A&R scouting selections")
+    # Dashboard title and description
+    st.title("🎵 Audiomack ArtistRank Dashboard")
+    st.write("Analysis dashboard for the ArtistRank tool development - Week 1")
     
-#     # Published CSV URL
-#     # csv_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRtf5SfkX9mOZjzPrzmhjGBWbNVYAhhLnM4nGz_6jWzPDpPnDe-3vFjIwoXSIhbmHaHpr-rOasi8yUO/pub?output=csv"  #original 
-#     csv_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2Q-L96f18C7C-EMCzIoCxR8bdphMkPNcpske5xGYzr6lmztcsqaJgmyTFmXHhu7mjrqvR8MsgfWJT/pub?output=csv" #mycopy
+    # Create sidebar for filtering
+    st.sidebar.header("Filters")
+    selected_size_cohort = st.sidebar.multiselect(
+        "Artist Size Cohort",
+        options=growing_artists_df['size_cohort'].unique(),
+        default=growing_artists_df['size_cohort'].unique()
+    )
     
-#     try:
-#         # Load data
-#         response = requests.get(csv_url)
+    selected_countries = st.sidebar.multiselect(
+        "Countries",
+        options=geographic_df['geo_country'].unique(),
+        default=['NG', 'GH', 'US']
+    )
+    
+    # About section in sidebar
+    st.sidebar.markdown("---")
+    st.sidebar.header("About ArtistRank")
+    st.sidebar.info(
+        """
+        ArtistRank is a tool for surfacing songs and artists 
+        best situated to gain traction and success on and 
+        off the platform.
         
-#         # Check if request was successful
-#         if response.status_code != 200:
-#             st.error(f"Failed to load data: Status code {response.status_code}")
-#             return
+        This dashboard provides insights into engagement metrics, 
+        geographic distribution, and growth trends to support 
+        A&R decisions.
+        """
+    )
+    
+    def load_scouting_tracker():
+        """Function to display the A&R Scouting Tracker tab"""
+    
+        st.header("A&R Scouting Tracker")
+        st.write("View of Jordan and Jalen's AMD A&R scouting selections")
+    
+        # Published CSV URL
+        csv_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2Q-L96f18C7C-EMCzIoCxR8bdphMkPNcpske5xGYzr6lmztcsqaJgmyTFmXHhu7mjrqvR8MsgfWJT/pub?output=csv"
+    
+        try:
+            # Load data
+            response = requests.get(csv_url)
+    
+            if response.status_code != 200:
+                st.error(f"Failed to load data: Status code {response.status_code}")
+                return
+    
+            data = StringIO(response.text)
+            raw_df = pd.read_csv(data)
+    
+            # Debug: Show raw data
+            if st.checkbox("Show raw data: https://docs.google.com/spreadsheets/d/1fkd2RMzHaUGsahUXB6_86dogYLruoHIpu9aThOo3cRY/edit?gid=0#gid=0"):
+                st.write("Raw data from CSV:")
+                st.dataframe(raw_df)
+    
+            # Find header row
+            header_row = None
+            for i, row in raw_df.iterrows():
+                row_str = ' '.join([str(val) for val in row.values])
+                if "Date" in row_str and "Artist Name" in row_str:
+                    header_row = i
+                    break
+    
+            if header_row is None:
+                st.error("Could not find the header row in the sheet")
+                st.write("Available columns:", raw_df.columns.tolist())
+                return
+    
+            headers = raw_df.iloc[header_row].tolist()
+    
+            # Create clean dataframe
+            clean_df = pd.DataFrame(columns=headers)
+            for i in range(header_row + 1, len(raw_df)):
+                row_data = raw_df.iloc[i].tolist()
+                if not all(pd.isna(val) or val == '' for val in row_data):
+                    clean_df.loc[len(clean_df)] = row_data
+    
+            clean_df = clean_df.fillna('')
+    
+            if len(clean_df) == 0:
+                st.warning("No data found after processing")
+                return
+    
+            # Extract filter options
+            platform_options = [opt for opt in clean_df["On Platform"].unique() if "On Platform" in clean_df.columns and opt]
+            genre_options = [opt for opt in clean_df["Genre"].unique() if "Genre" in clean_df.columns and opt]
+            geo_options = [opt for opt in clean_df["Geo"].unique() if "Geo" in clean_df.columns and opt]
+            feed_partner_options = [opt for opt in clean_df["Feed Partner"].unique() if "Feed Partner" in clean_df.columns and opt]
+    
+            # Display filters
+            st.subheader("Filters")
+            col1, col2, col3, col4 = st.columns(4)
+    
+            with col1:
+                selected_platform = st.multiselect("On Platform Status", options=platform_options, default=platform_options)
+    
+            with col2:
+                selected_genres = st.multiselect("Genre", options=genre_options, default=genre_options)
+    
+            with col3:
+                selected_geos = st.multiselect("Geography", options=geo_options, default=geo_options)
+    
+            with col4:
+                selected_feed_partners = st.multiselect("Feed Partner", options=feed_partner_options, default=feed_partner_options)
+    
+            # Apply filters
+            filtered_df = clean_df.copy()
+    
+            if selected_platform:
+                filtered_df = filtered_df[filtered_df["On Platform"].isin(selected_platform)]
+            if selected_genres:
+                filtered_df = filtered_df[filtered_df["Genre"].isin(selected_genres)]
+            if selected_geos:
+                filtered_df = filtered_df[filtered_df["Geo"].isin(selected_geos)]
+            if selected_feed_partners:
+                filtered_df = filtered_df[filtered_df["Feed Partner"].isin(selected_feed_partners)]
+    
+            # Display scouting results
+            st.subheader("Scouting Results")
+            column_names = filtered_df.columns.tolist()
+    
+            for i, row in filtered_df.iterrows():
+                with st.expander(f"{row.get('Artist Name', '')} - {row.get('Song Name', '')}"):
+                    for col in column_names:
+                        if col in ["Artist Name", "Song Name"]:
+                            continue
+                        value = row.get(col, '')
+                        if col == "Social Media Link" and value:
+                            st.markdown(f"**{col}:** [{value}]({value})")
+                        else:
+                            st.markdown(f"**{col}:** {value}")
+    
+            # Analytics
+            st.subheader("Analytics")
+            met1, met2, met3 = st.columns(3)
+            met1.metric("Total Tracks", len(filtered_df))
+    
+            if "Genre" in filtered_df.columns:
+                genre_count = len([g for g in filtered_df["Genre"].unique() if g])
+                met2.metric("Unique Genres", genre_count)
+    
+            if "Geo" in filtered_df.columns:
+                geo_count = len([g for g in filtered_df["Geo"].unique() if g])
+                met3.metric("Countries", geo_count)
+    
+            # Visualizations
+            if len(filtered_df) > 0:
+                viz1, viz2 = st.columns(2)
+    
+                with viz1:
+                    if "Genre" in filtered_df.columns:
+                        genre_counts = filtered_df["Genre"].value_counts().reset_index()
+                        genre_counts.columns = ["Genre", "Count"]
+                        genre_counts = genre_counts[genre_counts["Genre"] != ""]
+                        if not genre_counts.empty:
+                            fig1 = px.pie(
+                                genre_counts,
+                                values="Count",
+                                names="Genre",
+                                title="Genre Distribution",
+                                hole=0.4
+                            )
+                            st.plotly_chart(fig1, use_container_width=True)
+    
+                with viz2:
+                    if "Geo" in filtered_df.columns:
+                        geo_counts = filtered_df["Geo"].value_counts().reset_index()
+                        geo_counts.columns = ["Geography", "Count"]
+                        geo_counts = geo_counts[geo_counts["Geography"] != ""]
+                        if not geo_counts.empty:
+                            fig2 = px.bar(
+                                geo_counts,
+                                x="Geography",
+                                y="Count",
+                                title="Geographic Distribution",
+                                color="Count"
+                            )
+                            st.plotly_chart(fig2, use_container_width=True)
+    
+        except Exception as e:
+            st.error(f"An error occurred: {str(e)}")
+            st.exception(e)
+    
+    
+    
+    # def load_scouting_tracker():
+    #     """Function to display the A&R Scouting Tracker tab"""
+        
+    #     st.header("A&R Scouting Tracker")
+    #     st.write("View of Jordan and Jalen's AMD A&R scouting selections")
+        
+    #     # Published CSV URL
+    #     # csv_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRtf5SfkX9mOZjzPrzmhjGBWbNVYAhhLnM4nGz_6jWzPDpPnDe-3vFjIwoXSIhbmHaHpr-rOasi8yUO/pub?output=csv"  #original 
+    #     csv_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2Q-L96f18C7C-EMCzIoCxR8bdphMkPNcpske5xGYzr6lmztcsqaJgmyTFmXHhu7mjrqvR8MsgfWJT/pub?output=csv" #mycopy
+        
+    #     try:
+    #         # Load data
+    #         response = requests.get(csv_url)
             
-#         # Parse CSV
-#         data = StringIO(response.text)
-#         raw_df = pd.read_csv(data)
-        
-#         # Display raw data for debugging
-#         if st.checkbox("Show raw data: https://docs.google.com/spreadsheets/d/1fkd2RMzHaUGsahUXB6_86dogYLruoHIpu9aThOo3cRY/edit?gid=0#gid=0"):
-#             st.write("Raw data from CSV:")
-#             st.dataframe(raw_df)
-        
-#         # Clean up the data
-#         # Find the header row (with "Date", "Artist Name", etc.)
-#         header_row = None
-#         for i, row in raw_df.iterrows():
-#             row_str = ' '.join([str(val) for val in row.values])
-#             if "Date" in row_str and "Artist Name" in row_str:
-#                 header_row = i
-#                 break
-        
-#         if header_row is None:
-#             st.error("Could not find the header row in the sheet")
-#             st.write("Available columns:", raw_df.columns.tolist())
-#             return
+    #         # Check if request was successful
+    #         if response.status_code != 200:
+    #             st.error(f"Failed to load data: Status code {response.status_code}")
+    #             return
+                
+    #         # Parse CSV
+    #         data = StringIO(response.text)
+    #         raw_df = pd.read_csv(data)
             
-#         # Get the real headers and data
-#         headers = raw_df.iloc[header_row].tolist()
-        
-#         # Create a new dataframe with clean data
-#         clean_df = pd.DataFrame(columns=headers)
-        
-#         # Add data rows
-#         for i in range(header_row + 1, len(raw_df)):
-#             row_data = raw_df.iloc[i].tolist()
-#             # Only add if the row is not entirely empty
-#             if not all(pd.isna(val) or val == '' for val in row_data):
-#                 clean_df.loc[len(clean_df)] = row_data
-        
-#         # Replace NaN with empty strings to avoid JSON errors
-#         clean_df = clean_df.fillna('')
-        
-#         # Verify we have data
-#         if len(clean_df) == 0:
-#             st.warning("No data found after processing")
-#             return
-        
-#         # Extract filter options, ensuring they're not empty
-#         platform_options = []
-#         if "On Platform" in clean_df.columns:
-#             platform_options = [opt for opt in clean_df["On Platform"].unique() if opt]
-        
-#         genre_options = []
-#         if "Genre" in clean_df.columns:
-#             genre_options = [opt for opt in clean_df["Genre"].unique() if opt]
-        
-#         geo_options = []
-#         if "Geo" in clean_df.columns:
-#             geo_options = [opt for opt in clean_df["Geo"].unique() if opt]
-        
-#         # Add filters
-#         st.subheader("Filters")
-        
-#         # Create 3 columns for filters
-#         col1, col2, col3 = st.columns(3)
-        
-#         # Filter by On Platform status
-#         with col1:
-#             if platform_options:
-#                 selected_platform = st.multiselect(
-#                     "On Platform Status",
-#                     options=platform_options,
-#                     default=platform_options
-#                 )
-#             else:
-#                 selected_platform = []
-        
-#         # Filter by Genre
-#         with col2:
-#             if genre_options:
-#                 selected_genres = st.multiselect(
-#                     "Genre",
-#                     options=genre_options,
-#                     default=genre_options
-#                 )
-#             else:
-#                 selected_genres = []
-        
-#         # Filter by Geography
-#         with col3:
-#             if geo_options:
-#                 selected_geos = st.multiselect(
-#                     "Geography",
-#                     options=geo_options,
-#                     default=geo_options
-#                 )
-#             else:
-#                 selected_geos = []
-        
-#         # Apply filters
-#         filtered_df = clean_df.copy()
-        
-#         if "On Platform" in clean_df.columns and selected_platform:
-#             filtered_df = filtered_df[filtered_df["On Platform"].isin(selected_platform)]
+    #         # Display raw data for debugging
+    #         if st.checkbox("Show raw data: https://docs.google.com/spreadsheets/d/1fkd2RMzHaUGsahUXB6_86dogYLruoHIpu9aThOo3cRY/edit?gid=0#gid=0"):
+    #             st.write("Raw data from CSV:")
+    #             st.dataframe(raw_df)
             
-#         if "Genre" in clean_df.columns and selected_genres:
-#             filtered_df = filtered_df[filtered_df["Genre"].isin(selected_genres)]
+    #         # Clean up the data
+    #         # Find the header row (with "Date", "Artist Name", etc.)
+    #         header_row = None
+    #         for i, row in raw_df.iterrows():
+    #             row_str = ' '.join([str(val) for val in row.values])
+    #             if "Date" in row_str and "Artist Name" in row_str:
+    #                 header_row = i
+    #                 break
             
-#         if "Geo" in clean_df.columns and selected_geos:
-#             filtered_df = filtered_df[filtered_df["Geo"].isin(selected_geos)]
-        
-#         # Display the filtered data as text instead of dataframe to avoid JSON errors
-#         st.subheader("Scouting Results")
-        
-#         # Convert column names to actual columns
-#         column_names = filtered_df.columns.tolist()
-        
-#         # Use a simpler approach to display data
-#         for i, row in filtered_df.iterrows():
-#             with st.expander(f"{row.get('Artist Name', '')} - {row.get('Song Name', '')}"):
-#                 for col in column_names:
-#                     if col in ["Artist Name", "Song Name"]:
-#                         continue  # Already in the expander title
-                    
-#                     value = row.get(col, '')
-                    
-#                     # Special handling for links
-#                     if col == "Social Media Link" and value:
-#                         st.markdown(f"**{col}:** [{value}]({value})")
-#                     else:
-#                         st.markdown(f"**{col}:** {value}")
-        
-#         # Display analytics
-#         st.subheader("Analytics")
-        
-#         # Key metrics
-#         met1, met2, met3 = st.columns(3)
-        
-#         met1.metric("Total Tracks", len(filtered_df))
-        
-#         if "Genre" in filtered_df.columns:
-#             genre_count = len([g for g in filtered_df["Genre"].unique() if g])
-#             met2.metric("Unique Genres", genre_count)
+    #         if header_row is None:
+    #             st.error("Could not find the header row in the sheet")
+    #             st.write("Available columns:", raw_df.columns.tolist())
+    #             return
+                
+    #         # Get the real headers and data
+    #         headers = raw_df.iloc[header_row].tolist()
             
-#         if "Geo" in filtered_df.columns:
-#             geo_count = len([g for g in filtered_df["Geo"].unique() if g])
-#             met3.metric("Countries", geo_count)
+    #         # Create a new dataframe with clean data
+    #         clean_df = pd.DataFrame(columns=headers)
+            
+    #         # Add data rows
+    #         for i in range(header_row + 1, len(raw_df)):
+    #             row_data = raw_df.iloc[i].tolist()
+    #             # Only add if the row is not entirely empty
+    #             if not all(pd.isna(val) or val == '' for val in row_data):
+    #                 clean_df.loc[len(clean_df)] = row_data
+            
+    #         # Replace NaN with empty strings to avoid JSON errors
+    #         clean_df = clean_df.fillna('')
+            
+    #         # Verify we have data
+    #         if len(clean_df) == 0:
+    #             st.warning("No data found after processing")
+    #             return
+            
+    #         # Extract filter options, ensuring they're not empty
+    #         platform_options = []
+    #         if "On Platform" in clean_df.columns:
+    #             platform_options = [opt for opt in clean_df["On Platform"].unique() if opt]
+            
+    #         genre_options = []
+    #         if "Genre" in clean_df.columns:
+    #             genre_options = [opt for opt in clean_df["Genre"].unique() if opt]
+            
+    #         geo_options = []
+    #         if "Geo" in clean_df.columns:
+    #             geo_options = [opt for opt in clean_df["Geo"].unique() if opt]
+            
+    #         # Add filters
+    #         st.subheader("Filters")
+            
+    #         # Create 3 columns for filters
+    #         col1, col2, col3 = st.columns(3)
+            
+    #         # Filter by On Platform status
+    #         with col1:
+    #             if platform_options:
+    #                 selected_platform = st.multiselect(
+    #                     "On Platform Status",
+    #                     options=platform_options,
+    #                     default=platform_options
+    #                 )
+    #             else:
+    #                 selected_platform = []
+            
+    #         # Filter by Genre
+    #         with col2:
+    #             if genre_options:
+    #                 selected_genres = st.multiselect(
+    #                     "Genre",
+    #                     options=genre_options,
+    #                     default=genre_options
+    #                 )
+    #             else:
+    #                 selected_genres = []
+            
+    #         # Filter by Geography
+    #         with col3:
+    #             if geo_options:
+    #                 selected_geos = st.multiselect(
+    #                     "Geography",
+    #                     options=geo_options,
+    #                     default=geo_options
+    #                 )
+    #             else:
+    #                 selected_geos = []
+            
+    #         # Apply filters
+    #         filtered_df = clean_df.copy()
+            
+    #         if "On Platform" in clean_df.columns and selected_platform:
+    #             filtered_df = filtered_df[filtered_df["On Platform"].isin(selected_platform)]
+                
+    #         if "Genre" in clean_df.columns and selected_genres:
+    #             filtered_df = filtered_df[filtered_df["Genre"].isin(selected_genres)]
+                
+    #         if "Geo" in clean_df.columns and selected_geos:
+    #             filtered_df = filtered_df[filtered_df["Geo"].isin(selected_geos)]
+            
+    #         # Display the filtered data as text instead of dataframe to avoid JSON errors
+    #         st.subheader("Scouting Results")
+            
+    #         # Convert column names to actual columns
+    #         column_names = filtered_df.columns.tolist()
+            
+    #         # Use a simpler approach to display data
+    #         for i, row in filtered_df.iterrows():
+    #             with st.expander(f"{row.get('Artist Name', '')} - {row.get('Song Name', '')}"):
+    #                 for col in column_names:
+    #                     if col in ["Artist Name", "Song Name"]:
+    #                         continue  # Already in the expander title
+                        
+    #                     value = row.get(col, '')
+                        
+    #                     # Special handling for links
+    #                     if col == "Social Media Link" and value:
+    #                         st.markdown(f"**{col}:** [{value}]({value})")
+    #                     else:
+    #                         st.markdown(f"**{col}:** {value}")
+            
+    #         # Display analytics
+    #         st.subheader("Analytics")
+            
+    #         # Key metrics
+    #         met1, met2, met3 = st.columns(3)
+            
+    #         met1.metric("Total Tracks", len(filtered_df))
+            
+    #         if "Genre" in filtered_df.columns:
+    #             genre_count = len([g for g in filtered_df["Genre"].unique() if g])
+    #             met2.metric("Unique Genres", genre_count)
+                
+    #         if "Geo" in filtered_df.columns:
+    #             geo_count = len([g for g in filtered_df["Geo"].unique() if g])
+    #             met3.metric("Countries", geo_count)
+            
+    #         # Visualizations
+    #         # Only create if we have data to visualize
+    #         if len(filtered_df) > 0:
+    #             viz1, viz2 = st.columns(2)
+                
+    #             with viz1:
+    #                 if "Genre" in filtered_df.columns:
+    #                     # Get non-empty genres and their counts
+    #                     genre_counts = filtered_df["Genre"].value_counts().reset_index()
+    #                     genre_counts.columns = ["Genre", "Count"]
+    #                     genre_counts = genre_counts[genre_counts["Genre"] != ""]
+                        
+    #                     if not genre_counts.empty:
+    #                         fig1 = px.pie(
+    #                             genre_counts,
+    #                             values="Count",
+    #                             names="Genre",
+    #                             title="Genre Distribution",
+    #                             hole=0.4
+    #                         )
+    #                         st.plotly_chart(fig1, use_container_width=True)
+                
+    #             with viz2:
+    #                 if "Geo" in filtered_df.columns:
+    #                     # Get non-empty geos and their counts
+    #                     geo_counts = filtered_df["Geo"].value_counts().reset_index()
+    #                     geo_counts.columns = ["Geography", "Count"]
+    #                     geo_counts = geo_counts[geo_counts["Geography"] != ""]
+                        
+    #                     if not geo_counts.empty:
+    #                         fig2 = px.bar(
+    #                             geo_counts,
+    #                             x="Geography",
+    #                             y="Count",
+    #                             title="Geographic Distribution",
+    #                             color="Count"
+    #                         )
+    #                         st.plotly_chart(fig2, use_container_width=True)
         
-#         # Visualizations
-#         # Only create if we have data to visualize
-#         if len(filtered_df) > 0:
-#             viz1, viz2 = st.columns(2)
-            
-#             with viz1:
-#                 if "Genre" in filtered_df.columns:
-#                     # Get non-empty genres and their counts
-#                     genre_counts = filtered_df["Genre"].value_counts().reset_index()
-#                     genre_counts.columns = ["Genre", "Count"]
-#                     genre_counts = genre_counts[genre_counts["Genre"] != ""]
-                    
-#                     if not genre_counts.empty:
-#                         fig1 = px.pie(
-#                             genre_counts,
-#                             values="Count",
-#                             names="Genre",
-#                             title="Genre Distribution",
-#                             hole=0.4
-#                         )
-#                         st.plotly_chart(fig1, use_container_width=True)
-            
-#             with viz2:
-#                 if "Geo" in filtered_df.columns:
-#                     # Get non-empty geos and their counts
-#                     geo_counts = filtered_df["Geo"].value_counts().reset_index()
-#                     geo_counts.columns = ["Geography", "Count"]
-#                     geo_counts = geo_counts[geo_counts["Geography"] != ""]
-                    
-#                     if not geo_counts.empty:
-#                         fig2 = px.bar(
-#                             geo_counts,
-#                             x="Geography",
-#                             y="Count",
-#                             title="Geographic Distribution",
-#                             color="Count"
-#                         )
-#                         st.plotly_chart(fig2, use_container_width=True)
+    #     except Exception as e:
+    #         st.error(f"An error occurred: {str(e)}")
+    #         st.exception(e)  # This will show the full traceback
     
-#     except Exception as e:
-#         st.error(f"An error occurred: {str(e)}")
-#         st.exception(e)  # This will show the full traceback
-
-
-
-
-
-
-
-
-# Create tabs
-# tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-#     "Overview", 
-#     "Engagement Analysis", 
-#     "Geographic Insights", 
-#     "Growing Artists", 
-#     "Recommendations",
-#     "Methodology & Explanations"
-# ])
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
-    "Overview", 
-    "Engagement Analysis", 
-    "Geographic Insights", 
-    "Growing Artists", 
-    "Recommendations",
-    "Methodology & Explanations",
-    "A&R Scouting Tracker (JJ)"
-])
-
-# Tab 1: Overview
-with tab1:
-    st.header("Platform Event Overview")
     
-    # Create metrics
-    col1, col2, col3, col4 = st.columns(4)
     
-    total_plays = event_type_df[event_type_df['event_type'] == 'play']['event_count'].sum()
-    total_favorites = event_type_df[event_type_df['event_type'] == 'favorite']['event_count'].sum()
-    total_shares = event_type_df[event_type_df['event_type'] == 'share']['event_count'].sum()
-    total_downloads = event_type_df[event_type_df['event_type'] == 'download']['event_count'].sum()
     
-    col1.metric("Total Plays", f"{total_plays:,}")
-    col2.metric("Total Favorites", f"{total_favorites:,}")
-    col3.metric("Total Shares", f"{total_shares:,}")
-    col4.metric("Total Downloads", f"{total_downloads:,}")
     
-    # Create event type distribution chart
-    st.subheader("Event Type Distribution")
     
-    fig1 = px.bar(
-        event_type_df,
-        x="event_type",
-        y="event_count",
-        title="Events by Type",
-        color="event_type",
-        labels={"event_count": "Number of Events", "event_type": "Event Type"},
-        color_discrete_sequence=px.colors.qualitative.Bold,
-        hover_data={"event_count": True, "unique_users": True, "event_type": True},
-        custom_data=["unique_users"]
-    )
-    # Add a more descriptive tooltip
-    fig1.update_traces(
-        hovertemplate="<b>Event Type:</b> %{x}<br>" +
-                      "<b>Count:</b> %{y:,.0f}<br>" +
-                      "<b>Unique Users:</b> %{customdata[0]:,.0f}<br>" +
-                      "<b>Description:</b> Total number of '%{x}' events in the last 30 days<extra></extra>"
-    )
-    fig1.update_layout(xaxis={'categoryorder':'total descending'})
-    st.plotly_chart(fig1, use_container_width=True)
     
-    # Create unique users by event type
-    st.subheader("User Engagement by Event Type")
     
-    fig2 = go.Figure()
-    fig2.add_trace(go.Bar(
-        x=event_type_df["event_type"],
-        y=event_type_df["unique_users"],
-        name="Unique Users",
-        marker_color="#FF6B6B"
-    ))
-    fig2.update_layout(
-        title="Unique Users by Event Type",
-        xaxis_title="Event Type",
-        yaxis_title="Number of Unique Users",
-        xaxis={'categoryorder':'total descending'}
-    )
-    st.plotly_chart(fig2, use_container_width=True)
+    # Create tabs
+    # tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    #     "Overview", 
+    #     "Engagement Analysis", 
+    #     "Geographic Insights", 
+    #     "Growing Artists", 
+    #     "Recommendations",
+    #     "Methodology & Explanations"
+    # ])
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+        "Overview", 
+        "Engagement Analysis", 
+        "Geographic Insights", 
+        "Growing Artists", 
+        "Recommendations",
+        "Methodology & Explanations",
+        "A&R Scouting Tracker (JJ)"
+    ])
     
-    # Top artists by plays
-    st.subheader("Top Artists by Plays")
-    
-    fig3 = px.bar(
-        music_engagement_df.sort_values('total_plays', ascending=False).head(10),
-        x="artist",
-        y="total_plays",
-        title="Top 10 Artists by Total Plays",
-        color_discrete_sequence=["#4ECDC4"],
-        hover_data=["unique_listeners", "plays_per_user"]
-    )
-    fig3.update_layout(xaxis_title="Artist", yaxis_title="Total Plays")
-    st.plotly_chart(fig3, use_container_width=True)
-
-# Tab 2: Engagement Analysis
-with tab2:
-    st.header("Artist Engagement Analysis")
-    
-    # Create engagement metrics visualization
-    st.subheader("Engagement Metrics by Artist")
-    
-    metrics_df = engagement_analysis_df.melt(
-        id_vars=["artist"],
-        value_vars=["favorite_ratio", "share_ratio"],
-        var_name="Metric",
-        value_name="Value"
-    )
-    
-    metrics_df["Metric"] = metrics_df["Metric"].map({
-        "favorite_ratio": "Favorites Ratio",
-        "share_ratio": "Shares Ratio"
-    })
-    
-    fig4 = px.bar(
-        metrics_df,
-        x="artist",
-        y="Value",
-        color="Metric",
-        barmode="group",
-        title="Engagement Ratios by Artist",
-        color_discrete_map={
-            "Favorites Ratio": "#FF9F1C",
-            "Shares Ratio": "#E71D36"
-        },
-        hover_data={"Value": ":.2%"}  # Format as percentage
-    )
-    # Add a more descriptive tooltip
-    fig4.update_traces(
-        hovertemplate="<b>Artist:</b> %{x}<br>" +
-                      "<b>%{data.name}:</b> %{customdata[0]}<br>" +
-                      "<b>Formula:</b> %{data.name === 'Favorites Ratio' ? 'Favorites ÷ Plays' : 'Shares ÷ Plays'}<br>" +
-                      "<b>Interpretation:</b> %{data.name === 'Favorites Ratio' ? 'Higher values indicate stronger audience connection' : 'Higher values indicate better viral potential'}<extra></extra>"
-    )
-    fig4.update_layout(xaxis_title="Artist", yaxis_title="Ratio Value")
-    st.plotly_chart(fig4, use_container_width=True)
-    
-    # Create plays per user chart
-    st.subheader("Plays per Unique Listener")
-    
-    fig5 = px.bar(
-        music_engagement_df.sort_values('plays_per_user', ascending=False),
-        x="artist",
-        y="plays_per_user",
-        title="Average Plays per Unique Listener",
-        color_discrete_sequence=["#2EC4B6"],
-        hover_data=["total_plays", "unique_listeners"]
-    )
-    fig5.update_layout(xaxis_title="Artist", yaxis_title="Plays per Listener")
-    st.plotly_chart(fig5, use_container_width=True)
-    
-    # Create composite engagement score chart
-    st.subheader("Composite Engagement Score")
-    
-    fig6 = px.bar(
-        engagement_analysis_df.sort_values('engagement_score', ascending=False),
-        x="artist",
-        y="engagement_score",
-        title="Composite Engagement Score (Favorites + Shares Weighted)",
-        color_discrete_sequence=["#FF6B6B"],
-        hover_data=["favorite_ratio", "share_ratio", "plays", "favorites", "shares"]
-    )
-    
-    # Create a detailed tooltip explaining the engagement score calculation
-    fig6.update_traces(
-        hovertemplate="<b>Artist:</b> %{x}<br>" +
-                      "<b>Engagement Score:</b> %{y:.2f}<br>" +
-                      "<b>Favorite Ratio:</b> %{customdata[0]:.1%}<br>" +
-                      "<b>Share Ratio:</b> %{customdata[1]:.1%}<br>" +
-                      "<b>Total Plays:</b> %{customdata[2]:,.0f}<br>" +
-                      "<b>Formula:</b> (Favorite Ratio × 10) + (Share Ratio × 5)<br>" +
-                      "<b>Interpretation:</b> Higher scores indicate stronger audience engagement<extra></extra>"
-    )
-    
-    fig6.update_layout(xaxis_title="Artist", yaxis_title="Engagement Score")
-    st.plotly_chart(fig6, use_container_width=True)
-
-# Tab 3: Geographic Insights
-with tab3:
-    st.header("Geographic Analysis")
-    
-    # Filter by selected countries
-    filtered_geo_df = geographic_df[geographic_df['geo_country'].isin(selected_countries)]
-    
-    # Create country comparison chart
-    st.subheader("Artist Performance by Country")
-    
-    fig7 = px.bar(
-        filtered_geo_df,
-        x="artist",
-        y="play_count",
-        color="geo_country",
-        title="Play Counts by Artist and Country",
-        barmode="group",
-        color_discrete_sequence=px.colors.qualitative.Set3
-    )
-    fig7.update_layout(xaxis_title="Artist", yaxis_title="Play Count")
-    st.plotly_chart(fig7, use_container_width=True)
-    
-    # Create percentage distribution chart
-    st.subheader("Geographic Distribution of Plays")
-    
-    fig8 = px.bar(
-        filtered_geo_df,
-        x="artist",
-        y="play_percentage",
-        color="geo_country",
-        title="Percentage Distribution of Plays by Country",
-        barmode="stack",
-        color_discrete_sequence=px.colors.qualitative.Bold,
-        hover_data=["play_count", "unique_listeners"]
-    )
-    
-    # Add a detailed tooltip for geographic distribution
-    fig8.update_traces(
-        hovertemplate="<b>Artist:</b> %{x}<br>" +
-                      "<b>Country:</b> %{marker.color}<br>" +
-                      "<b>Percentage:</b> %{y:.1f}%<br>" +
-                      "<b>Play Count:</b> %{customdata[0]:,.0f}<br>" +
-                      "<b>Unique Listeners:</b> %{customdata[1]:,.0f}<br>" +
-                      "<b>Significance:</b> Shows cross-border reach and market penetration<extra></extra>"
-    )
-    
-    fig8.update_layout(xaxis_title="Artist", yaxis_title="Percentage of Total Plays (%)")
-    st.plotly_chart(fig8, use_container_width=True)
-    
-    # Create unique listeners map
-    st.subheader("Unique Listeners by Country")
-    
-    unique_by_country = filtered_geo_df.groupby('geo_country')['unique_listeners'].sum().reset_index()
-    
-    fig9 = px.choropleth(
-        unique_by_country,
-        locations="geo_country",
-        locationmode="ISO-3",
-        color="unique_listeners",
-        hover_name="geo_country",
-        color_continuous_scale=px.colors.sequential.Viridis,
-        title="Unique Listeners by Country"
-    )
-    st.plotly_chart(fig9, use_container_width=True)
-
-# Tab 4: Growing Artists
-with tab4:
-    st.header("Artist Growth Analysis")
-    
-    # Filter by selected size cohorts
-    filtered_growing_df = growing_artists_df[growing_artists_df['size_cohort'].isin(selected_size_cohort)]
-    
-    # Add a selection widget for the growth metric
-    growth_metric = st.radio(
-        "Select Growth Metric",
-        ["play_growth_pct", "listener_growth_pct", "artist_momentum_score"],
-        format_func=lambda x: {
-            "play_growth_pct": "Play Count Growth %",
-            "listener_growth_pct": "Listener Growth %",
-            "artist_momentum_score": "Artist Momentum Score"
-        }[x],
-        horizontal=True
-    )
-    
-    # Create growth metric chart
-    st.subheader("Artist Growth Metrics")
-    
-    fig10 = px.bar(
-        filtered_growing_df.sort_values(growth_metric, ascending=False),
-        x="artist",
-        y=growth_metric,
-        color="size_cohort",
-        title="Artist Growth by Size Cohort",
-        labels={
-            "play_growth_pct": "Play Count Growth %",
-            "listener_growth_pct": "Listener Growth %",
-            "artist_momentum_score": "Artist Momentum Score"
-        },
-        hover_data=["plays_per_listener", "favorites_per_listener", "shares_per_listener", "current_plays", "previous_plays"],
-        color_discrete_sequence=px.colors.qualitative.Safe
-    )
-    
-    # Add a detailed tooltip based on which metric is selected
-    if growth_metric == "play_growth_pct":
-        tooltip_template = (
-            "<b>Artist:</b> %{x}<br>" +
-            "<b>Play Growth:</b> %{y:.1f}%<br>" +
-            "<b>Current Plays:</b> %{customdata[3]:,.0f}<br>" +
-            "<b>Previous Plays:</b> %{customdata[4]:,.0f}<br>" +
-            "<b>Size Cohort:</b> %{marker.color}<br>" +
-            "<b>Formula:</b> ((Current - Previous) ÷ Previous) × 100<br>" +
-            "<b>Weight in Momentum Score:</b> 40%<extra></extra>"
+    # Tab 1: Overview
+    with tab1:
+        st.header("Platform Event Overview")
+        
+        # Create metrics
+        col1, col2, col3, col4 = st.columns(4)
+        
+        total_plays = event_type_df[event_type_df['event_type'] == 'play']['event_count'].sum()
+        total_favorites = event_type_df[event_type_df['event_type'] == 'favorite']['event_count'].sum()
+        total_shares = event_type_df[event_type_df['event_type'] == 'share']['event_count'].sum()
+        total_downloads = event_type_df[event_type_df['event_type'] == 'download']['event_count'].sum()
+        
+        col1.metric("Total Plays", f"{total_plays:,}")
+        col2.metric("Total Favorites", f"{total_favorites:,}")
+        col3.metric("Total Shares", f"{total_shares:,}")
+        col4.metric("Total Downloads", f"{total_downloads:,}")
+        
+        # Create event type distribution chart
+        st.subheader("Event Type Distribution")
+        
+        fig1 = px.bar(
+            event_type_df,
+            x="event_type",
+            y="event_count",
+            title="Events by Type",
+            color="event_type",
+            labels={"event_count": "Number of Events", "event_type": "Event Type"},
+            color_discrete_sequence=px.colors.qualitative.Bold,
+            hover_data={"event_count": True, "unique_users": True, "event_type": True},
+            custom_data=["unique_users"]
         )
-    elif growth_metric == "listener_growth_pct":
-        tooltip_template = (
-            "<b>Artist:</b> %{x}<br>" +
-            "<b>Listener Growth:</b> %{y:.1f}%<br>" +
-            "<b>Plays per Listener:</b> %{customdata[0]:.1f}<br>" +
-            "<b>Size Cohort:</b> %{marker.color}<br>" +
-            "<b>Formula:</b> ((Current - Previous) ÷ Previous) × 100<br>" +
-            "<b>Weight in Momentum Score:</b> 30%<extra></extra>"
+        # Add a more descriptive tooltip
+        fig1.update_traces(
+            hovertemplate="<b>Event Type:</b> %{x}<br>" +
+                          "<b>Count:</b> %{y:,.0f}<br>" +
+                          "<b>Unique Users:</b> %{customdata[0]:,.0f}<br>" +
+                          "<b>Description:</b> Total number of '%{x}' events in the last 30 days<extra></extra>"
         )
-    else:  # artist_momentum_score
-        tooltip_template = (
-            "<b>Artist:</b> %{x}<br>" +
-            "<b>Momentum Score:</b> %{y:.2f}<br>" +
-            "<b>Plays per Listener:</b> %{customdata[0]:.1f}<br>" +
-            "<b>Favorites per Listener:</b> %{customdata[1]:.2f}<br>" +
-            "<b>Shares per Listener:</b> %{customdata[2]:.2f}<br>" +
-            "<b>Size Cohort:</b> %{marker.color}<br>" +
-            "<b>Formula:</b> Weighted sum of growth and engagement metrics<extra></extra>"
+        fig1.update_layout(xaxis={'categoryorder':'total descending'})
+        st.plotly_chart(fig1, use_container_width=True)
+        
+        # Create unique users by event type
+        st.subheader("User Engagement by Event Type")
+        
+        fig2 = go.Figure()
+        fig2.add_trace(go.Bar(
+            x=event_type_df["event_type"],
+            y=event_type_df["unique_users"],
+            name="Unique Users",
+            marker_color="#FF6B6B"
+        ))
+        fig2.update_layout(
+            title="Unique Users by Event Type",
+            xaxis_title="Event Type",
+            yaxis_title="Number of Unique Users",
+            xaxis={'categoryorder':'total descending'}
         )
+        st.plotly_chart(fig2, use_container_width=True)
+        
+        # Top artists by plays
+        st.subheader("Top Artists by Plays")
+        
+        fig3 = px.bar(
+            music_engagement_df.sort_values('total_plays', ascending=False).head(10),
+            x="artist",
+            y="total_plays",
+            title="Top 10 Artists by Total Plays",
+            color_discrete_sequence=["#4ECDC4"],
+            hover_data=["unique_listeners", "plays_per_user"]
+        )
+        fig3.update_layout(xaxis_title="Artist", yaxis_title="Total Plays")
+        st.plotly_chart(fig3, use_container_width=True)
     
-    fig10.update_traces(hovertemplate=tooltip_template)
-    fig10.update_layout(xaxis_title="Artist", yaxis_title="Growth Metric")
-    st.plotly_chart(fig10, use_container_width=True)
+    # Tab 2: Engagement Analysis
+    with tab2:
+        st.header("Artist Engagement Analysis")
+        
+        # Create engagement metrics visualization
+        st.subheader("Engagement Metrics by Artist")
+        
+        metrics_df = engagement_analysis_df.melt(
+            id_vars=["artist"],
+            value_vars=["favorite_ratio", "share_ratio"],
+            var_name="Metric",
+            value_name="Value"
+        )
+        
+        metrics_df["Metric"] = metrics_df["Metric"].map({
+            "favorite_ratio": "Favorites Ratio",
+            "share_ratio": "Shares Ratio"
+        })
+        
+        fig4 = px.bar(
+            metrics_df,
+            x="artist",
+            y="Value",
+            color="Metric",
+            barmode="group",
+            title="Engagement Ratios by Artist",
+            color_discrete_map={
+                "Favorites Ratio": "#FF9F1C",
+                "Shares Ratio": "#E71D36"
+            },
+            hover_data={"Value": ":.2%"}  # Format as percentage
+        )
+        # Add a more descriptive tooltip
+        fig4.update_traces(
+            hovertemplate="<b>Artist:</b> %{x}<br>" +
+                          "<b>%{data.name}:</b> %{customdata[0]}<br>" +
+                          "<b>Formula:</b> %{data.name === 'Favorites Ratio' ? 'Favorites ÷ Plays' : 'Shares ÷ Plays'}<br>" +
+                          "<b>Interpretation:</b> %{data.name === 'Favorites Ratio' ? 'Higher values indicate stronger audience connection' : 'Higher values indicate better viral potential'}<extra></extra>"
+        )
+        fig4.update_layout(xaxis_title="Artist", yaxis_title="Ratio Value")
+        st.plotly_chart(fig4, use_container_width=True)
+        
+        # Create plays per user chart
+        st.subheader("Plays per Unique Listener")
+        
+        fig5 = px.bar(
+            music_engagement_df.sort_values('plays_per_user', ascending=False),
+            x="artist",
+            y="plays_per_user",
+            title="Average Plays per Unique Listener",
+            color_discrete_sequence=["#2EC4B6"],
+            hover_data=["total_plays", "unique_listeners"]
+        )
+        fig5.update_layout(xaxis_title="Artist", yaxis_title="Plays per Listener")
+        st.plotly_chart(fig5, use_container_width=True)
+        
+        # Create composite engagement score chart
+        st.subheader("Composite Engagement Score")
+        
+        fig6 = px.bar(
+            engagement_analysis_df.sort_values('engagement_score', ascending=False),
+            x="artist",
+            y="engagement_score",
+            title="Composite Engagement Score (Favorites + Shares Weighted)",
+            color_discrete_sequence=["#FF6B6B"],
+            hover_data=["favorite_ratio", "share_ratio", "plays", "favorites", "shares"]
+        )
+        
+        # Create a detailed tooltip explaining the engagement score calculation
+        fig6.update_traces(
+            hovertemplate="<b>Artist:</b> %{x}<br>" +
+                          "<b>Engagement Score:</b> %{y:.2f}<br>" +
+                          "<b>Favorite Ratio:</b> %{customdata[0]:.1%}<br>" +
+                          "<b>Share Ratio:</b> %{customdata[1]:.1%}<br>" +
+                          "<b>Total Plays:</b> %{customdata[2]:,.0f}<br>" +
+                          "<b>Formula:</b> (Favorite Ratio × 10) + (Share Ratio × 5)<br>" +
+                          "<b>Interpretation:</b> Higher scores indicate stronger audience engagement<extra></extra>"
+        )
+        
+        fig6.update_layout(xaxis_title="Artist", yaxis_title="Engagement Score")
+        st.plotly_chart(fig6, use_container_width=True)
     
-    # Create side-by-side comparison of current vs previous metrics
-    st.subheader("Current vs Previous Period Comparison")
+    # Tab 3: Geographic Insights
+    with tab3:
+        st.header("Geographic Analysis")
+        
+        # Filter by selected countries
+        filtered_geo_df = geographic_df[geographic_df['geo_country'].isin(selected_countries)]
+        
+        # Create country comparison chart
+        st.subheader("Artist Performance by Country")
+        
+        fig7 = px.bar(
+            filtered_geo_df,
+            x="artist",
+            y="play_count",
+            color="geo_country",
+            title="Play Counts by Artist and Country",
+            barmode="group",
+            color_discrete_sequence=px.colors.qualitative.Set3
+        )
+        fig7.update_layout(xaxis_title="Artist", yaxis_title="Play Count")
+        st.plotly_chart(fig7, use_container_width=True)
+        
+        # Create percentage distribution chart
+        st.subheader("Geographic Distribution of Plays")
+        
+        fig8 = px.bar(
+            filtered_geo_df,
+            x="artist",
+            y="play_percentage",
+            color="geo_country",
+            title="Percentage Distribution of Plays by Country",
+            barmode="stack",
+            color_discrete_sequence=px.colors.qualitative.Bold,
+            hover_data=["play_count", "unique_listeners"]
+        )
+        
+        # Add a detailed tooltip for geographic distribution
+        fig8.update_traces(
+            hovertemplate="<b>Artist:</b> %{x}<br>" +
+                          "<b>Country:</b> %{marker.color}<br>" +
+                          "<b>Percentage:</b> %{y:.1f}%<br>" +
+                          "<b>Play Count:</b> %{customdata[0]:,.0f}<br>" +
+                          "<b>Unique Listeners:</b> %{customdata[1]:,.0f}<br>" +
+                          "<b>Significance:</b> Shows cross-border reach and market penetration<extra></extra>"
+        )
+        
+        fig8.update_layout(xaxis_title="Artist", yaxis_title="Percentage of Total Plays (%)")
+        st.plotly_chart(fig8, use_container_width=True)
+        
+        # Create unique listeners map
+        st.subheader("Unique Listeners by Country")
+        
+        unique_by_country = filtered_geo_df.groupby('geo_country')['unique_listeners'].sum().reset_index()
+        
+        fig9 = px.choropleth(
+            unique_by_country,
+            locations="geo_country",
+            locationmode="ISO-3",
+            color="unique_listeners",
+            hover_name="geo_country",
+            color_continuous_scale=px.colors.sequential.Viridis,
+            title="Unique Listeners by Country"
+        )
+        st.plotly_chart(fig9, use_container_width=True)
     
-    # Select an artist for detailed view
-    selected_artist = st.selectbox(
-        "Select Artist for Detailed Comparison",
-        options=filtered_growing_df['artist'].tolist()
-    )
-    
-    artist_data = filtered_growing_df[filtered_growing_df['artist'] == selected_artist].iloc[0]
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        # Current metrics
-        st.subheader("Current Period")
-        st.metric("Plays", f"{artist_data['current_plays']:,}")
-        st.metric("Unique Listeners", f"{artist_data['current_listeners']:,}")
-        st.metric("Plays per Listener", f"{artist_data['plays_per_listener']:.2f}")
-        st.metric("Favorites per Listener", f"{artist_data['favorites_per_listener']:.2f}")
-        st.metric("Shares per Listener", f"{artist_data['shares_per_listener']:.2f}")
-    
-    with col2:
-        # Previous metrics with growth indicators
-        st.subheader("Growth Metrics")
-        st.metric("Previous Plays", f"{artist_data['previous_plays']:,}", 
-                 delta=f"{artist_data['play_growth_pct']:.1f}%")
-        st.metric("Previous Listeners", f"{artist_data['previous_listeners']:,}", 
-                 delta=f"{artist_data['listener_growth_pct']:.1f}%")
-        st.metric("Growth Indicator", artist_data['growth_indicator'])
-        st.metric("Size Cohort", artist_data['size_cohort'].capitalize())
-        st.metric("Momentum Score", f"{artist_data['artist_momentum_score']:.2f}")
-    
-    # Show comparison chart
-    metrics_to_compare = {
-        'plays': ['current_plays', 'previous_plays'],
-        'listeners': ['current_listeners', 'previous_listeners']
-    }
-    
-    metric_choice = st.radio(
-        "Compare Metric",
-        list(metrics_to_compare.keys()),
-        horizontal=True
-    )
-    
-    current_col, prev_col = metrics_to_compare[metric_choice]
-    
-    comparison_data = pd.DataFrame({
-        'period': ['Current', 'Previous'],
-        'value': [artist_data[current_col], artist_data[prev_col]]
-    })
-    
-    fig11 = px.bar(
-        comparison_data,
-        x="period",
-        y="value",
-        title=f"{selected_artist}: {metric_choice.capitalize()} Comparison",
-        color="period",
-        color_discrete_map={
-            "Current": "#00A878",
-            "Previous": "#5F4B8B"
+    # Tab 4: Growing Artists
+    with tab4:
+        st.header("Artist Growth Analysis")
+        
+        # Filter by selected size cohorts
+        filtered_growing_df = growing_artists_df[growing_artists_df['size_cohort'].isin(selected_size_cohort)]
+        
+        # Add a selection widget for the growth metric
+        growth_metric = st.radio(
+            "Select Growth Metric",
+            ["play_growth_pct", "listener_growth_pct", "artist_momentum_score"],
+            format_func=lambda x: {
+                "play_growth_pct": "Play Count Growth %",
+                "listener_growth_pct": "Listener Growth %",
+                "artist_momentum_score": "Artist Momentum Score"
+            }[x],
+            horizontal=True
+        )
+        
+        # Create growth metric chart
+        st.subheader("Artist Growth Metrics")
+        
+        fig10 = px.bar(
+            filtered_growing_df.sort_values(growth_metric, ascending=False),
+            x="artist",
+            y=growth_metric,
+            color="size_cohort",
+            title="Artist Growth by Size Cohort",
+            labels={
+                "play_growth_pct": "Play Count Growth %",
+                "listener_growth_pct": "Listener Growth %",
+                "artist_momentum_score": "Artist Momentum Score"
+            },
+            hover_data=["plays_per_listener", "favorites_per_listener", "shares_per_listener", "current_plays", "previous_plays"],
+            color_discrete_sequence=px.colors.qualitative.Safe
+        )
+        
+        # Add a detailed tooltip based on which metric is selected
+        if growth_metric == "play_growth_pct":
+            tooltip_template = (
+                "<b>Artist:</b> %{x}<br>" +
+                "<b>Play Growth:</b> %{y:.1f}%<br>" +
+                "<b>Current Plays:</b> %{customdata[3]:,.0f}<br>" +
+                "<b>Previous Plays:</b> %{customdata[4]:,.0f}<br>" +
+                "<b>Size Cohort:</b> %{marker.color}<br>" +
+                "<b>Formula:</b> ((Current - Previous) ÷ Previous) × 100<br>" +
+                "<b>Weight in Momentum Score:</b> 40%<extra></extra>"
+            )
+        elif growth_metric == "listener_growth_pct":
+            tooltip_template = (
+                "<b>Artist:</b> %{x}<br>" +
+                "<b>Listener Growth:</b> %{y:.1f}%<br>" +
+                "<b>Plays per Listener:</b> %{customdata[0]:.1f}<br>" +
+                "<b>Size Cohort:</b> %{marker.color}<br>" +
+                "<b>Formula:</b> ((Current - Previous) ÷ Previous) × 100<br>" +
+                "<b>Weight in Momentum Score:</b> 30%<extra></extra>"
+            )
+        else:  # artist_momentum_score
+            tooltip_template = (
+                "<b>Artist:</b> %{x}<br>" +
+                "<b>Momentum Score:</b> %{y:.2f}<br>" +
+                "<b>Plays per Listener:</b> %{customdata[0]:.1f}<br>" +
+                "<b>Favorites per Listener:</b> %{customdata[1]:.2f}<br>" +
+                "<b>Shares per Listener:</b> %{customdata[2]:.2f}<br>" +
+                "<b>Size Cohort:</b> %{marker.color}<br>" +
+                "<b>Formula:</b> Weighted sum of growth and engagement metrics<extra></extra>"
+            )
+        
+        fig10.update_traces(hovertemplate=tooltip_template)
+        fig10.update_layout(xaxis_title="Artist", yaxis_title="Growth Metric")
+        st.plotly_chart(fig10, use_container_width=True)
+        
+        # Create side-by-side comparison of current vs previous metrics
+        st.subheader("Current vs Previous Period Comparison")
+        
+        # Select an artist for detailed view
+        selected_artist = st.selectbox(
+            "Select Artist for Detailed Comparison",
+            options=filtered_growing_df['artist'].tolist()
+        )
+        
+        artist_data = filtered_growing_df[filtered_growing_df['artist'] == selected_artist].iloc[0]
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Current metrics
+            st.subheader("Current Period")
+            st.metric("Plays", f"{artist_data['current_plays']:,}")
+            st.metric("Unique Listeners", f"{artist_data['current_listeners']:,}")
+            st.metric("Plays per Listener", f"{artist_data['plays_per_listener']:.2f}")
+            st.metric("Favorites per Listener", f"{artist_data['favorites_per_listener']:.2f}")
+            st.metric("Shares per Listener", f"{artist_data['shares_per_listener']:.2f}")
+        
+        with col2:
+            # Previous metrics with growth indicators
+            st.subheader("Growth Metrics")
+            st.metric("Previous Plays", f"{artist_data['previous_plays']:,}", 
+                     delta=f"{artist_data['play_growth_pct']:.1f}%")
+            st.metric("Previous Listeners", f"{artist_data['previous_listeners']:,}", 
+                     delta=f"{artist_data['listener_growth_pct']:.1f}%")
+            st.metric("Growth Indicator", artist_data['growth_indicator'])
+            st.metric("Size Cohort", artist_data['size_cohort'].capitalize())
+            st.metric("Momentum Score", f"{artist_data['artist_momentum_score']:.2f}")
+        
+        # Show comparison chart
+        metrics_to_compare = {
+            'plays': ['current_plays', 'previous_plays'],
+            'listeners': ['current_listeners', 'previous_listeners']
         }
-    )
-    st.plotly_chart(fig11, use_container_width=True)
-
-# Tab 5: Recommendations
-with tab5:
-    st.header("ArtistRank Recommendations")
-    
-    # Identifying potential emerging artists
-    st.subheader("Emerging Artists to Watch")
-    
-    # Combine growth and engagement data
-    emerging_artists = growing_artists_df[
-        (growing_artists_df['play_growth_pct'] > 30) & 
-        (growing_artists_df['size_cohort'].isin(['micro', 'small']))
-    ].sort_values('artist_momentum_score', ascending=False).head(5)
-    
-    for i, artist in enumerate(emerging_artists['artist'].tolist()):
-        col_left, col_right = st.columns([1, 3])
         
-        with col_left:
-            st.subheader(f"{i+1}. {artist}")
-            st.caption(f"Size: {emerging_artists.iloc[i]['size_cohort'].capitalize()}")
-            st.caption(f"Growth: {emerging_artists.iloc[i]['play_growth_pct']:.1f}%")
+        metric_choice = st.radio(
+            "Compare Metric",
+            list(metrics_to_compare.keys()),
+            horizontal=True
+        )
+        
+        current_col, prev_col = metrics_to_compare[metric_choice]
+        
+        comparison_data = pd.DataFrame({
+            'period': ['Current', 'Previous'],
+            'value': [artist_data[current_col], artist_data[prev_col]]
+        })
+        
+        fig11 = px.bar(
+            comparison_data,
+            x="period",
+            y="value",
+            title=f"{selected_artist}: {metric_choice.capitalize()} Comparison",
+            color="period",
+            color_discrete_map={
+                "Current": "#00A878",
+                "Previous": "#5F4B8B"
+            }
+        )
+        st.plotly_chart(fig11, use_container_width=True)
+    
+    # Tab 5: Recommendations
+    with tab5:
+        st.header("ArtistRank Recommendations")
+        
+        # Identifying potential emerging artists
+        st.subheader("Emerging Artists to Watch")
+        
+        # Combine growth and engagement data
+        emerging_artists = growing_artists_df[
+            (growing_artists_df['play_growth_pct'] > 30) & 
+            (growing_artists_df['size_cohort'].isin(['micro', 'small']))
+        ].sort_values('artist_momentum_score', ascending=False).head(5)
+        
+        for i, artist in enumerate(emerging_artists['artist'].tolist()):
+            col_left, col_right = st.columns([1, 3])
             
-        with col_right:
-            st.write(f"**Momentum Score:** {emerging_artists.iloc[i]['artist_momentum_score']:.2f}")
-            st.write(f"**Growth Indicator:** {emerging_artists.iloc[i]['growth_indicator']}")
-            st.write(f"**Current Plays:** {emerging_artists.iloc[i]['current_plays']:,} | **Previous:** {emerging_artists.iloc[i]['previous_plays']:,}")
-            st.write(f"**Current Listeners:** {emerging_artists.iloc[i]['current_listeners']:,} | **Previous:** {emerging_artists.iloc[i]['previous_listeners']:,}")
+            with col_left:
+                st.subheader(f"{i+1}. {artist}")
+                st.caption(f"Size: {emerging_artists.iloc[i]['size_cohort'].capitalize()}")
+                st.caption(f"Growth: {emerging_artists.iloc[i]['play_growth_pct']:.1f}%")
+                
+            with col_right:
+                st.write(f"**Momentum Score:** {emerging_artists.iloc[i]['artist_momentum_score']:.2f}")
+                st.write(f"**Growth Indicator:** {emerging_artists.iloc[i]['growth_indicator']}")
+                st.write(f"**Current Plays:** {emerging_artists.iloc[i]['current_plays']:,} | **Previous:** {emerging_artists.iloc[i]['previous_plays']:,}")
+                st.write(f"**Current Listeners:** {emerging_artists.iloc[i]['current_listeners']:,} | **Previous:** {emerging_artists.iloc[i]['previous_listeners']:,}")
+            
+            st.markdown("---")
         
-        st.markdown("---")
-    
-    # Key metrics for ArtistRank algorithm
-    st.subheader("Recommended Key Metrics for ArtistRank Algorithm")
-    
-    st.markdown("""
-    Based on the analysis, these metrics should be prioritized in the ArtistRank algorithm:
-    
-    1. **Growth Rate Metrics:**
-       - Play count growth percentage (week-over-week)
-       - Unique listener growth percentage
-       
-    2. **Engagement Quality Metrics:**
-       - Favorites per listener ratio
-       - Shares per listener ratio
-       - Plays per listener ratio
-       
-    3. **Geographic Expansion Indicators:**
-       - Multi-country presence (weighted by market importance)
-       - Growth in secondary markets
-       
-    4. **Size-Relative Performance:**
-       - Performance relative to size cohort (micro, small, medium, large)
-       - Above-average engagement within cohort
-    """)
-    
-    # Visualization of key recommendation factors
-    st.subheader("Visualization of Recommended Weighting")
-    
-    weights_data = pd.DataFrame([
-        {"factor": "Play Growth %", "weight": 0.40},
-        {"factor": "Listener Growth %", "weight": 0.30},
-        {"factor": "Favorites/Listener", "weight": 0.15},
-        {"factor": "Shares/Listener", "weight": 0.10},
-        {"factor": "Geographic Spread", "weight": 0.05}
-    ])
-    
-    fig12 = px.pie(
-        weights_data,
-        values="weight",
-        names="factor",
-        title="Recommended Weighting for ArtistRank Algorithm",
-        color_discrete_sequence=px.colors.qualitative.Bold,
-        hole=0.4
-    )
-    fig12.update_traces(textposition='inside', textinfo='percent+label')
-    st.plotly_chart(fig12, use_container_width=True)
-    
-    # SQL implementation suggestions
-    st.subheader("SQL Implementation Recommendations")
-    
-    st.code('''
--- Core ArtistRank query incorporating all recommended factors
-WITH current_period AS (
-    SELECT 
-        m.artist,
-        COUNT(*) as plays,
-        COUNT(DISTINCT e.actor_id) as unique_listeners,
-        SUM(CASE WHEN e.type = 'favorite' THEN 1 ELSE 0 END) as favorites,
-        SUM(CASE WHEN e.type = 'share' THEN 1 ELSE 0 END) as shares,
-        COUNT(DISTINCT e.geo_country) as country_count
-    FROM dw01.events e
-    JOIN dw01.music m ON e.object_id = m.music_id_raw
-    WHERE e.event_date >= CAST((CURRENT_DATE - INTERVAL '30' DAY) AS VARCHAR)
-    AND e.type IN ('play', 'favorite', 'share')
-    AND m.status = 'complete'
-    GROUP BY m.artist
-),
-previous_period AS (
-    SELECT 
-        m.artist,
-        COUNT(*) as plays,
-        COUNT(DISTINCT e.actor_id) as unique_listeners
-    FROM dw01.events e
-    JOIN dw01.music m ON e.object_id = m.music_id_raw
-    WHERE e.event_date >= CAST((CURRENT_DATE - INTERVAL '60' DAY) AS VARCHAR)
-    AND e.event_date < CAST((CURRENT_DATE - INTERVAL '30' DAY) AS VARCHAR)
-    AND e.type = 'play'
-    AND m.status = 'complete'
-    GROUP BY m.artist
-),
--- Create size cohorts based on play volume
-artist_sizes AS (
-    SELECT
-        artist,
-        CASE 
-            WHEN plays < 1000 THEN 'micro'
-            WHEN plays < 10000 THEN 'small'
-            WHEN plays < 100000 THEN 'medium'
-            ELSE 'large'
-        END as size_cohort,
-        plays,
-        unique_listeners,
-        favorites,
-        shares,
-        country_count,
-        CASE WHEN unique_listeners > 0 
-             THEN CAST(favorites AS DECIMAL) / unique_listeners 
-             ELSE 0 
-        END as favorites_per_listener,
-        CASE WHEN unique_listeners > 0 
-             THEN CAST(shares AS DECIMAL) / unique_listeners 
-             ELSE 0 
-        END as shares_per_listener
-    FROM current_period
-)
-SELECT
-    a.artist,
-    a.size_cohort,
-    a.plays as current_plays,
-    p.plays as previous_plays,
-    a.unique_listeners as current_listeners,
-    p.unique_listeners as previous_listeners,
-    a.country_count,
-    -- Growth metrics
-    CAST((a.plays - p.plays) * 100.0 / NULLIF(p.plays, 0) AS DECIMAL(10,2)) as play_growth_pct,
-    CAST((a.unique_listeners - p.unique_listeners) * 100.0 / NULLIF(p.unique_listeners, 0) AS DECIMAL(10,2)) as listener_growth_pct,
-    -- Engagement quality metrics
-    a.favorites_per_listener,
-    a.shares_per_listener,
-    -- Composite score calculation with recommended weights
-    (CAST((a.plays - p.plays) * 100.0 / NULLIF(p.plays, 0) AS DECIMAL(10,2)) * 0.4) + 
-    (CAST((a.unique_listeners - p.unique_listeners) * 100.0 / NULLIF(p.unique_listeners, 0) AS DECIMAL(10,2)) * 0.3) +
-    (a.favorites_per_listener * 15.0) +
-    (a.shares_per_listener * 10.0) +
-    (a.country_count * 0.5) as artist_momentum_score
-FROM artist_sizes a
-JOIN previous_period p ON a.artist = p.artist
-WHERE p.plays > 100 -- Minimum threshold for previous period
-ORDER BY
-    a.size_cohort,
-    artist_momentum_score DESC
-LIMIT 100;
-    ''', language='sql')
-
-
-    
-    # Next steps for ArtistRank development
-    st.subheader("Next Steps for ArtistRank Development")
-    
-    st.markdown("""
-    ### Week 2 Development Priorities (New):
-    
-    1. **Exploring Superset Further:**
-       - Monthly Plays Dashboard
-       - AMD Dashboards
-       - (Document interesting patterns and questions)
-    
-    2. **Evaluating AMD Songs Performance:**
-       - Develop queries to analyze performance metrics and identify cross-border opportunities:
-       - (1) Query for AMD songs released in the last 30 days
-       - (2) Geographic distribution analysis for AMD artists
-       - (3) Compare overall artist audience geo distribution vs. recent song distribution
-    
-    3. **Create Superset Chart for AMD Editorial Playlists:**
-       - Query to track editorial playlist additions (This will be integrated into the AMD dashboard)
-    
-    4. **For integrating this into Superset:**
-       - Connect to Chris to discuss the integration process
-       - Create a Superset dataset from this view:https://docs.google.com/document/d/1dVUrwYScYDK9M4akYlNRtUuySiE7uMYamNbd88Fie34/edit?usp=sharing
-       - Build a table visualization with the following columns:
-       - (1) Added Date
-       - (2) Song Name
-       - (3) Artist Name
-       - (4) Is Ghost Account?
-       - (5) Distributor
-       - (6) Playlist Name
-       - Add filtering capabilities for:
-       - (1) Date range
-       - (2) Playlist name
-       - (3) Distributor
-       - (4) Ghost account status
-       - Implement daily refresh to capture new additions
-
-    5. **Create a Comprehensive Analysis Report & Visualization**
-       - Based on the findings, prepare an analysis report for the next team meeting(Apr 10)
-       - Create visualizations for key findings; Format the editorial playlist table view; Document usage instructions for Jordan and Jalen
-       
-    6. **Prepare for Implementation in Superset**
-       - Check myself & ask Jacob/Chris how to integrate my query into the AMD dashboard
-       - Maybe: Format the query for optimal performance: Add appropriate indexes; Consider materialized views for faster refresh; Test with sample data to ensure accuracy
-       - Develop documentation for Jordan and Jalen on how to use and interpret the table: eg: https://docs.google.com/document/d/1UoHhLnUQVLq7utKNMmZtdfuQ49DIU5dP8nxhUKfumNQ/edit?usp=sharing
-       
-       
-       
-    ### Week 2 Development Priorities (Old PLAN):
-    
-    1. **Testing & Validation:**
-       - Compare results with previous A&R picks to validate effectiveness
-       - Adjust weight coefficients based on findings
-    
-    2. **Integration with Superset:**
-       - Create visualizations based on this dashboard
-       - Set up scheduled queries to update data daily
-       - Create alerts for high momentum score artists
-    
-    3. **Usability Enhancements:**
-       - Add genre filtering capabilities
-       - Implement territory-specific versions of the algorithm
-       - Create drilldown capabilities for artist details
-    
-    4. **Collaboration with A&R Team:**
-       - Share initial results with Jordan and Jalen
-       - Cross-reference algorithmic picks with their selections
-       - Identify patterns and blind spots in the current algorithm
-    """)  
-
-
-
-    
-    # WEEK 1 DONE
-    st.subheader("Week1 Meeting")
-    
-    st.markdown("""
-    ### Week 1 (Done):
-    
-    1. **ArtistRank dashboard**
-    2. **Main thing: Recommend artists & Artist Momentum Score methodology and its components**
-    """)
-
-
-
-
-
-# Tab 6: Methodology & Explanations
-with tab6:
-    st.header("Dashboard Methodology & Metric Explanations")
-    
-    # Data Range and Collection
-    st.subheader("1. Data Range and Collection")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
+        # Key metrics for ArtistRank algorithm
+        st.subheader("Recommended Key Metrics for ArtistRank Algorithm")
+        
         st.markdown("""
-        * **Time Period**: 30-day comparison (March 4 - April 3, 2025 vs February 2 - March 3, 2025)
-        * **Data Sources**: Platform events database (plays, favorites, shares, downloads)
-        * **Geographic Scope**: Global data with country breakdowns (Nigeria, Ghana, US, UK, etc.)
+        Based on the analysis, these metrics should be prioritized in the ArtistRank algorithm:
+        
+        1. **Growth Rate Metrics:**
+           - Play count growth percentage (week-over-week)
+           - Unique listener growth percentage
+           
+        2. **Engagement Quality Metrics:**
+           - Favorites per listener ratio
+           - Shares per listener ratio
+           - Plays per listener ratio
+           
+        3. **Geographic Expansion Indicators:**
+           - Multi-country presence (weighted by market importance)
+           - Growth in secondary markets
+           
+        4. **Size-Relative Performance:**
+           - Performance relative to size cohort (micro, small, medium, large)
+           - Above-average engagement within cohort
         """)
         
-    with col2:
-        st.info("""
-        **Data Collection Method**:
+        # Visualization of key recommendation factors
+        st.subheader("Visualization of Recommended Weighting")
         
-        All metrics are extracted from the dw01.events and dw01.music tables using SQL queries 
-        that group and aggregate events by artist, country, and time period.
+        weights_data = pd.DataFrame([
+            {"factor": "Play Growth %", "weight": 0.40},
+            {"factor": "Listener Growth %", "weight": 0.30},
+            {"factor": "Favorites/Listener", "weight": 0.15},
+            {"factor": "Shares/Listener", "weight": 0.10},
+            {"factor": "Geographic Spread", "weight": 0.05}
+        ])
+        
+        fig12 = px.pie(
+            weights_data,
+            values="weight",
+            names="factor",
+            title="Recommended Weighting for ArtistRank Algorithm",
+            color_discrete_sequence=px.colors.qualitative.Bold,
+            hole=0.4
+        )
+        fig12.update_traces(textposition='inside', textinfo='percent+label')
+        st.plotly_chart(fig12, use_container_width=True)
+        
+        # SQL implementation suggestions
+        st.subheader("SQL Implementation Recommendations")
+        
+        st.code('''
+    -- Core ArtistRank query incorporating all recommended factors
+    WITH current_period AS (
+        SELECT 
+            m.artist,
+            COUNT(*) as plays,
+            COUNT(DISTINCT e.actor_id) as unique_listeners,
+            SUM(CASE WHEN e.type = 'favorite' THEN 1 ELSE 0 END) as favorites,
+            SUM(CASE WHEN e.type = 'share' THEN 1 ELSE 0 END) as shares,
+            COUNT(DISTINCT e.geo_country) as country_count
+        FROM dw01.events e
+        JOIN dw01.music m ON e.object_id = m.music_id_raw
+        WHERE e.event_date >= CAST((CURRENT_DATE - INTERVAL '30' DAY) AS VARCHAR)
+        AND e.type IN ('play', 'favorite', 'share')
+        AND m.status = 'complete'
+        GROUP BY m.artist
+    ),
+    previous_period AS (
+        SELECT 
+            m.artist,
+            COUNT(*) as plays,
+            COUNT(DISTINCT e.actor_id) as unique_listeners
+        FROM dw01.events e
+        JOIN dw01.music m ON e.object_id = m.music_id_raw
+        WHERE e.event_date >= CAST((CURRENT_DATE - INTERVAL '60' DAY) AS VARCHAR)
+        AND e.event_date < CAST((CURRENT_DATE - INTERVAL '30' DAY) AS VARCHAR)
+        AND e.type = 'play'
+        AND m.status = 'complete'
+        GROUP BY m.artist
+    ),
+    -- Create size cohorts based on play volume
+    artist_sizes AS (
+        SELECT
+            artist,
+            CASE 
+                WHEN plays < 1000 THEN 'micro'
+                WHEN plays < 10000 THEN 'small'
+                WHEN plays < 100000 THEN 'medium'
+                ELSE 'large'
+            END as size_cohort,
+            plays,
+            unique_listeners,
+            favorites,
+            shares,
+            country_count,
+            CASE WHEN unique_listeners > 0 
+                 THEN CAST(favorites AS DECIMAL) / unique_listeners 
+                 ELSE 0 
+            END as favorites_per_listener,
+            CASE WHEN unique_listeners > 0 
+                 THEN CAST(shares AS DECIMAL) / unique_listeners 
+                 ELSE 0 
+            END as shares_per_listener
+        FROM current_period
+    )
+    SELECT
+        a.artist,
+        a.size_cohort,
+        a.plays as current_plays,
+        p.plays as previous_plays,
+        a.unique_listeners as current_listeners,
+        p.unique_listeners as previous_listeners,
+        a.country_count,
+        -- Growth metrics
+        CAST((a.plays - p.plays) * 100.0 / NULLIF(p.plays, 0) AS DECIMAL(10,2)) as play_growth_pct,
+        CAST((a.unique_listeners - p.unique_listeners) * 100.0 / NULLIF(p.unique_listeners, 0) AS DECIMAL(10,2)) as listener_growth_pct,
+        -- Engagement quality metrics
+        a.favorites_per_listener,
+        a.shares_per_listener,
+        -- Composite score calculation with recommended weights
+        (CAST((a.plays - p.plays) * 100.0 / NULLIF(p.plays, 0) AS DECIMAL(10,2)) * 0.4) + 
+        (CAST((a.unique_listeners - p.unique_listeners) * 100.0 / NULLIF(p.unique_listeners, 0) AS DECIMAL(10,2)) * 0.3) +
+        (a.favorites_per_listener * 15.0) +
+        (a.shares_per_listener * 10.0) +
+        (a.country_count * 0.5) as artist_momentum_score
+    FROM artist_sizes a
+    JOIN previous_period p ON a.artist = p.artist
+    WHERE p.plays > 100 -- Minimum threshold for previous period
+    ORDER BY
+        a.size_cohort,
+        artist_momentum_score DESC
+    LIMIT 100;
+        ''', language='sql')
+    
+    
+        
+        # Next steps for ArtistRank development
+        st.subheader("Next Steps for ArtistRank Development")
+        
+        st.markdown("""
+        ### Week 2 Development Priorities (New):
+        
+        1. **Exploring Superset Further:**
+           - Monthly Plays Dashboard
+           - AMD Dashboards
+           - (Document interesting patterns and questions)
+        
+        2. **Evaluating AMD Songs Performance:**
+           - Develop queries to analyze performance metrics and identify cross-border opportunities:
+           - (1) Query for AMD songs released in the last 30 days
+           - (2) Geographic distribution analysis for AMD artists
+           - (3) Compare overall artist audience geo distribution vs. recent song distribution
+        
+        3. **Create Superset Chart for AMD Editorial Playlists:**
+           - Query to track editorial playlist additions (This will be integrated into the AMD dashboard)
+        
+        4. **For integrating this into Superset:**
+           - Connect to Chris to discuss the integration process
+           - Create a Superset dataset from this view:https://docs.google.com/document/d/1dVUrwYScYDK9M4akYlNRtUuySiE7uMYamNbd88Fie34/edit?usp=sharing
+           - Build a table visualization with the following columns:
+           - (1) Added Date
+           - (2) Song Name
+           - (3) Artist Name
+           - (4) Is Ghost Account?
+           - (5) Distributor
+           - (6) Playlist Name
+           - Add filtering capabilities for:
+           - (1) Date range
+           - (2) Playlist name
+           - (3) Distributor
+           - (4) Ghost account status
+           - Implement daily refresh to capture new additions
+    
+        5. **Create a Comprehensive Analysis Report & Visualization**
+           - Based on the findings, prepare an analysis report for the next team meeting(Apr 10)
+           - Create visualizations for key findings; Format the editorial playlist table view; Document usage instructions for Jordan and Jalen
+           
+        6. **Prepare for Implementation in Superset**
+           - Check myself & ask Jacob/Chris how to integrate my query into the AMD dashboard
+           - Maybe: Format the query for optimal performance: Add appropriate indexes; Consider materialized views for faster refresh; Test with sample data to ensure accuracy
+           - Develop documentation for Jordan and Jalen on how to use and interpret the table: eg: https://docs.google.com/document/d/1UoHhLnUQVLq7utKNMmZtdfuQ49DIU5dP8nxhUKfumNQ/edit?usp=sharing
+           
+           
+           
+        ### Week 2 Development Priorities (Old PLAN):
+        
+        1. **Testing & Validation:**
+           - Compare results with previous A&R picks to validate effectiveness
+           - Adjust weight coefficients based on findings
+        
+        2. **Integration with Superset:**
+           - Create visualizations based on this dashboard
+           - Set up scheduled queries to update data daily
+           - Create alerts for high momentum score artists
+        
+        3. **Usability Enhancements:**
+           - Add genre filtering capabilities
+           - Implement territory-specific versions of the algorithm
+           - Create drilldown capabilities for artist details
+        
+        4. **Collaboration with A&R Team:**
+           - Share initial results with Jordan and Jalen
+           - Cross-reference algorithmic picks with their selections
+           - Identify patterns and blind spots in the current algorithm
+        """)  
+    
+    
+    
+        
+        # WEEK 1 DONE
+        st.subheader("Week1 Meeting")
+        
+        st.markdown("""
+        ### Week 1 (Done):
+        
+        1. **ArtistRank dashboard**
+        2. **Main thing: Recommend artists & Artist Momentum Score methodology and its components**
         """)
     
-    # Artist Size Cohort Explanation
-    st.subheader("2. Artist Size Cohort Classification")
     
-    cohort_df = pd.DataFrame([
-        {"Cohort": "Micro", "Play Range": "< 1,000 plays", "Description": "Emerging artists, often with few releases"},
-        {"Cohort": "Small", "Play Range": "1,000-10,000 plays", "Description": "Establishing presence, typically with growing regional appeal"},
-        {"Cohort": "Medium", "Play Range": "10,000-100,000 plays", "Description": "Established regional artists, often with strong core audiences"},
-        {"Cohort": "Large", "Play Range": "> 100,000 plays", "Description": "Mainstream artists with broad appeal"}
-    ])
     
-    st.table(cohort_df)
     
-    st.markdown("""
-    This classification ensures fair comparisons by comparing artists to their peers rather than 
-    directly comparing new artists against established stars. Growth rates and engagement metrics 
-    vary significantly across these cohorts.
-    """)
     
-    # Key Metrics Explanation
-    st.subheader("3. Key Metrics Explained")
-    
-    metrics_tabs = st.tabs(["Engagement Metrics", "Growth Metrics", "Composite Metrics"])
-    
-    with metrics_tabs[0]:
-        engagement_metrics = pd.DataFrame([
-            {
-                "Metric": "Favorite-to-Play Ratio", 
-                "Formula": "Favorites ÷ Plays", 
-                "Description": "Percentage of plays resulting in favorites; indicates quality of engagement",
-                "Benchmark": "Platform average: 0.7%"
-            },
-            {
-                "Metric": "Share-to-Play Ratio", 
-                "Formula": "Shares ÷ Plays", 
-                "Description": "Percentage of plays resulting in shares; indicates viral potential",
-                "Benchmark": "Platform average: 0.3%"
-            },
-            {
-                "Metric": "Plays-per-Listener", 
-                "Formula": "Total Plays ÷ Unique Listeners", 
-                "Description": "Average repeat listens; indicates audience loyalty and retention",
-                "Benchmark": "Platform average: 3.2"
-            },
-            {
-                "Metric": "Download-to-Play Ratio", 
-                "Formula": "Downloads ÷ Plays", 
-                "Description": "Percentage of plays resulting in downloads; indicates intent for offline listening",
-                "Benchmark": "Platform average: 20%"
-            }
+    # Tab 6: Methodology & Explanations
+    with tab6:
+        st.header("Dashboard Methodology & Metric Explanations")
+        
+        # Data Range and Collection
+        st.subheader("1. Data Range and Collection")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("""
+            * **Time Period**: 30-day comparison (March 4 - April 3, 2025 vs February 2 - March 3, 2025)
+            * **Data Sources**: Platform events database (plays, favorites, shares, downloads)
+            * **Geographic Scope**: Global data with country breakdowns (Nigeria, Ghana, US, UK, etc.)
+            """)
+            
+        with col2:
+            st.info("""
+            **Data Collection Method**:
+            
+            All metrics are extracted from the dw01.events and dw01.music tables using SQL queries 
+            that group and aggregate events by artist, country, and time period.
+            """)
+        
+        # Artist Size Cohort Explanation
+        st.subheader("2. Artist Size Cohort Classification")
+        
+        cohort_df = pd.DataFrame([
+            {"Cohort": "Micro", "Play Range": "< 1,000 plays", "Description": "Emerging artists, often with few releases"},
+            {"Cohort": "Small", "Play Range": "1,000-10,000 plays", "Description": "Establishing presence, typically with growing regional appeal"},
+            {"Cohort": "Medium", "Play Range": "10,000-100,000 plays", "Description": "Established regional artists, often with strong core audiences"},
+            {"Cohort": "Large", "Play Range": "> 100,000 plays", "Description": "Mainstream artists with broad appeal"}
         ])
         
-        st.table(engagement_metrics)
-    
-    with metrics_tabs[1]:
-        growth_metrics = pd.DataFrame([
-            {
-                "Metric": "Play Growth Percentage", 
-                "Formula": "((Current Plays - Previous Plays) ÷ Previous Plays) × 100", 
-                "Description": "Month-over-month percentage increase in total plays",
-                "Weight in Score": "40%"
-            },
-            {
-                "Metric": "Listener Growth Percentage", 
-                "Formula": "((Current Listeners - Previous Listeners) ÷ Previous Listeners) × 100", 
-                "Description": "Month-over-month percentage increase in unique listeners",
-                "Weight in Score": "30%"
-            },
-            {
-                "Metric": "Multi-Country Presence", 
-                "Formula": "Count of countries with >50 plays", 
-                "Description": "Number of countries where an artist has significant listenership",
-                "Weight in Score": "5%"
-            }
-        ])
+        st.table(cohort_df)
         
-        st.table(growth_metrics)
-    
-    with metrics_tabs[2]:
-        st.write("**Artist Momentum Score**")
+        st.markdown("""
+        This classification ensures fair comparisons by comparing artists to their peers rather than 
+        directly comparing new artists against established stars. Growth rates and engagement metrics 
+        vary significantly across these cohorts.
+        """)
+        
+        # Key Metrics Explanation
+        st.subheader("3. Key Metrics Explained")
+        
+        metrics_tabs = st.tabs(["Engagement Metrics", "Growth Metrics", "Composite Metrics"])
+        
+        with metrics_tabs[0]:
+            engagement_metrics = pd.DataFrame([
+                {
+                    "Metric": "Favorite-to-Play Ratio", 
+                    "Formula": "Favorites ÷ Plays", 
+                    "Description": "Percentage of plays resulting in favorites; indicates quality of engagement",
+                    "Benchmark": "Platform average: 0.7%"
+                },
+                {
+                    "Metric": "Share-to-Play Ratio", 
+                    "Formula": "Shares ÷ Plays", 
+                    "Description": "Percentage of plays resulting in shares; indicates viral potential",
+                    "Benchmark": "Platform average: 0.3%"
+                },
+                {
+                    "Metric": "Plays-per-Listener", 
+                    "Formula": "Total Plays ÷ Unique Listeners", 
+                    "Description": "Average repeat listens; indicates audience loyalty and retention",
+                    "Benchmark": "Platform average: 3.2"
+                },
+                {
+                    "Metric": "Download-to-Play Ratio", 
+                    "Formula": "Downloads ÷ Plays", 
+                    "Description": "Percentage of plays resulting in downloads; indicates intent for offline listening",
+                    "Benchmark": "Platform average: 20%"
+                }
+            ])
+            
+            st.table(engagement_metrics)
+        
+        with metrics_tabs[1]:
+            growth_metrics = pd.DataFrame([
+                {
+                    "Metric": "Play Growth Percentage", 
+                    "Formula": "((Current Plays - Previous Plays) ÷ Previous Plays) × 100", 
+                    "Description": "Month-over-month percentage increase in total plays",
+                    "Weight in Score": "40%"
+                },
+                {
+                    "Metric": "Listener Growth Percentage", 
+                    "Formula": "((Current Listeners - Previous Listeners) ÷ Previous Listeners) × 100", 
+                    "Description": "Month-over-month percentage increase in unique listeners",
+                    "Weight in Score": "30%"
+                },
+                {
+                    "Metric": "Multi-Country Presence", 
+                    "Formula": "Count of countries with >50 plays", 
+                    "Description": "Number of countries where an artist has significant listenership",
+                    "Weight in Score": "5%"
+                }
+            ])
+            
+            st.table(growth_metrics)
+        
+        with metrics_tabs[2]:
+            st.write("**Artist Momentum Score**")
+            
+            st.code("""
+    # Composite score formula
+    Artist_Momentum_Score = (
+        (Play_Growth_Pct × 0.4) + 
+        (Listener_Growth_Pct × 0.3) + 
+        (Favorites_per_Listener × 15) + 
+        (Shares_per_Listener × 10) + 
+        (Country_Count × 0.5)
+    )
+            """)
+            
+            st.markdown("""
+            This composite score balances:
+            
+            * **Growth trajectory** (70% weight): How quickly an artist is gaining plays and listeners
+            * **Engagement quality** (25% weight): How deeply listeners are connecting with the content
+            * **Geographic spread** (5% weight): How broadly the artist's appeal extends across territories
+            
+            The score is designed to surface artists with momentum regardless of their absolute play counts.
+            """)
+        
+        # Chart Explanation Section
+        st.subheader("4. Chart Interpretation Guide")
+        
+        st.write("**Hover Information**")
+        st.markdown("""
+        Most charts include detailed tooltips that appear when you hover over data points. These tooltips provide:
+        
+        * **Raw values**: The exact numbers behind each visualization
+        * **Secondary metrics**: Related data points to provide context
+        * **Calculation inputs**: The components used to derive composite metrics
+        
+        Experiment with hovering over different elements to reveal more insights.
+        """)
+        
+        # SQL Methodology
+        st.subheader("5. SQL Query Methodology")
+        
+        st.markdown("""
+        The dashboard is powered by SQL queries that:
+        
+        1. Compare current period (last 30 days) with previous period (30-60 days ago)
+        2. Join event data with music metadata to segment by artist
+        3. Calculate engagement ratios and growth rates
+        4. Apply cohort classification based on play volume
+        5. Calculate composite scores using weighted components
+        """)
         
         st.code("""
-# Composite score formula
-Artist_Momentum_Score = (
-    (Play_Growth_Pct × 0.4) + 
-    (Listener_Growth_Pct × 0.3) + 
-    (Favorites_per_Listener × 15) + 
-    (Shares_per_Listener × 10) + 
-    (Country_Count × 0.5)
-)
+    -- Example of the core query structure
+    WITH current_period AS (
+        SELECT 
+            m.artist,
+            COUNT(*) as plays,
+            COUNT(DISTINCT e.actor_id) as unique_listeners,
+            SUM(CASE WHEN e.type = 'favorite' THEN 1 ELSE 0 END) as favorites,
+            SUM(CASE WHEN e.type = 'share' THEN 1 ELSE 0 END) as shares,
+            COUNT(DISTINCT e.geo_country) as country_count
+        FROM dw01.events e
+        JOIN dw01.music m ON e.object_id = m.music_id_raw
+        WHERE e.event_date >= CAST((CURRENT_DATE - INTERVAL '30' DAY) AS VARCHAR)
+        AND e.type IN ('play', 'favorite', 'share')
+        GROUP BY m.artist
+    ),
+    previous_period AS (
+        -- Similar query for previous 30 days
+    ),
+    artist_sizes AS (
+        -- Cohort classification query
+    )
+    SELECT
+        -- Final calculations including momentum score
+    FROM artist_sizes a
+    JOIN previous_period p ON a.artist = p.artist
+    WHERE p.plays > 100
+    ORDER BY
+        artist_momentum_score DESC
+        """, language="sql")
+        
+        # Update frequency
+        st.subheader("6. Data Refresh Information")
+        
+        st.info("""
+        **Update Schedule**:
+        
+        * Dashboard data is refreshed daily at 4:00 AM EST
+        * All metrics reflect a rolling 30-day window
+        * Historical data is preserved for trend analysis
+        
+        Last data refresh: April 3, 2025, 4:00 AM EST
         """)
-        
-        st.markdown("""
-        This composite score balances:
-        
-        * **Growth trajectory** (70% weight): How quickly an artist is gaining plays and listeners
-        * **Engagement quality** (25% weight): How deeply listeners are connecting with the content
-        * **Geographic spread** (5% weight): How broadly the artist's appeal extends across territories
-        
-        The score is designed to surface artists with momentum regardless of their absolute play counts.
-        """)
     
-    # Chart Explanation Section
-    st.subheader("4. Chart Interpretation Guide")
     
-    st.write("**Hover Information**")
-    st.markdown("""
-    Most charts include detailed tooltips that appear when you hover over data points. These tooltips provide:
-    
-    * **Raw values**: The exact numbers behind each visualization
-    * **Secondary metrics**: Related data points to provide context
-    * **Calculation inputs**: The components used to derive composite metrics
-    
-    Experiment with hovering over different elements to reveal more insights.
-    """)
-    
-    # SQL Methodology
-    st.subheader("5. SQL Query Methodology")
-    
-    st.markdown("""
-    The dashboard is powered by SQL queries that:
-    
-    1. Compare current period (last 30 days) with previous period (30-60 days ago)
-    2. Join event data with music metadata to segment by artist
-    3. Calculate engagement ratios and growth rates
-    4. Apply cohort classification based on play volume
-    5. Calculate composite scores using weighted components
-    """)
-    
-    st.code("""
--- Example of the core query structure
-WITH current_period AS (
-    SELECT 
-        m.artist,
-        COUNT(*) as plays,
-        COUNT(DISTINCT e.actor_id) as unique_listeners,
-        SUM(CASE WHEN e.type = 'favorite' THEN 1 ELSE 0 END) as favorites,
-        SUM(CASE WHEN e.type = 'share' THEN 1 ELSE 0 END) as shares,
-        COUNT(DISTINCT e.geo_country) as country_count
-    FROM dw01.events e
-    JOIN dw01.music m ON e.object_id = m.music_id_raw
-    WHERE e.event_date >= CAST((CURRENT_DATE - INTERVAL '30' DAY) AS VARCHAR)
-    AND e.type IN ('play', 'favorite', 'share')
-    GROUP BY m.artist
-),
-previous_period AS (
-    -- Similar query for previous 30 days
-),
-artist_sizes AS (
-    -- Cohort classification query
-)
-SELECT
-    -- Final calculations including momentum score
-FROM artist_sizes a
-JOIN previous_period p ON a.artist = p.artist
-WHERE p.plays > 100
-ORDER BY
-    artist_momentum_score DESC
-    """, language="sql")
-    
-    # Update frequency
-    st.subheader("6. Data Refresh Information")
-    
-    st.info("""
-    **Update Schedule**:
-    
-    * Dashboard data is refreshed daily at 4:00 AM EST
-    * All metrics reflect a rolling 30-day window
-    * Historical data is preserved for trend analysis
-    
-    Last data refresh: April 3, 2025, 4:00 AM EST
-    """)
-
-
 
 
 
