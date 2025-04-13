@@ -1400,7 +1400,7 @@ with week_tabs[0]:
         #     # Save reply
         #     st.session_state.chat_history.append({"role": "assistant", "content": reply})
 
-    with tab8：
+    with tab8:
         st.markdown("[Linlin's weekly report](https://docs.google.com/document/d/1HUVM9YE0x0-w_aizbGGEnIJq1OWfQANks122s3nZwDw/edit?usp=sharing)")
 
 
