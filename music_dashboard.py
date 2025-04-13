@@ -270,24 +270,26 @@ def load_data():
     
     # Current AMD Songs List
     try:
-        amd_songs_df = pd.read_csv('Current AMD Songs List.csv')
+        amd_songs_df = pd.read_csv('data/Current AMD Songs List.csv')
     except:
-        amd_songs_df = pd.DataFrame({
-            "music_id_raw": ["music:61401185", "music:13852656", "music:56684604", "music:32374254", "music:56252684"],
-            "artist": ["Dalia", "Madlib", "PF Xavi", "William McDowell", "Jodie Marie ASMR"],
-            "title": ["What if", "Dil Cosby Interlude", "Not Ready", "Never Going Back (I Won't Go Back Reprise)", "Black Country Maid Cleans you up Pt.3"],
-            "latest_distributor_name": ["Audiosalad Direct", "Audiosalad Direct", "Audiosalad Direct", "Audiosalad Direct", "Audiosalad Direct"]
-        })
+        st.warning("⚠️ Could not load 'your_file.csv'. Using fallback data.")
+        # amd_songs_df = pd.DataFrame({
+        #     "music_id_raw": ["music:61401185", "music:13852656", "music:56684604", "music:32374254", "music:56252684"],
+        #     "artist": ["Dalia", "Madlib", "PF Xavi", "William McDowell", "Jodie Marie ASMR"],
+        #     "title": ["What if", "Dil Cosby Interlude", "Not Ready", "Never Going Back (I Won't Go Back Reprise)", "Black Country Maid Cleans you up Pt.3"],
+        #     "latest_distributor_name": ["Audiosalad Direct", "Audiosalad Direct", "Audiosalad Direct", "Audiosalad Direct", "Audiosalad Direct"]
+        # })
     
     # Engagement Source Channels
     try:
-        source_channels_df = pd.read_csv('Engagement Source Channels.csv')
+        source_channels_df = pd.read_csv('data/Engagement Source Channels.csv')
     except:
-        source_channels_df = pd.DataFrame({
-            "source_tab": ["My Library", "Search", "Search", "Browse", "My Library"],
-            "section": ["My Library - Offline", "Search - All Music", "Queue End Autoplay", "Browse - Recommendations", "My Library - Favorites"],
-            "event_count": [204009819, 102970150, 55581117, 45211776, 19003309]
-        })
+        st.warning("⚠️ Could not load 'your_file.csv'. Using fallback data.")
+        # source_channels_df = pd.DataFrame({
+        #     "source_tab": ["My Library", "Search", "Search", "Browse", "My Library"],
+        #     "section": ["My Library - Offline", "Search - All Music", "Queue End Autoplay", "Browse - Recommendations", "My Library - Favorites"],
+        #     "event_count": [204009819, 102970150, 55581117, 45211776, 19003309]
+        # })
     
     # Engagement Per User By Play Cohort
     try:
@@ -576,15 +578,14 @@ with week_tabs[0]:
     )
     
     # Create tabs
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8= st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7= st.tabs([
         "AMD Artist Performance", 
         "Cross-Border Opportunities",
         "Editorial Playlists", 
         "Engagement Analysis",
         "Discovery Channels",
         "A&R Scouting Tracker",
-        "💬 Chatbot",
-        "linlin"
+        "💬 Chatbot"
     ])
     
     # Tab 1: AMD Artist Performance
