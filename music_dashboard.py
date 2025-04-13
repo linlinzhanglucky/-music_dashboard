@@ -578,7 +578,7 @@ with week_tabs[0]:
     )
     
     # Create tabs
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8= st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9= st.tabs([
         "🎨 AMD Artist Performance", 
         "🌍 Cross-Border Opportunities",
         "🤔 Editorial Playlists", 
@@ -587,6 +587,7 @@ with week_tabs[0]:
         "📊 A&R Scouting Tracker",
         "💬 Chatbot",
         "😈 linlin Weekly Report"
+        "🚀 Momentum Score"  # New tab
     ])
     
     # Tab 1: AMD Artist Performance
@@ -1402,6 +1403,311 @@ with week_tabs[0]:
 
     with tab8:
         st.markdown("[Linlin's weekly report](https://docs.google.com/document/d/1HUVM9YE0x0-w_aizbGGEnIJq1OWfQANks122s3nZwDw/edit?usp=sharing)")
+
+
+# Then, after all your other tab content blocks, add this new block for the Momentum Score tab:
+
+    # Tab 9: Momentum Score
+    with tab9:
+        st.markdown('<div class="sub-header">Artist Momentum Score - Week 2</div>', unsafe_allow_html=True)
+        
+        st.markdown('<div class="insights-box">🚀 <span class="highlight">Key Metric:</span> The Momentum Score combines play growth, listener growth, engagement quality, and geographic reach to identify artists gaining traction. This score helps prioritize AMD artists for promotion and support.</div>', unsafe_allow_html=True)
+        
+        # Create mock data based on the SQL query
+        momentum_score_df = pd.DataFrame({
+            "artist": ["FAVE", "Bloody Civilian", "Khaid", "Odumodu Blvck", "Young Jonn", 
+                    "Victony", "Shallipopi", "CKay", "Seyi Vibez", "Lil kesh"],
+            "plays": [820000, 580000, 1250000, 950000, 2500000, 
+                    1650000, 3200000, 1950000, 2400000, 1680000],
+            "unique_listeners": [320000, 220000, 450000, 380000, 850000, 
+                                560000, 950000, 670000, 820000, 580000],
+            "favorites": [64000, 55000, 108000, 72200, 153000, 
+                        89600, 161600, 120900, 98400, 81200],
+            "shares": [19200, 17600, 27000, 19000, 42500, 
+                    16800, 48000, 33500, 32800, 23200],
+            "country_count": [8, 6, 9, 7, 12, 8, 14, 10, 11, 9],
+            "play_growth_pct": [66.67, 104.55, 50.77, 41.38, 40.00, 
+                            31.58, 28.00, 19.74, 26.32, 15.86],
+            "listener_growth_pct": [47.06, 63.64, 40.00, 28.13, 25.00, 
+                                23.81, 18.75, 12.28, 17.14, 9.43],
+            "fav_per_listener": [0.2000, 0.2500, 0.2400, 0.1900, 0.1800, 
+                                0.1600, 0.1701, 0.1804, 0.1200, 0.1400],
+            "share_per_listener": [0.0600, 0.0800, 0.0600, 0.0500, 0.0500, 
+                                0.0300, 0.0505, 0.0500, 0.0400, 0.0400],
+            "momentum_score": [57.22, 80.82, 48.73, 39.58, 39.80, 
+                            32.87, 32.30, 24.62, 29.04, 21.03]
+        })
+        
+        # Add a size cohort for reference
+        # We'll categorize based on play count - you can adjust thresholds if needed
+        def determine_size_cohort(plays):
+            if plays < 650000:
+                return "micro"
+            elif plays < 1500000:
+                return "small"
+            elif plays < 2500000:
+                return "medium"
+            else:
+                return "large"
+        
+        momentum_score_df["size_cohort"] = momentum_score_df["plays"].apply(determine_size_cohort)
+        
+        # Metrics section
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            avg_momentum = momentum_score_df['momentum_score'].mean()
+            st.metric("Average Momentum Score", f"{avg_momentum:.2f}")
+        
+        with col2:
+            max_artist = momentum_score_df.loc[momentum_score_df['momentum_score'].idxmax()]['artist']
+            max_score = momentum_score_df['momentum_score'].max()
+            st.metric("Highest Momentum Artist", f"{max_artist} ({max_score:.2f})")
+        
+        with col3:
+            micro_artists = len(momentum_score_df[momentum_score_df['size_cohort'] == 'micro'])
+            st.metric("Micro Artists in Top 10", f"{micro_artists}")
+        
+        # Main momentum score visualization
+        st.subheader("Top 10 Artists by Momentum Score")
+        
+        # Create a color scale for the momentum score
+        fig_momentum = px.bar(
+            momentum_score_df.sort_values('momentum_score', ascending=False),
+            x="artist",
+            y="momentum_score",
+            color="size_cohort",
+            title="Artist Momentum Score Ranking",
+            color_discrete_map={
+                "micro": "#FF9F1C",
+                "small": "#4ECDC4",
+                "medium": "#1A535C",
+                "large": "#FF6B6B"
+            },
+            hover_data=["plays", "unique_listeners", "play_growth_pct", "listener_growth_pct", 
+                        "fav_per_listener", "share_per_listener", "country_count"]
+        )
+        
+        fig_momentum.update_layout(
+            xaxis_title="Artist",
+            yaxis_title="Momentum Score",
+            xaxis={'categoryorder': 'total descending'},
+            height=500
+        )
+        
+        fig_momentum.update_traces(
+            hovertemplate="<b>Artist:</b> %{x}<br>" +
+                        "<b>Momentum Score:</b> %{y:.2f}<br>" +
+                        "<b>Size Cohort:</b> %{marker.color}<br>" +
+                        "<b>Plays:</b> %{customdata[0]:,.0f}<br>" +
+                        "<b>Unique Listeners:</b> %{customdata[1]:,.0f}<br>" +
+                        "<b>Play Growth:</b> %{customdata[2]:.1f}%<br>" +
+                        "<b>Listener Growth:</b> %{customdata[3]:.1f}%<br>" +
+                        "<b>Favs per Listener:</b> %{customdata[4]:.4f}<br>" +
+                        "<b>Shares per Listener:</b> %{customdata[5]:.4f}<br>" +
+                        "<b>Country Count:</b> %{customdata[6]}<extra></extra>"
+        )
+        
+        st.plotly_chart(fig_momentum, use_container_width=True)
+        
+        # Growth vs. Engagement scatter plot
+        st.subheader("Growth vs. Engagement Analysis")
+        
+        fig_scatter = px.scatter(
+            momentum_score_df,
+            x="play_growth_pct",
+            y="fav_per_listener",
+            size="momentum_score",
+            color="size_cohort",
+            hover_name="artist",
+            size_max=50,
+            title="Play Growth vs. Engagement Quality",
+            labels={
+                "play_growth_pct": "Play Growth (%)",
+                "fav_per_listener": "Favorites per Listener"
+            }
+        )
+        
+        fig_scatter.update_layout(
+            xaxis_title="Play Growth (%)",
+            yaxis_title="Favorites per Listener",
+            height=500
+        )
+        
+        st.plotly_chart(fig_scatter, use_container_width=True)
+        
+        # Detailed momentum score table
+        st.subheader("Detailed Momentum Score Components")
+        
+        # Create a styled table
+        st.dataframe(
+            momentum_score_df.sort_values('momentum_score', ascending=False),
+            use_container_width=True,
+            column_config={
+                "artist": st.column_config.TextColumn("Artist"),
+                "size_cohort": st.column_config.TextColumn("Size Cohort"),
+                "plays": st.column_config.NumberColumn("Plays", format="%d"),
+                "unique_listeners": st.column_config.NumberColumn("Unique Listeners", format="%d"),
+                "play_growth_pct": st.column_config.NumberColumn("Play Growth %", format="%.1f%%"),
+                "listener_growth_pct": st.column_config.NumberColumn("Listener Growth %", format="%.1f%%"),
+                "fav_per_listener": st.column_config.NumberColumn("Favs per Listener", format="%.4f"),
+                "share_per_listener": st.column_config.NumberColumn("Shares per Listener", format="%.4f"),
+                "country_count": st.column_config.NumberColumn("Countries", format="%d"),
+                "momentum_score": st.column_config.NumberColumn("Momentum Score", format="%.2f")
+            }
+        )
+        
+        # Momentum score formula explanation
+        st.subheader("Momentum Score Formula")
+        
+        st.markdown("""
+        The **Momentum Score** is calculated using the following formula:
+        
+        ```
+        Momentum Score = (Play Growth % × 0.4) + 
+                        (Listener Growth % × 0.3) + 
+                        (Favorites per Listener × 15) + 
+                        (Shares per Listener × 10) + 
+                        (Country Count × 0.5)
+        ```
+        
+        **Weighting Rationale:**
+        
+        - **Growth metrics (70%)**: Prioritizes artists with increasing audience and engagement
+        - **Engagement quality (25%)**: Rewards artists whose content generates strong user actions
+        - **Geographic reach (5%)**: Gives slight preference to artists with cross-border appeal
+        
+        This composite score helps identify artists gaining traction regardless of their absolute play counts.
+        """)
+        
+        # Artist-focused selection for detailed view
+        st.subheader("Artist-Specific Momentum Analysis")
+        
+        selected_momentum_artist = st.selectbox(
+            "Select an artist for detailed analysis:",
+            options=momentum_score_df["artist"].tolist()
+        )
+        
+        # Get selected artist data
+        artist_data = momentum_score_df[momentum_score_df["artist"] == selected_momentum_artist].iloc[0]
+        
+        # Create score breakdown
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown(f"### {selected_momentum_artist} Momentum Components")
+            
+            # Calculate component contributions
+            play_growth_contribution = artist_data["play_growth_pct"] * 0.4
+            listener_growth_contribution = artist_data["listener_growth_pct"] * 0.3
+            fav_contribution = artist_data["fav_per_listener"] * 15
+            share_contribution = artist_data["share_per_listener"] * 10
+            geo_contribution = artist_data["country_count"] * 0.5
+            
+            # Create component breakdown dataframe
+            components_df = pd.DataFrame({
+                "Component": ["Play Growth", "Listener Growth", "Favorites Engagement", 
+                            "Shares Engagement", "Geographic Reach"],
+                "Raw Value": [
+                    f"{artist_data['play_growth_pct']:.1f}%", 
+                    f"{artist_data['listener_growth_pct']:.1f}%",
+                    f"{artist_data['fav_per_listener']:.4f}",
+                    f"{artist_data['share_per_listener']:.4f}",
+                    f"{artist_data['country_count']}"
+                ],
+                "Contribution": [
+                    play_growth_contribution,
+                    listener_growth_contribution,
+                    fav_contribution,
+                    share_contribution,
+                    geo_contribution
+                ]
+            })
+            
+            # Show table of contributions
+            st.dataframe(
+                components_df,
+                use_container_width=True,
+                column_config={
+                    "Component": st.column_config.TextColumn("Component"),
+                    "Raw Value": st.column_config.TextColumn("Raw Value"),
+                    "Contribution": st.column_config.NumberColumn("Score Contribution", format="%.2f")
+                }
+            )
+        
+        with col2:
+            # Create pie chart of component contributions
+            fig_components = px.pie(
+                components_df,
+                values="Contribution",
+                names="Component",
+                title=f"{selected_momentum_artist} Momentum Score Breakdown",
+                color_discrete_sequence=px.colors.qualitative.Bold
+            )
+            
+            fig_components.update_traces(textposition='inside', textinfo='percent+label')
+            
+            st.plotly_chart(fig_components, use_container_width=True)
+        
+        # Artist growth and recommendation
+        st.subheader("Artist Growth Indicators")
+        
+        # Create growth indicators
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.metric("Play Growth", f"{artist_data['play_growth_pct']:.1f}%")
+            
+        with col2:
+            st.metric("Listener Growth", f"{artist_data['listener_growth_pct']:.1f}%")
+            
+        with col3:
+            # Create a custom growth indicator
+            growth_level = "High 🔥" if artist_data['momentum_score'] > 40 else ("Medium 📈" if artist_data['momentum_score'] > 25 else "Low ➖")
+            st.metric("Growth Level", growth_level)
+        
+        # Recommendation section
+        st.markdown(f"### Recommendations for {selected_momentum_artist}")
+        
+        # Generate custom recommendations based on the artist's data
+        if artist_data['momentum_score'] > 40:
+            st.markdown("""
+            <div class="recommendation-box">
+            <h4>High Momentum Strategy</h4>
+            
+            - **Editorial Priority**: Fast-track for editorial playlist placement
+            - **Feature Promotion**: Consider for app homepage feature and push notifications
+            - **Cross-Border Expansion**: Analyze geographic engagement for targeted regional promotions
+            - **Partnership Opportunity**: Prime candidate for brand and event partnerships
+            </div>
+            """, unsafe_allow_html=True)
+        elif artist_data['momentum_score'] > 25:
+            st.markdown("""
+            <div class="recommendation-box">
+            <h4>Medium Momentum Strategy</h4>
+            
+            - **Targeted Playlisting**: Place in growth-focused playlists
+            - **Engagement Campaigns**: Create engagement-driving campaigns to increase favorites and shares
+            - **Geographic Focus**: Identify strongest territories and boost promotion there
+            - **Content Strategy**: Encourage consistent release schedule to maintain momentum
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div class="recommendation-box">
+            <h4>Building Momentum Strategy</h4>
+            
+            - **Audience Development**: Focus on core fan engagement and conversion
+            - **Content Feedback**: Provide insights on engagement patterns to guide future releases
+            - **Niche Playlisting**: Target genre-specific and discovery playlists
+            - **Collaboration Opportunities**: Suggest potential collaborators to boost exposure
+            </div>
+            """, unsafe_allow_html=True)
+
+
+
+
+
 
 
 # Week 1 content (previous)
