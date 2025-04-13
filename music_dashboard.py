@@ -1706,312 +1706,312 @@ with week_tabs[0]:
             """, unsafe_allow_html=True)
 
 
-        # Tab 10: Monthly Momentum Analysis
-        with tab10:
-            st.markdown('<div class="sub-header">Artist Monthly Momentum Analysis</div>', unsafe_allow_html=True)
-            
-            st.markdown('<div class="insights-box">📈 <span class="highlight">Key Analysis:</span> This view analyzes artist momentum over a full month period, comparing current metrics against growth benchmarks. The momentum score combines play performance, listener engagement, and geographic reach to identify artists with significant momentum.</div>', unsafe_allow_html=True)
-            
-            # Use the actual data provided
-            monthly_momentum_df = pd.DataFrame({
-                "artist": ["Sicicie & Lasmid", "Ruger and COLORS", "jomapelyankee", "Kixx Alphah & Cojo Rae", "DJ Bandz & YTB Fatt", 
-                        "Mama Tina", "Randy Kirton", "Nikey 20, Luckay Buckay", "sethlo, Toofan", "Chief Priest"],
-                "plays": [1449421, 952981, 251679, 130783, 47873, 
-                        57397, 33535, 87341, 38232, 762327],
-                "unique_listeners": [843778, 491220, 478, 86570, 26268, 
-                                272, 25787, 52560, 15437, 341513],
-                "favorites": [9857, 5238, 127, 990, 674, 
-                            13, 28, 1097, 322, 5538],
-                "shares": [0, 0, 0, 0, 0, 
-                        0, 0, 0, 0, 0],
-                "country_count": [217, 188, 18, 155, 183, 
-                                49, 185, 148, 37, 170],
-                "play_growth_pct": [3049, 3040, 2516, 1307, 478, 
-                                573, 335, 1091, 382, 304],
-                "listener_growth_pct": [843, 491, 47, 866, 262, 
-                                    27, 257, 525, 154, 227],
-                "fav_per_listener": [0.0117, 0.0107, 0.2657, 0.0114, 0.0257, 
-                                0.0478, 0.0011, 0.0209, 0.0209, 0.0162],
-                "share_per_listener": [0.0, 0.0, 0.0, 0.0, 0.0, 
-                                    0.0, 0.0, 0.0, 0.0, 0.0],
-                "momentum_score": [3049, 3040, 1008, 782, 270, 
-                                230, 211, 201, 199, 190]
-            })
-            
-            # Clean/normalize the data - converting scientific notation to regular numbers
-            # We'll also cap growth percentages at more reasonable values for visualization
-            monthly_momentum_df['play_growth_pct'] = monthly_momentum_df['play_growth_pct'].astype(float)
-            monthly_momentum_df['listener_growth_pct'] = monthly_momentum_df['listener_growth_pct'].astype(float)
-            
-            # Add a size cohort based on play count
-            def determine_monthly_size_cohort(plays):
-                if plays < 50000:
-                    return "micro"
-                elif plays < 250000:
-                    return "small"
-                elif plays < 750000:
-                    return "medium"
-                else:
-                    return "large"
-            
-            monthly_momentum_df["size_cohort"] = monthly_momentum_df["plays"].apply(determine_monthly_size_cohort)
-            
-            # Metrics section
-            col1, col2, col3 = st.columns(3)
-            
-            with col1:
-                avg_momentum = monthly_momentum_df['momentum_score'].mean()
-                st.metric("Avg Monthly Momentum", f"{avg_momentum:.2f}")
-            
-            with col2:
-                max_artist = monthly_momentum_df.loc[monthly_momentum_df['momentum_score'].idxmax()]['artist']
-                max_score = monthly_momentum_df['momentum_score'].max()
-                st.metric("Top Artist", f"{max_artist} ({max_score:.0f})")
-            
-            with col3:
-                high_engagement = len(monthly_momentum_df[monthly_momentum_df['fav_per_listener'] > 0.02])
-                st.metric("High Engagement Artists", f"{high_engagement} in top 10")
-            
-            # Main momentum score visualization
-            st.subheader("Monthly Artist Momentum Rankings")
-            
-            # Create a color scale for the momentum score
-            fig_momentum = px.bar(
-                monthly_momentum_df.sort_values('momentum_score', ascending=False),
-                x="artist",
-                y="momentum_score",
-                color="size_cohort",
-                title="Monthly Artist Momentum Score Rankings",
-                color_discrete_map={
-                    "micro": "#FF9F1C",
-                    "small": "#4ECDC4",
-                    "medium": "#1A535C",
-                    "large": "#FF6B6B"
-                },
-                hover_data=["plays", "unique_listeners", "play_growth_pct", "listener_growth_pct", 
-                            "fav_per_listener", "share_per_listener", "country_count"]
-            )
-            
-            fig_momentum.update_layout(
-                xaxis_title="Artist",
-                yaxis_title="Monthly Momentum Score",
-                xaxis={'categoryorder': 'total descending'},
-                height=500,
-                xaxis_tickangle=-45
-            )
-            
-            fig_momentum.update_traces(
-                hovertemplate="<b>Artist:</b> %{x}<br>" +
-                            "<b>Momentum Score:</b> %{y:.0f}<br>" +
-                            "<b>Size Cohort:</b> %{marker.color}<br>" +
-                            "<b>Plays:</b> %{customdata[0]:,.0f}<br>" +
-                            "<b>Unique Listeners:</b> %{customdata[1]:,.0f}<br>" +
-                            "<b>Play Growth:</b> %{customdata[2]:.0f}<br>" +
-                            "<b>Listener Growth:</b> %{customdata[3]:.0f}<br>" +
-                            "<b>Favs per Listener:</b> %{customdata[4]:.4f}<br>" +
-                            "<b>Countries:</b> %{customdata[6]}<extra></extra>"
-            )
-            
-            st.plotly_chart(fig_momentum, use_container_width=True)
-            
-            # Analysis of engagement vs geographic reach
-            st.subheader("Engagement vs Geographic Reach Analysis")
-            
-            # Create a scatter plot to visualize engagement vs geographic reach
-            fig_engagement_geo = px.scatter(
-                monthly_momentum_df,
-                x="country_count",
-                y="fav_per_listener",
-                size="momentum_score",
-                color="size_cohort",
-                hover_name="artist",
-                size_max=60,
-                title="Artist Engagement vs Geographic Reach",
-                labels={
-                    "country_count": "Number of Countries",
-                    "fav_per_listener": "Favorites per Listener"
-                },
-                color_discrete_map={
-                    "micro": "#FF9F1C",
-                    "small": "#4ECDC4",
-                    "medium": "#1A535C",
-                    "large": "#FF6B6B"
-                }
-            )
-            
-            fig_engagement_geo.update_layout(
-                xaxis_title="Geographic Reach (Number of Countries)",
-                yaxis_title="Engagement Quality (Favorites per Listener)",
-                height=500
-            )
-            
-            st.plotly_chart(fig_engagement_geo, use_container_width=True)
-            
-            # Table of all artists with detailed metrics
-            st.subheader("Detailed Metrics for All Artists")
-            
-            st.dataframe(
-                monthly_momentum_df.sort_values('momentum_score', ascending=False),
-                use_container_width=True,
-                column_config={
-                    "artist": st.column_config.TextColumn("Artist"),
-                    "size_cohort": st.column_config.TextColumn("Size Cohort"),
-                    "plays": st.column_config.NumberColumn("Plays", format="%d"),
-                    "unique_listeners": st.column_config.NumberColumn("Unique Listeners", format="%d"),
-                    "play_growth_pct": st.column_config.NumberColumn("Play Growth", format="%.0f"),
-                    "listener_growth_pct": st.column_config.NumberColumn("Listener Growth", format="%.0f"),
-                    "fav_per_listener": st.column_config.NumberColumn("Favs per Listener", format="%.4f"),
-                    "country_count": st.column_config.NumberColumn("Countries", format="%d"),
-                    "momentum_score": st.column_config.NumberColumn("Momentum Score", format="%.0f")
-                }
-            )
-            
-            # Key Insights Analysis
-            st.subheader("Key Insights from Monthly Momentum Analysis")
-            
-            # Select two interesting artists for comparison
-            comparison_artists = ["Sicicie & Lasmid", "jomapelyankee"]
-            comparison_df = monthly_momentum_df[monthly_momentum_df['artist'].isin(comparison_artists)]
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                st.markdown("""
-                ### Notable Momentum Patterns
-                
-                1. **Global vs. Niche Appeal**: The data shows two distinct momentum patterns:
-                    - **Global Reach Artists**: Like Sicicie & Lasmid with high play counts across 217 countries
-                    - **High Engagement Niche Artists**: Like jomapelyankee with exceptional engagement metrics but limited geographic reach
-                
-                2. **Engagement Quality**: Artists with higher favorites-per-listener ratios show stronger fan connection regardless of absolute play counts
-                
-                3. **Geographic Expansion**: The top momentum artists show varying degrees of geographic penetration, suggesting different growth strategies
-                """)
-            
-            with col2:
-                # Create comparison chart
-                metrics_to_compare = ['plays', 'unique_listeners', 'fav_per_listener', 'country_count']
-                comparison_data = []
-                
-                for artist in comparison_artists:
-                    artist_data = monthly_momentum_df[monthly_momentum_df['artist'] == artist].iloc[0]
-                    for metric in metrics_to_compare:
-                        comparison_data.append({
-                            'artist': artist,
-                            'metric': metric,
-                            'value': artist_data[metric]
-                        })
-                
-                comparison_plot_df = pd.DataFrame(comparison_data)
-                
-                # Normalize the data for better visualization
-                for metric in metrics_to_compare:
-                    max_val = comparison_plot_df[comparison_plot_df['metric'] == metric]['value'].max()
-                    comparison_plot_df.loc[comparison_plot_df['metric'] == metric, 'normalized_value'] = comparison_plot_df[comparison_plot_df['metric'] == metric]['value'] / max_val
-                
-                fig_comparison = px.bar(
-                    comparison_plot_df,
-                    x="metric",
-                    y="normalized_value",
-                    color="artist",
-                    barmode="group",
-                    title="Comparing Global vs. Niche Artist Profiles",
-                    labels={"normalized_value": "Normalized Value (Relative to Max)"}
-                )
-                
-                fig_comparison.update_layout(
-                    xaxis_title="Metric",
-                    yaxis_title="Relative Value",
-                    height=300
-                )
-                
-                st.plotly_chart(fig_comparison, use_container_width=True)
-            
-            # SQL Implementation for reference
-            st.subheader("SQL Implementation Reference")
-            
-            st.code('''
-        WITH current_period AS (
-            SELECT 
-                m.artist,
-                COUNT(*) AS plays,
-                COUNT(DISTINCT e.actor_id) AS unique_listeners,
-                SUM(CASE WHEN e.type = 'favorite' THEN 1 ELSE 0 END) AS favorites,
-                SUM(CASE WHEN e.type = 'share' THEN 1 ELSE 0 END) AS shares,
-                COUNT(DISTINCT e.geo_country) AS country_count
-            FROM dw01.events e
-            JOIN dw01.music m ON e.object_id = m.music_id_raw
-            WHERE DATE_PARSE(e.event_date, '%Y%m%d') BETWEEN CURRENT_DATE - INTERVAL '30' DAY AND CURRENT_DATE
-            AND e.type IN ('play', 'favorite', 'share')
-            GROUP BY m.artist
-        ),
-        previous_period AS (
-            SELECT 
-                m.artist,
-                COUNT(*) AS prev_plays,
-                COUNT(DISTINCT e.actor_id) AS prev_unique_listeners
-            FROM dw01.events e
-            JOIN dw01.music m ON e.object_id = m.music_id_raw
-            WHERE DATE_PARSE(e.event_date, '%Y%m%d') BETWEEN CURRENT_DATE - INTERVAL '60' DAY AND CURRENT_DATE - INTERVAL '30' DAY
-            AND e.type = 'play'
-            GROUP BY m.artist
+    # Tab 10: Monthly Momentum Analysis
+    with tab10:
+        st.markdown('<div class="sub-header">Artist Monthly Momentum Analysis</div>', unsafe_allow_html=True)
+        
+        st.markdown('<div class="insights-box">📈 <span class="highlight">Key Analysis:</span> This view analyzes artist momentum over a full month period, comparing current metrics against growth benchmarks. The momentum score combines play performance, listener engagement, and geographic reach to identify artists with significant momentum.</div>', unsafe_allow_html=True)
+        
+        # Use the actual data provided
+        monthly_momentum_df = pd.DataFrame({
+            "artist": ["Sicicie & Lasmid", "Ruger and COLORS", "jomapelyankee", "Kixx Alphah & Cojo Rae", "DJ Bandz & YTB Fatt", 
+                    "Mama Tina", "Randy Kirton", "Nikey 20, Luckay Buckay", "sethlo, Toofan", "Chief Priest"],
+            "plays": [1449421, 952981, 251679, 130783, 47873, 
+                    57397, 33535, 87341, 38232, 762327],
+            "unique_listeners": [843778, 491220, 478, 86570, 26268, 
+                            272, 25787, 52560, 15437, 341513],
+            "favorites": [9857, 5238, 127, 990, 674, 
+                        13, 28, 1097, 322, 5538],
+            "shares": [0, 0, 0, 0, 0, 
+                    0, 0, 0, 0, 0],
+            "country_count": [217, 188, 18, 155, 183, 
+                            49, 185, 148, 37, 170],
+            "play_growth_pct": [3049, 3040, 2516, 1307, 478, 
+                            573, 335, 1091, 382, 304],
+            "listener_growth_pct": [843, 491, 47, 866, 262, 
+                                27, 257, 525, 154, 227],
+            "fav_per_listener": [0.0117, 0.0107, 0.2657, 0.0114, 0.0257, 
+                            0.0478, 0.0011, 0.0209, 0.0209, 0.0162],
+            "share_per_listener": [0.0, 0.0, 0.0, 0.0, 0.0, 
+                                0.0, 0.0, 0.0, 0.0, 0.0],
+            "momentum_score": [3049, 3040, 1008, 782, 270, 
+                            230, 211, 201, 199, 190]
+        })
+        
+        # Clean/normalize the data - converting scientific notation to regular numbers
+        # We'll also cap growth percentages at more reasonable values for visualization
+        monthly_momentum_df['play_growth_pct'] = monthly_momentum_df['play_growth_pct'].astype(float)
+        monthly_momentum_df['listener_growth_pct'] = monthly_momentum_df['listener_growth_pct'].astype(float)
+        
+        # Add a size cohort based on play count
+        def determine_monthly_size_cohort(plays):
+            if plays < 50000:
+                return "micro"
+            elif plays < 250000:
+                return "small"
+            elif plays < 750000:
+                return "medium"
+            else:
+                return "large"
+        
+        monthly_momentum_df["size_cohort"] = monthly_momentum_df["plays"].apply(determine_monthly_size_cohort)
+        
+        # Metrics section
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            avg_momentum = monthly_momentum_df['momentum_score'].mean()
+            st.metric("Avg Monthly Momentum", f"{avg_momentum:.2f}")
+        
+        with col2:
+            max_artist = monthly_momentum_df.loc[monthly_momentum_df['momentum_score'].idxmax()]['artist']
+            max_score = monthly_momentum_df['momentum_score'].max()
+            st.metric("Top Artist", f"{max_artist} ({max_score:.0f})")
+        
+        with col3:
+            high_engagement = len(monthly_momentum_df[monthly_momentum_df['fav_per_listener'] > 0.02])
+            st.metric("High Engagement Artists", f"{high_engagement} in top 10")
+        
+        # Main momentum score visualization
+        st.subheader("Monthly Artist Momentum Rankings")
+        
+        # Create a color scale for the momentum score
+        fig_momentum = px.bar(
+            monthly_momentum_df.sort_values('momentum_score', ascending=False),
+            x="artist",
+            y="momentum_score",
+            color="size_cohort",
+            title="Monthly Artist Momentum Score Rankings",
+            color_discrete_map={
+                "micro": "#FF9F1C",
+                "small": "#4ECDC4",
+                "medium": "#1A535C",
+                "large": "#FF6B6B"
+            },
+            hover_data=["plays", "unique_listeners", "play_growth_pct", "listener_growth_pct", 
+                        "fav_per_listener", "share_per_listener", "country_count"]
         )
-        SELECT 
-            c.artist,
-            c.plays,
-            c.unique_listeners,
-            c.favorites,
-            c.shares,
-            c.country_count,
-            -- Growth metrics
-            c.plays - COALESCE(p.prev_plays, 0) AS play_growth,
-            c.unique_listeners - COALESCE(p.prev_unique_listeners, 0) AS listener_growth,
-            -- Engagement ratios
-            ROUND(c.favorites * 1.0 / NULLIF(c.unique_listeners, 0), 4) AS fav_per_listener,
-            ROUND(c.shares * 1.0 / NULLIF(c.unique_listeners, 0), 4) AS share_per_listener,
-            -- Simplified momentum score that matches the data pattern
-            -- Actual formula would need to be adjusted based on business requirements
-            ROUND(
-                (c.plays - COALESCE(p.prev_plays, 0)) * 0.8 +
-                (c.unique_listeners - COALESCE(p.prev_unique_listeners, 0)) * 0.1 +
-                (c.favorites * 10) + 
-                (c.country_count * 0.5)
-            ) AS momentum_score
-        FROM current_period c
-        LEFT JOIN previous_period p ON c.artist = p.artist
-        WHERE c.plays > 10000
-        ORDER BY momentum_score DESC
-        LIMIT 10;
-            ''', language='sql')
+        
+        fig_momentum.update_layout(
+            xaxis_title="Artist",
+            yaxis_title="Monthly Momentum Score",
+            xaxis={'categoryorder': 'total descending'},
+            height=500,
+            xaxis_tickangle=-45
+        )
+        
+        fig_momentum.update_traces(
+            hovertemplate="<b>Artist:</b> %{x}<br>" +
+                        "<b>Momentum Score:</b> %{y:.0f}<br>" +
+                        "<b>Size Cohort:</b> %{marker.color}<br>" +
+                        "<b>Plays:</b> %{customdata[0]:,.0f}<br>" +
+                        "<b>Unique Listeners:</b> %{customdata[1]:,.0f}<br>" +
+                        "<b>Play Growth:</b> %{customdata[2]:.0f}<br>" +
+                        "<b>Listener Growth:</b> %{customdata[3]:.0f}<br>" +
+                        "<b>Favs per Listener:</b> %{customdata[4]:.4f}<br>" +
+                        "<b>Countries:</b> %{customdata[6]}<extra></extra>"
+        )
+        
+        st.plotly_chart(fig_momentum, use_container_width=True)
+        
+        # Analysis of engagement vs geographic reach
+        st.subheader("Engagement vs Geographic Reach Analysis")
+        
+        # Create a scatter plot to visualize engagement vs geographic reach
+        fig_engagement_geo = px.scatter(
+            monthly_momentum_df,
+            x="country_count",
+            y="fav_per_listener",
+            size="momentum_score",
+            color="size_cohort",
+            hover_name="artist",
+            size_max=60,
+            title="Artist Engagement vs Geographic Reach",
+            labels={
+                "country_count": "Number of Countries",
+                "fav_per_listener": "Favorites per Listener"
+            },
+            color_discrete_map={
+                "micro": "#FF9F1C",
+                "small": "#4ECDC4",
+                "medium": "#1A535C",
+                "large": "#FF6B6B"
+            }
+        )
+        
+        fig_engagement_geo.update_layout(
+            xaxis_title="Geographic Reach (Number of Countries)",
+            yaxis_title="Engagement Quality (Favorites per Listener)",
+            height=500
+        )
+        
+        st.plotly_chart(fig_engagement_geo, use_container_width=True)
+        
+        # Table of all artists with detailed metrics
+        st.subheader("Detailed Metrics for All Artists")
+        
+        st.dataframe(
+            monthly_momentum_df.sort_values('momentum_score', ascending=False),
+            use_container_width=True,
+            column_config={
+                "artist": st.column_config.TextColumn("Artist"),
+                "size_cohort": st.column_config.TextColumn("Size Cohort"),
+                "plays": st.column_config.NumberColumn("Plays", format="%d"),
+                "unique_listeners": st.column_config.NumberColumn("Unique Listeners", format="%d"),
+                "play_growth_pct": st.column_config.NumberColumn("Play Growth", format="%.0f"),
+                "listener_growth_pct": st.column_config.NumberColumn("Listener Growth", format="%.0f"),
+                "fav_per_listener": st.column_config.NumberColumn("Favs per Listener", format="%.4f"),
+                "country_count": st.column_config.NumberColumn("Countries", format="%d"),
+                "momentum_score": st.column_config.NumberColumn("Momentum Score", format="%.0f")
+            }
+        )
+        
+        # Key Insights Analysis
+        st.subheader("Key Insights from Monthly Momentum Analysis")
+        
+        # Select two interesting artists for comparison
+        comparison_artists = ["Sicicie & Lasmid", "jomapelyankee"]
+        comparison_df = monthly_momentum_df[monthly_momentum_df['artist'].isin(comparison_artists)]
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("""
+            ### Notable Momentum Patterns
             
-        <h4>Top Emerging Artists for Promotion Focus</h4>
+            1. **Global vs. Niche Appeal**: The data shows two distinct momentum patterns:
+                - **Global Reach Artists**: Like Sicicie & Lasmid with high play counts across 217 countries
+                - **High Engagement Niche Artists**: Like jomapelyankee with exceptional engagement metrics but limited geographic reach
             
-            Based on the monthly momentum analysis, these artists show exceptional growth potential:
+            2. **Engagement Quality**: Artists with higher favorites-per-listener ratios show stronger fan connection regardless of absolute play counts
             
-            1. **Bloody Civilian** (Micro) - Extraordinary 104% play growth with high engagement quality. Immediate action recommended for editorial placement and potential feature.
+            3. **Geographic Expansion**: The top momentum artists show varying degrees of geographic penetration, suggesting different growth strategies
+            """)
+        
+        with col2:
+            # Create comparison chart
+            metrics_to_compare = ['plays', 'unique_listeners', 'fav_per_listener', 'country_count']
+            comparison_data = []
             
-            2. **FAVE** (Small) - Strong 66% growth with excellent favorites engagement. Consider for cross-platform promotional campaign.
+            for artist in comparison_artists:
+                artist_data = monthly_momentum_df[monthly_momentum_df['artist'] == artist].iloc[0]
+                for metric in metrics_to_compare:
+                    comparison_data.append({
+                        'artist': artist,
+                        'metric': metric,
+                        'value': artist_data[metric]
+                    })
             
-            3. **Khaid** (Small) - Balanced growth profile with significant geographic distribution. Good candidate for regional promotional push.
-            </div>
-            """, unsafe_allow_html=True)
+            comparison_plot_df = pd.DataFrame(comparison_data)
             
-            # Comparison of Monthly Top 3 vs Weekly Top 3
-            comparison_df = pd.DataFrame({
-                "Metric": ["Play Growth %", "Listener Growth %", "Favorites per Listener", "Shares per Listener", "Momentum Score"],
-                "Monthly Top 3 (Average)": [74.00, 50.23, 0.2400, 0.0700, 62.26],
-                "Weekly Top 3 (Average)": [69.33, 47.70, 0.2300, 0.0666, 55.97]
-            })
+            # Normalize the data for better visualization
+            for metric in metrics_to_compare:
+                max_val = comparison_plot_df[comparison_plot_df['metric'] == metric]['value'].max()
+                comparison_plot_df.loc[comparison_plot_df['metric'] == metric, 'normalized_value'] = comparison_plot_df[comparison_plot_df['metric'] == metric]['value'] / max_val
             
-            st.dataframe(
-                comparison_df,
-                use_container_width=True,
-                column_config={
-                    "Metric": st.column_config.TextColumn("Metric"),
-                    "Monthly Top 3 (Average)": st.column_config.NumberColumn("Monthly Top 3 (Average)", format="%.2f"),
-                    "Weekly Top 3 (Average)": st.column_config.NumberColumn("Weekly Top 3 (Average)", format="%.2f")
-                }
+            fig_comparison = px.bar(
+                comparison_plot_df,
+                x="metric",
+                y="normalized_value",
+                color="artist",
+                barmode="group",
+                title="Comparing Global vs. Niche Artist Profiles",
+                labels={"normalized_value": "Normalized Value (Relative to Max)"}
             )
+            
+            fig_comparison.update_layout(
+                xaxis_title="Metric",
+                yaxis_title="Relative Value",
+                height=300
+            )
+            
+            st.plotly_chart(fig_comparison, use_container_width=True)
+        
+        # SQL Implementation for reference
+        st.subheader("SQL Implementation Reference")
+        
+        st.code('''
+    WITH current_period AS (
+        SELECT 
+            m.artist,
+            COUNT(*) AS plays,
+            COUNT(DISTINCT e.actor_id) AS unique_listeners,
+            SUM(CASE WHEN e.type = 'favorite' THEN 1 ELSE 0 END) AS favorites,
+            SUM(CASE WHEN e.type = 'share' THEN 1 ELSE 0 END) AS shares,
+            COUNT(DISTINCT e.geo_country) AS country_count
+        FROM dw01.events e
+        JOIN dw01.music m ON e.object_id = m.music_id_raw
+        WHERE DATE_PARSE(e.event_date, '%Y%m%d') BETWEEN CURRENT_DATE - INTERVAL '30' DAY AND CURRENT_DATE
+        AND e.type IN ('play', 'favorite', 'share')
+        GROUP BY m.artist
+    ),
+    previous_period AS (
+        SELECT 
+            m.artist,
+            COUNT(*) AS prev_plays,
+            COUNT(DISTINCT e.actor_id) AS prev_unique_listeners
+        FROM dw01.events e
+        JOIN dw01.music m ON e.object_id = m.music_id_raw
+        WHERE DATE_PARSE(e.event_date, '%Y%m%d') BETWEEN CURRENT_DATE - INTERVAL '60' DAY AND CURRENT_DATE - INTERVAL '30' DAY
+        AND e.type = 'play'
+        GROUP BY m.artist
+    )
+    SELECT 
+        c.artist,
+        c.plays,
+        c.unique_listeners,
+        c.favorites,
+        c.shares,
+        c.country_count,
+        -- Growth metrics
+        c.plays - COALESCE(p.prev_plays, 0) AS play_growth,
+        c.unique_listeners - COALESCE(p.prev_unique_listeners, 0) AS listener_growth,
+        -- Engagement ratios
+        ROUND(c.favorites * 1.0 / NULLIF(c.unique_listeners, 0), 4) AS fav_per_listener,
+        ROUND(c.shares * 1.0 / NULLIF(c.unique_listeners, 0), 4) AS share_per_listener,
+        -- Simplified momentum score that matches the data pattern
+        -- Actual formula would need to be adjusted based on business requirements
+        ROUND(
+            (c.plays - COALESCE(p.prev_plays, 0)) * 0.8 +
+            (c.unique_listeners - COALESCE(p.prev_unique_listeners, 0)) * 0.1 +
+            (c.favorites * 10) + 
+            (c.country_count * 0.5)
+        ) AS momentum_score
+    FROM current_period c
+    LEFT JOIN previous_period p ON c.artist = p.artist
+    WHERE c.plays > 10000
+    ORDER BY momentum_score DESC
+    LIMIT 10;
+        ''', language='sql')
+        
+    # <h4>Top Emerging Artists for Promotion Focus</h4>
+        
+    #     Based on the monthly momentum analysis, these artists show exceptional growth potential:
+        
+    #     1. **Bloody Civilian** (Micro) - Extraordinary 104% play growth with high engagement quality. Immediate action recommended for editorial placement and potential feature.
+        
+    #     2. **FAVE** (Small) - Strong 66% growth with excellent favorites engagement. Consider for cross-platform promotional campaign.
+        
+    #     3. **Khaid** (Small) - Balanced growth profile with significant geographic distribution. Good candidate for regional promotional push.
+    #     </div>
+    #     """, unsafe_allow_html=True)
+        
+    #     # Comparison of Monthly Top 3 vs Weekly Top 3
+    #     comparison_df = pd.DataFrame({
+    #         "Metric": ["Play Growth %", "Listener Growth %", "Favorites per Listener", "Shares per Listener", "Momentum Score"],
+    #         "Monthly Top 3 (Average)": [74.00, 50.23, 0.2400, 0.0700, 62.26],
+    #         "Weekly Top 3 (Average)": [69.33, 47.70, 0.2300, 0.0666, 55.97]
+    #     })
+        
+    #     st.dataframe(
+    #         comparison_df,
+    #         use_container_width=True,
+    #         column_config={
+    #             "Metric": st.column_config.TextColumn("Metric"),
+    #             "Monthly Top 3 (Average)": st.column_config.NumberColumn("Monthly Top 3 (Average)", format="%.2f"),
+    #             "Weekly Top 3 (Average)": st.column_config.NumberColumn("Weekly Top 3 (Average)", format="%.2f")
+    #         }
+    #     )
 
 
 
@@ -2881,88 +2881,88 @@ with week_tabs[1]:
     
     
         
-        # # Next steps for ArtistRank development
-        # st.subheader("Next Steps for ArtistRank Development")
+        # Next steps for ArtistRank development
+        st.subheader("Next Steps for ArtistRank Development")
         
-        # st.markdown("""
+        st.markdown("""
         ### Week 2 Development Priorities (New):
         
-        # 1. **Exploring Superset Further:**
-        #    - Monthly Plays Dashboard
-        #    - AMD Dashboards
-        #    - (Document interesting patterns and questions)
+        1. **Exploring Superset Further:**
+           - Monthly Plays Dashboard
+           - AMD Dashboards
+           - (Document interesting patterns and questions)
         
-        # 2. **Evaluating AMD Songs Performance:**
-        #    - Develop queries to analyze performance metrics and identify cross-border opportunities:
-        #    - (1) Query for AMD songs released in the last 30 days
-        #    - (2) Geographic distribution analysis for AMD artists
-        #    - (3) Compare overall artist audience geo distribution vs. recent song distribution
+        2. **Evaluating AMD Songs Performance:**
+           - Develop queries to analyze performance metrics and identify cross-border opportunities:
+           - (1) Query for AMD songs released in the last 30 days
+           - (2) Geographic distribution analysis for AMD artists
+           - (3) Compare overall artist audience geo distribution vs. recent song distribution
         
-        # 3. **Create Superset Chart for AMD Editorial Playlists:**
-        #    - Query to track editorial playlist additions (This will be integrated into the AMD dashboard)
+        3. **Create Superset Chart for AMD Editorial Playlists:**
+           - Query to track editorial playlist additions (This will be integrated into the AMD dashboard)
         
-        # 4. **For integrating this into Superset:**
-        #    - Connect to Chris to discuss the integration process
-        #    - Create a Superset dataset from this view:https://docs.google.com/document/d/1dVUrwYScYDK9M4akYlNRtUuySiE7uMYamNbd88Fie34/edit?usp=sharing
-        #    - Build a table visualization with the following columns:
-        #    - (1) Added Date
-        #    - (2) Song Name
-        #    - (3) Artist Name
-        #    - (4) Is Ghost Account?
-        #    - (5) Distributor
-        #    - (6) Playlist Name
-        #    - Add filtering capabilities for:
-        #    - (1) Date range
-        #    - (2) Playlist name
-        #    - (3) Distributor
-        #    - (4) Ghost account status
-        #    - Implement daily refresh to capture new additions
+        4. **For integrating this into Superset:**
+           - Connect to Chris to discuss the integration process
+           - Create a Superset dataset from this view:https://docs.google.com/document/d/1dVUrwYScYDK9M4akYlNRtUuySiE7uMYamNbd88Fie34/edit?usp=sharing
+           - Build a table visualization with the following columns:
+           - (1) Added Date
+           - (2) Song Name
+           - (3) Artist Name
+           - (4) Is Ghost Account?
+           - (5) Distributor
+           - (6) Playlist Name
+           - Add filtering capabilities for:
+           - (1) Date range
+           - (2) Playlist name
+           - (3) Distributor
+           - (4) Ghost account status
+           - Implement daily refresh to capture new additions
     
-        # 5. **Create a Comprehensive Analysis Report & Visualization**
-        #    - Based on the findings, prepare an analysis report for the next team meeting(Apr 10)
-        #    - Create visualizations for key findings; Format the editorial playlist table view; Document usage instructions for Jordan and Jalen
+        5. **Create a Comprehensive Analysis Report & Visualization**
+           - Based on the findings, prepare an analysis report for the next team meeting(Apr 10)
+           - Create visualizations for key findings; Format the editorial playlist table view; Document usage instructions for Jordan and Jalen
            
-        # 6. **Prepare for Implementation in Superset**
-        #    - Check myself & ask Jacob/Chris how to integrate my query into the AMD dashboard
-        #    - Maybe: Format the query for optimal performance: Add appropriate indexes; Consider materialized views for faster refresh; Test with sample data to ensure accuracy
-        #    - Develop documentation for Jordan and Jalen on how to use and interpret the table: eg: https://docs.google.com/document/d/1UoHhLnUQVLq7utKNMmZtdfuQ49DIU5dP8nxhUKfumNQ/edit?usp=sharing
+        6. **Prepare for Implementation in Superset**
+           - Check myself & ask Jacob/Chris how to integrate my query into the AMD dashboard
+           - Maybe: Format the query for optimal performance: Add appropriate indexes; Consider materialized views for faster refresh; Test with sample data to ensure accuracy
+           - Develop documentation for Jordan and Jalen on how to use and interpret the table: eg: https://docs.google.com/document/d/1UoHhLnUQVLq7utKNMmZtdfuQ49DIU5dP8nxhUKfumNQ/edit?usp=sharing
            
            
            
-        # ### Week 2 Development Priorities (Old PLAN):
+        ### Week 2 Development Priorities (Old PLAN):
         
-        # 1. **Testing & Validation:**
-        #    - Compare results with previous A&R picks to validate effectiveness
-        #    - Adjust weight coefficients based on findings
+        1. **Testing & Validation:**
+           - Compare results with previous A&R picks to validate effectiveness
+           - Adjust weight coefficients based on findings
         
-        # 2. **Integration with Superset:**
-        #    - Create visualizations based on this dashboard
-        #    - Set up scheduled queries to update data daily
-        #    - Create alerts for high momentum score artists
+        2. **Integration with Superset:**
+           - Create visualizations based on this dashboard
+           - Set up scheduled queries to update data daily
+           - Create alerts for high momentum score artists
         
-        # 3. **Usability Enhancements:**
-        #    - Add genre filtering capabilities
-        #    - Implement territory-specific versions of the algorithm
-        #    - Create drilldown capabilities for artist details
+        3. **Usability Enhancements:**
+           - Add genre filtering capabilities
+           - Implement territory-specific versions of the algorithm
+           - Create drilldown capabilities for artist details
         
-        # 4. **Collaboration with A&R Team:**
-        #    - Share initial results with Jordan and Jalen
-        #    - Cross-reference algorithmic picks with their selections
-        #    - Identify patterns and blind spots in the current algorithm
-        # """)  
+        4. **Collaboration with A&R Team:**
+           - Share initial results with Jordan and Jalen
+           - Cross-reference algorithmic picks with their selections
+           - Identify patterns and blind spots in the current algorithm
+        """)  
     
     
     
         
-        # # WEEK 1 DONE
-        # st.subheader("Week1 Meeting")
+        # WEEK 1 DONE
+        st.subheader("Week1 Meeting")
         
-        # st.markdown("""
-        # ### Week 1 (Done):
+        st.markdown("""
+        ### Week 1 (Done):
         
-        # 1. **ArtistRank dashboard**
-        # 2. **Main thing: Recommend artists & Artist Momentum Score methodology and its components**
-        # """)
+        1. **ArtistRank dashboard**
+        2. **Main thing: Recommend artists & Artist Momentum Score methodology and its components**
+        """)
     
     
     
