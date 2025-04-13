@@ -29,32 +29,6 @@ week_tabs = st.tabs(["Week 2 (Current)", "Week 1 (Previous)"])
 
 
 
-mode = st.radio("Select Theme Mode:", ["Light", "Dark"], horizontal=True)
-
-if mode == "Dark":
-    st.markdown("""
-        <style>
-        body {
-            background-color: #0E1117;
-            color: #FAFAFA;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-else:
-    st.markdown("""
-        <style>
-        body {
-            background-color: #FFFFFF;
-            color: #000000;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-
-
-
-
-
-
 
 # Add custom CSS
 st.markdown("""
