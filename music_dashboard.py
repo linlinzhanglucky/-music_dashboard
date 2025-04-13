@@ -260,36 +260,36 @@ def load_data():
         amd_artist_country_df = pd.read_csv('data/AMD Artist Country Breakdown.csv')
     except:
         st.warning("⚠️ Could not load 'your_file.csv'. Using fallback data.")
-        # amd_artist_country_df = pd.DataFrame({
-        #     "artist": ["Erma", "Vybz Kartel", "Siicie & Lasmid", "Mitski", "Dxtiny"],
-        #     "title": ["DYANA", "God is The Greatest", "Do You Know?", "My Love Mine All Mine", "Uncle Pele"],
-        #     "geo_country": ["NG", "GH", "GH", "US", "NG"],
-        #     "plays": [111633, 187446, 91479, 11066, 189738],
-        #     "engagements": [793, 764, 655, 652, 482]
-        # })
+        amd_artist_country_df = pd.DataFrame({
+            "artist": ["Erma", "Vybz Kartel", "Siicie & Lasmid", "Mitski", "Dxtiny"],
+            "title": ["DYANA", "God is The Greatest", "Do You Know?", "My Love Mine All Mine", "Uncle Pele"],
+            "geo_country": ["NG", "GH", "GH", "US", "NG"],
+            "plays": [111633, 187446, 91479, 11066, 189738],
+            "engagements": [793, 764, 655, 652, 482]
+        })
     
     # Current AMD Songs List
     try:
         amd_songs_df = pd.read_csv('data/Current AMD Songs List.csv')
     except:
         st.warning("⚠️ Could not load 'your_file.csv'. Using fallback data.")
-        # amd_songs_df = pd.DataFrame({
-        #     "music_id_raw": ["music:61401185", "music:13852656", "music:56684604", "music:32374254", "music:56252684"],
-        #     "artist": ["Dalia", "Madlib", "PF Xavi", "William McDowell", "Jodie Marie ASMR"],
-        #     "title": ["What if", "Dil Cosby Interlude", "Not Ready", "Never Going Back (I Won't Go Back Reprise)", "Black Country Maid Cleans you up Pt.3"],
-        #     "latest_distributor_name": ["Audiosalad Direct", "Audiosalad Direct", "Audiosalad Direct", "Audiosalad Direct", "Audiosalad Direct"]
-        # })
+        amd_songs_df = pd.DataFrame({
+            "music_id_raw": ["music:61401185", "music:13852656", "music:56684604", "music:32374254", "music:56252684"],
+            "artist": ["Dalia", "Madlib", "PF Xavi", "William McDowell", "Jodie Marie ASMR"],
+            "title": ["What if", "Dil Cosby Interlude", "Not Ready", "Never Going Back (I Won't Go Back Reprise)", "Black Country Maid Cleans you up Pt.3"],
+            "latest_distributor_name": ["Audiosalad Direct", "Audiosalad Direct", "Audiosalad Direct", "Audiosalad Direct", "Audiosalad Direct"]
+        })
     
     # Engagement Source Channels
     try:
         source_channels_df = pd.read_csv('data/Engagement Source Channels.csv')
     except:
         st.warning("⚠️ Could not load 'your_file.csv'. Using fallback data.")
-        # source_channels_df = pd.DataFrame({
-        #     "source_tab": ["My Library", "Search", "Search", "Browse", "My Library"],
-        #     "section": ["My Library - Offline", "Search - All Music", "Queue End Autoplay", "Browse - Recommendations", "My Library - Favorites"],
-        #     "event_count": [204009819, 102970150, 55581117, 45211776, 19003309]
-        # })
+        source_channels_df = pd.DataFrame({
+            "source_tab": ["My Library", "Search", "Search", "Browse", "My Library"],
+            "section": ["My Library - Offline", "Search - All Music", "Queue End Autoplay", "Browse - Recommendations", "My Library - Favorites"],
+            "event_count": [204009819, 102970150, 55581117, 45211776, 19003309]
+        })
     
     # Engagement Per User By Play Cohort
     try:
