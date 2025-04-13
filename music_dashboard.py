@@ -115,12 +115,6 @@ def load_scouting_tracker():
 
         headers = raw_df.iloc[header_row].tolist()
 
-        # # Create clean dataframe
-        # clean_df = pd.DataFrame(columns=headers)
-        # for i in range(header_row + 1, len(raw_df)):
-        #     row_data = raw_df.iloc[i].tolist()
-        #     if not all(pd.isna(val) or val == '' for val in row_data):
-        #         clean_df.loc[len(clean_df)] = row_data
 
         #debug
         # Extract headers from detected header row
@@ -263,16 +257,16 @@ def load_data():
     
     # AMD Artist Country Breakdown
     try:
-        amd_artist_country_df = pd.read_csv('AMD Artist Country Breakdown.csv')
+        amd_artist_country_df = pd.read_csv('data/AMD Artist Country Breakdown.csv')
     except:
         st.warning("⚠️ Could not load 'your_file.csv'. Using fallback data.")
-        amd_artist_country_df = pd.DataFrame({
-            "artist": ["Erma", "Vybz Kartel", "Siicie & Lasmid", "Mitski", "Dxtiny"],
-            "title": ["DYANA", "God is The Greatest", "Do You Know?", "My Love Mine All Mine", "Uncle Pele"],
-            "geo_country": ["NG", "GH", "GH", "US", "NG"],
-            "plays": [111633, 187446, 91479, 11066, 189738],
-            "engagements": [793, 764, 655, 652, 482]
-        })
+        # amd_artist_country_df = pd.DataFrame({
+        #     "artist": ["Erma", "Vybz Kartel", "Siicie & Lasmid", "Mitski", "Dxtiny"],
+        #     "title": ["DYANA", "God is The Greatest", "Do You Know?", "My Love Mine All Mine", "Uncle Pele"],
+        #     "geo_country": ["NG", "GH", "GH", "US", "NG"],
+        #     "plays": [111633, 187446, 91479, 11066, 189738],
+        #     "engagements": [793, 764, 655, 652, 482]
+        # })
     
     # Current AMD Songs List
     try:
@@ -582,14 +576,15 @@ with week_tabs[0]:
     )
     
     # Create tabs
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7= st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8= st.tabs([
         "AMD Artist Performance", 
         "Cross-Border Opportunities",
         "Editorial Playlists", 
         "Engagement Analysis",
         "Discovery Channels",
         "A&R Scouting Tracker",
-        "💬 Chatbot"
+        "💬 Chatbot",
+        "linlin"
     ])
     
     # Tab 1: AMD Artist Performance
@@ -1369,6 +1364,40 @@ with week_tabs[0]:
             msg = response.choices[0].message.content
             st.session_state.messages.append({"role": "assistant", "content": msg})
             st.chat_message("assistant").write(msg)
+# Add this to your tab7 (Chatbot) in the Streamlit dashboard for **local LLM**
+# Make sure llama-cpp-python is installed and openhermes model is downloaded
+
+        # from llama_cpp import Llama
+
+        # # Load model - replace with correct model path
+        # llm = Llama(model_path="models/openhermes-2.5-mistral.Q4_K_M.gguf", n_ctx=2048, n_gpu_layers=35)
+
+        # # Chatbot state
+        # if "chat_history" not in st.session_state:
+        #     st.session_state.chat_history = []
+
+        # # Render chat history
+        # for msg in st.session_state.chat_history:
+        #     with st.chat_message(msg["role"]):
+        #         st.markdown(msg["content"])
+
+        # # Handle user input
+        # if prompt := st.chat_input("Ask me anything about ArtistRank..."):
+        #     # Show user input
+        #     st.session_state.chat_history.append({"role": "user", "content": prompt})
+        #     with st.chat_message("user"):
+        #         st.markdown(prompt)
+
+        #     # Generate LLM response
+        #     with st.chat_message("assistant"):
+        #         with st.spinner("Thinking..."):
+        #             output = llm(prompt, max_tokens=256, stop=["</s>"])
+        #             reply = output["choices"][0]["text"].strip()
+        #             st.markdown(reply)
+
+        #     # Save reply
+        #     st.session_state.chat_history.append({"role": "assistant", "content": reply})
+
 
 
 
