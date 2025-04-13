@@ -146,9 +146,9 @@ def load_scouting_tracker():
 
         # Display filters
         st.subheader("Filters")
-        # col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3, col4 = st.columns(4)
         #debug
-        col1, col2, col3, col4, col5 = st.columns(5)
+        # col1, col2, col3, col4, col5 = st.columns(5)
 
         with col1:
             selected_platform = st.multiselect("On Platform Status", options=platform_options, default=platform_options if platform_options else [])
@@ -162,8 +162,8 @@ def load_scouting_tracker():
         with col4:
             selected_feed_partners = st.multiselect("Feed Partner", options=feed_partner_options, default=feed_partner_options if feed_partner_options else [])
 
-        with col5:
-            selected_dates = st.multiselect("Week", options=date_options, default=date_options)
+        # with col5:
+        #     selected_dates = st.multiselect("Week", options=date_options, default=date_options)
 
 
         # Apply filters
@@ -178,8 +178,8 @@ def load_scouting_tracker():
         if selected_feed_partners:
             filtered_df = filtered_df[filtered_df["Feed Partner"].isin(selected_feed_partners)]
         
-        if selected_dates:
-            filtered_df = filtered_df[filtered_df["Date"].astype(str).isin(selected_dates)]
+        # if selected_dates:
+        #     filtered_df = filtered_df[filtered_df["Date"].astype(str).isin(selected_dates)]
 
 
         # Display scouting results
