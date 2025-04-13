@@ -2881,88 +2881,88 @@ with week_tabs[1]:
     
     
         
-        # Next steps for ArtistRank development
-        st.subheader("Next Steps for ArtistRank Development")
+        # # Next steps for ArtistRank development
+        # st.subheader("Next Steps for ArtistRank Development")
         
-        st.markdown("""
+        # st.markdown("""
         ### Week 2 Development Priorities (New):
         
-        1. **Exploring Superset Further:**
-           - Monthly Plays Dashboard
-           - AMD Dashboards
-           - (Document interesting patterns and questions)
+        # 1. **Exploring Superset Further:**
+        #    - Monthly Plays Dashboard
+        #    - AMD Dashboards
+        #    - (Document interesting patterns and questions)
         
-        2. **Evaluating AMD Songs Performance:**
-           - Develop queries to analyze performance metrics and identify cross-border opportunities:
-           - (1) Query for AMD songs released in the last 30 days
-           - (2) Geographic distribution analysis for AMD artists
-           - (3) Compare overall artist audience geo distribution vs. recent song distribution
+        # 2. **Evaluating AMD Songs Performance:**
+        #    - Develop queries to analyze performance metrics and identify cross-border opportunities:
+        #    - (1) Query for AMD songs released in the last 30 days
+        #    - (2) Geographic distribution analysis for AMD artists
+        #    - (3) Compare overall artist audience geo distribution vs. recent song distribution
         
-        3. **Create Superset Chart for AMD Editorial Playlists:**
-           - Query to track editorial playlist additions (This will be integrated into the AMD dashboard)
+        # 3. **Create Superset Chart for AMD Editorial Playlists:**
+        #    - Query to track editorial playlist additions (This will be integrated into the AMD dashboard)
         
-        4. **For integrating this into Superset:**
-           - Connect to Chris to discuss the integration process
-           - Create a Superset dataset from this view:https://docs.google.com/document/d/1dVUrwYScYDK9M4akYlNRtUuySiE7uMYamNbd88Fie34/edit?usp=sharing
-           - Build a table visualization with the following columns:
-           - (1) Added Date
-           - (2) Song Name
-           - (3) Artist Name
-           - (4) Is Ghost Account?
-           - (5) Distributor
-           - (6) Playlist Name
-           - Add filtering capabilities for:
-           - (1) Date range
-           - (2) Playlist name
-           - (3) Distributor
-           - (4) Ghost account status
-           - Implement daily refresh to capture new additions
+        # 4. **For integrating this into Superset:**
+        #    - Connect to Chris to discuss the integration process
+        #    - Create a Superset dataset from this view:https://docs.google.com/document/d/1dVUrwYScYDK9M4akYlNRtUuySiE7uMYamNbd88Fie34/edit?usp=sharing
+        #    - Build a table visualization with the following columns:
+        #    - (1) Added Date
+        #    - (2) Song Name
+        #    - (3) Artist Name
+        #    - (4) Is Ghost Account?
+        #    - (5) Distributor
+        #    - (6) Playlist Name
+        #    - Add filtering capabilities for:
+        #    - (1) Date range
+        #    - (2) Playlist name
+        #    - (3) Distributor
+        #    - (4) Ghost account status
+        #    - Implement daily refresh to capture new additions
     
-        5. **Create a Comprehensive Analysis Report & Visualization**
-           - Based on the findings, prepare an analysis report for the next team meeting(Apr 10)
-           - Create visualizations for key findings; Format the editorial playlist table view; Document usage instructions for Jordan and Jalen
+        # 5. **Create a Comprehensive Analysis Report & Visualization**
+        #    - Based on the findings, prepare an analysis report for the next team meeting(Apr 10)
+        #    - Create visualizations for key findings; Format the editorial playlist table view; Document usage instructions for Jordan and Jalen
            
-        6. **Prepare for Implementation in Superset**
-           - Check myself & ask Jacob/Chris how to integrate my query into the AMD dashboard
-           - Maybe: Format the query for optimal performance: Add appropriate indexes; Consider materialized views for faster refresh; Test with sample data to ensure accuracy
-           - Develop documentation for Jordan and Jalen on how to use and interpret the table: eg: https://docs.google.com/document/d/1UoHhLnUQVLq7utKNMmZtdfuQ49DIU5dP8nxhUKfumNQ/edit?usp=sharing
+        # 6. **Prepare for Implementation in Superset**
+        #    - Check myself & ask Jacob/Chris how to integrate my query into the AMD dashboard
+        #    - Maybe: Format the query for optimal performance: Add appropriate indexes; Consider materialized views for faster refresh; Test with sample data to ensure accuracy
+        #    - Develop documentation for Jordan and Jalen on how to use and interpret the table: eg: https://docs.google.com/document/d/1UoHhLnUQVLq7utKNMmZtdfuQ49DIU5dP8nxhUKfumNQ/edit?usp=sharing
            
            
            
-        ### Week 2 Development Priorities (Old PLAN):
+        # ### Week 2 Development Priorities (Old PLAN):
         
-        1. **Testing & Validation:**
-           - Compare results with previous A&R picks to validate effectiveness
-           - Adjust weight coefficients based on findings
+        # 1. **Testing & Validation:**
+        #    - Compare results with previous A&R picks to validate effectiveness
+        #    - Adjust weight coefficients based on findings
         
-        2. **Integration with Superset:**
-           - Create visualizations based on this dashboard
-           - Set up scheduled queries to update data daily
-           - Create alerts for high momentum score artists
+        # 2. **Integration with Superset:**
+        #    - Create visualizations based on this dashboard
+        #    - Set up scheduled queries to update data daily
+        #    - Create alerts for high momentum score artists
         
-        3. **Usability Enhancements:**
-           - Add genre filtering capabilities
-           - Implement territory-specific versions of the algorithm
-           - Create drilldown capabilities for artist details
+        # 3. **Usability Enhancements:**
+        #    - Add genre filtering capabilities
+        #    - Implement territory-specific versions of the algorithm
+        #    - Create drilldown capabilities for artist details
         
-        4. **Collaboration with A&R Team:**
-           - Share initial results with Jordan and Jalen
-           - Cross-reference algorithmic picks with their selections
-           - Identify patterns and blind spots in the current algorithm
-        """)  
+        # 4. **Collaboration with A&R Team:**
+        #    - Share initial results with Jordan and Jalen
+        #    - Cross-reference algorithmic picks with their selections
+        #    - Identify patterns and blind spots in the current algorithm
+        # """)  
     
     
     
         
-        # WEEK 1 DONE
-        st.subheader("Week1 Meeting")
+        # # WEEK 1 DONE
+        # st.subheader("Week1 Meeting")
         
-        st.markdown("""
-        ### Week 1 (Done):
+        # st.markdown("""
+        # ### Week 1 (Done):
         
-        1. **ArtistRank dashboard**
-        2. **Main thing: Recommend artists & Artist Momentum Score methodology and its components**
-        """)
+        # 1. **ArtistRank dashboard**
+        # 2. **Main thing: Recommend artists & Artist Momentum Score methodology and its components**
+        # """)
     
     
     
