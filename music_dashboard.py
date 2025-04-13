@@ -63,8 +63,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Function to load CSV data
-# Load scouting tracker data
+# Function to load scouting tracker data
 def load_scouting_tracker():
     """Function to display the A&R Scouting Tracker tab"""
 
@@ -124,16 +123,16 @@ def load_scouting_tracker():
         col1, col2, col3, col4 = st.columns(4)
 
         with col1:
-            selected_platform = st.multiselect("On Platform Status", options=platform_options, default=platform_options)
+            selected_platform = st.multiselect("On Platform Status", options=platform_options, default=platform_options if platform_options else [])
 
         with col2:
-            selected_genres = st.multiselect("Genre", options=genre_options, default=genre_options)
+            selected_genres = st.multiselect("Genre", options=genre_options, default=genre_options if genre_options else [])
 
         with col3:
-            selected_geos = st.multiselect("Geography", options=geo_options, default=geo_options)
+            selected_geos = st.multiselect("Geography", options=geo_options, default=geo_options if geo_options else [])
 
         with col4:
-            selected_feed_partners = st.multiselect("Feed Partner", options=feed_partner_options, default=feed_partner_options)
+            selected_feed_partners = st.multiselect("Feed Partner", options=feed_partner_options, default=feed_partner_options if feed_partner_options else [])
 
         # Apply filters
         filtered_df = clean_df.copy()
@@ -491,10 +490,14 @@ selected_artists = st.sidebar.multiselect(
     default=[]
 )
 
+# Fix for the countries multiselect
+country_options = amd_artist_country_df['geo_country'].unique().tolist()
+default_countries = [c for c in ['NG', 'GH', 'US', 'JM'] if c in country_options]
+
 selected_countries = st.sidebar.multiselect(
     "Countries",
-    options=amd_artist_country_df['geo_country'].unique(),
-    default=['NG', 'GH', 'US', 'JM']
+    options=country_options,
+    default=default_countries
 )
 
 # Filter by engagement threshold
@@ -507,9 +510,10 @@ min_engagement = st.sidebar.slider(
 )
 
 # Filter by playlists
+all_playlists = editorial_playlist_df['playlist_name'].unique().tolist()
 selected_playlists = st.sidebar.multiselect(
     "Editorial Playlists",
-    options=editorial_playlist_df['playlist_name'].unique(),
+    options=all_playlists,
     default=[]
 )
 
@@ -545,7 +549,7 @@ with tab1:
     st.markdown('<div class="insights-box">📊 <span class="highlight">Key Insight:</span> Analysis of AMD artists shows significant variation in engagement levels and geographic reach, with several artists demonstrating high potential for growth based on engagement-to-play ratios.</div>', unsafe_allow_html=True)
     
     # Filter data based on selections
-    filtered_songs = top_songs_geo_df
+    filtered_songs = top_songs_geo_df.copy()
     if selected_artists:
         filtered_songs = filtered_songs[filtered_songs['artist'].isin(selected_artists)]
     if selected_countries:
@@ -577,30 +581,33 @@ with tab1:
     song_performance['engagement_per_user'] = song_performance['total_engagements'] / song_performance['unique_users']
     
     # Create visualization
-    fig_songs = px.scatter(
-        song_performance.sort_values('total_plays', ascending=False).head(20),
-        x="total_plays", 
-        y="engagement_per_user",
-        size="unique_users",
-        color="artist",
-        hover_name="title",
-        text="title",
-        size_max=50,
-        title="Top 20 AMD Songs: Plays vs Engagement per User"
-    )
-    
-    fig_songs.update_traces(
-        textposition='top center',
-        marker=dict(line=dict(width=1, color='DarkSlateGrey'))
-    )
-    
-    fig_songs.update_layout(
-        xaxis_title="Total Plays",
-        yaxis_title="Engagement per User",
-        height=600
-    )
-    
-    st.plotly_chart(fig_songs, use_container_width=True)
+    if not song_performance.empty:
+        fig_songs = px.scatter(
+            song_performance.sort_values('total_plays', ascending=False).head(20),
+            x="total_plays", 
+            y="engagement_per_user",
+            size="unique_users",
+            color="artist",
+            hover_name="title",
+            text="title",
+            size_max=50,
+            title="Top 20 AMD Songs: Plays vs Engagement per User"
+        )
+        
+        fig_songs.update_traces(
+            textposition='top center',
+            marker=dict(line=dict(width=1, color='DarkSlateGrey'))
+        )
+        
+        fig_songs.update_layout(
+            xaxis_title="Total Plays",
+            yaxis_title="Engagement per User",
+            height=600
+        )
+        
+        st.plotly_chart(fig_songs, use_container_width=True)
+    else:
+        st.warning("No data available for the selected filters. Please adjust your selections.")
     
     # Top AMD Artists
     st.subheader("Top AMD Artists by Total Plays")
@@ -616,40 +623,46 @@ with tab1:
     artist_performance = artist_performance.sort_values('total_plays', ascending=False)
     
     # Create visualization
-    fig_artists = px.bar(
-        artist_performance.head(10),
-        x="artist",
-        y="total_plays",
-        color="engagement_ratio",
-        color_continuous_scale="Viridis",
-        title="Top 10 AMD Artists by Total Plays",
-        hover_data=["unique_users", "total_engagements", "engagement_ratio"]
-    )
-    
-    fig_artists.update_layout(
-        xaxis_title="Artist",
-        yaxis_title="Total Plays",
-        coloraxis_colorbar_title="Engagement Ratio"
-    )
-    
-    st.plotly_chart(fig_artists, use_container_width=True)
+    if not artist_performance.empty:
+        fig_artists = px.bar(
+            artist_performance.head(10),
+            x="artist",
+            y="total_plays",
+            color="engagement_ratio",
+color_continuous_scale="Viridis",
+            title="Top 10 AMD Artists by Total Plays",
+            hover_data=["unique_users", "total_engagements", "engagement_ratio"]
+        )
+        
+        fig_artists.update_layout(
+            xaxis_title="Artist",
+            yaxis_title="Total Plays",
+            coloraxis_colorbar_title="Engagement Ratio"
+        )
+        
+        st.plotly_chart(fig_artists, use_container_width=True)
+    else:
+        st.warning("No artist data available for the selected filters. Please adjust your selections.")
     
     # Table of AMD songs with metrics
     st.subheader("AMD Songs Performance Metrics")
     
     # Create a styled table
-    st.dataframe(
-        song_performance.sort_values('total_plays', ascending=False),
-        use_container_width=True,
-        column_config={
-            "artist": st.column_config.TextColumn("Artist"),
-            "title": st.column_config.TextColumn("Title"),
-            "total_plays": st.column_config.NumberColumn("Total Plays", format="%d"),
-            "total_engagements": st.column_config.NumberColumn("Total Engagements", format="%d"),
-            "unique_users": st.column_config.NumberColumn("Unique Users", format="%d"),
-            "engagement_per_user": st.column_config.NumberColumn("Engagement per User", format="%.3f")
-        }
-    )
+    if not song_performance.empty:
+        st.dataframe(
+            song_performance.sort_values('total_plays', ascending=False),
+            use_container_width=True,
+            column_config={
+                "artist": st.column_config.TextColumn("Artist"),
+                "title": st.column_config.TextColumn("Title"),
+                "total_plays": st.column_config.NumberColumn("Total Plays", format="%d"),
+                "total_engagements": st.column_config.NumberColumn("Total Engagements", format="%d"),
+                "unique_users": st.column_config.NumberColumn("Unique Users", format="%d"),
+                "engagement_per_user": st.column_config.NumberColumn("Engagement per User", format="%.3f")
+            }
+        )
+    else:
+        st.info("No song data available to display.")
     
     # Small artists with high engagement
     st.subheader("Small Artists with High Engagement")
@@ -689,14 +702,13 @@ with tab1:
     """)
 
 # Tab 2: Cross-Border Opportunities
-# Tab 2: Cross-Border Opportunities
 with tab2:
     st.markdown('<div class="sub-header">Cross-Border Promotion Opportunities</div>', unsafe_allow_html=True)
     
     st.markdown('<div class="insights-box">🌍 <span class="highlight">Key Finding:</span> Several AMD artists show significant gaps between their overall audience geo distribution and their recent song distribution, representing clear opportunities for targeted cross-border promotion.</div>', unsafe_allow_html=True)
     
     # Filter cross-border opportunities
-    filtered_opportunities = cross_border_opportunities
+    filtered_opportunities = cross_border_opportunities.copy()
     if selected_artists:
         filtered_opportunities = [opp for opp in filtered_opportunities if opp['artist'] in selected_artists]
     if selected_countries:
@@ -752,145 +764,154 @@ with tab2:
     st.subheader("Artist vs. Song Geographic Distribution")
     
     # Allow user to select an artist for detailed view
-    artist_for_geo = st.selectbox(
-        "Select Artist to View Geographic Distribution",
-        options=unique_artists if not selected_artists else selected_artists
-    )
-    
-    # Get artist's songs
-    artist_songs = top_songs_geo_df[top_songs_geo_df['artist'] == artist_for_geo]['title'].unique()
-    
-    if len(artist_songs) > 0:
-        # Let user select a specific song
-        selected_song = st.selectbox(
-            "Select Song",
-            options=artist_songs
+    if len(unique_artists) > 0:
+        # Select default artist
+        default_artist = unique_artists[0]
+        if selected_artists and selected_artists[0] in unique_artists:
+            default_artist = selected_artists[0]
+            
+        artist_for_geo = st.selectbox(
+            "Select Artist to View Geographic Distribution",
+            options=unique_artists,
+            index=list(unique_artists).index(default_artist) if default_artist in unique_artists else 0
         )
         
-        # Get data for the artist and song
-        artist_geo_data = amd_artist_country_df[amd_artist_country_df['artist'] == artist_for_geo]
-        song_geo_data = top_songs_geo_df[(top_songs_geo_df['artist'] == artist_for_geo) & 
-                                          (top_songs_geo_df['title'] == selected_song)]
+        # Get artist's songs
+        artist_songs = top_songs_geo_df[top_songs_geo_df['artist'] == artist_for_geo]['title'].unique()
         
-        # Calculate percentages
-        if not artist_geo_data.empty and not song_geo_data.empty:
-            # Calculate artist percentages
-            artist_total_plays = artist_geo_data['plays'].sum()
-            artist_geo_data['percentage'] = (artist_geo_data['plays'] / artist_total_plays) * 100
-            
-            # Calculate song percentages
-            song_total_plays = song_geo_data['total_plays'].sum()
-            song_geo_data['percentage'] = (song_geo_data['total_plays'] / song_total_plays) * 100
-            
-            # Create a comparison chart
-            fig_geo_compare = make_subplots(
-                rows=1, 
-                cols=2,
-                subplot_titles=("Artist Overall Audience", f"Song: {selected_song} Audience"),
-                specs=[[{"type": "bar"}, {"type": "bar"}]]
+        if len(artist_songs) > 0:
+            # Let user select a specific song
+            selected_song = st.selectbox(
+                "Select Song",
+                options=artist_songs
             )
             
-            # Artist geo distribution
-            artist_geo_sorted = artist_geo_data.sort_values('percentage', ascending=False).head(5)
-            fig_geo_compare.add_trace(
-                go.Bar(
-                    x=artist_geo_sorted['geo_country'],
-                    y=artist_geo_sorted['percentage'],
-                    name="Artist Overall",
-                    marker_color='#4ECDC4'
-                ),
-                row=1, col=1
-            )
+            # Get data for the artist and song
+            artist_geo_data = amd_artist_country_df[amd_artist_country_df['artist'] == artist_for_geo]
+            song_geo_data = top_songs_geo_df[(top_songs_geo_df['artist'] == artist_for_geo) & 
+                                            (top_songs_geo_df['title'] == selected_song)]
             
-            # Song geo distribution
-            song_geo_sorted = song_geo_data.sort_values('percentage', ascending=False).head(5)
-            fig_geo_compare.add_trace(
-                go.Bar(
-                    x=song_geo_sorted['geo_country'],
-                    y=song_geo_sorted['percentage'],
-                    name=f"Song: {selected_song}",
-                    marker_color='#FF6B6B'
-                ),
-                row=1, col=2
-            )
-            
-            fig_geo_compare.update_layout(
-                title=f"{artist_for_geo}: Geographic Distribution Comparison",
-                height=500
-            )
-            
-            st.plotly_chart(fig_geo_compare, use_container_width=True)
-            
-            # Show strategy recommendations
-            st.subheader("Recommended Promotion Strategies")
-            
-            # Find countries with gaps
-            countries_with_gaps = []
-            artist_countries = set(artist_geo_sorted['geo_country'])
-            song_countries = set(song_geo_sorted['geo_country'])
-            
-            for country in artist_countries:
-                if country not in song_countries:
-                    countries_with_gaps.append(country)
-                else:
-                    artist_pct = artist_geo_sorted[artist_geo_sorted['geo_country'] == country]['percentage'].values[0]
-                    song_country_data = song_geo_sorted[song_geo_sorted['geo_country'] == country]
-                    song_pct = song_country_data['percentage'].values[0] if not song_country_data.empty else 0
-                    
-                    if artist_pct > song_pct + 5:  # If gap is more than 5%
+            # Calculate percentages
+            if not artist_geo_data.empty and not song_geo_data.empty:
+                # Calculate artist percentages
+                artist_total_plays = artist_geo_data['plays'].sum()
+                artist_geo_data['percentage'] = (artist_geo_data['plays'] / artist_total_plays) * 100
+                
+                # Calculate song percentages
+                song_total_plays = song_geo_data['total_plays'].sum()
+                song_geo_data['percentage'] = (song_geo_data['total_plays'] / song_total_plays) * 100
+                
+                # Create a comparison chart
+                fig_geo_compare = make_subplots(
+                    rows=1, 
+                    cols=2,
+                    subplot_titles=("Artist Overall Audience", f"Song: {selected_song} Audience"),
+                    specs=[[{"type": "bar"}, {"type": "bar"}]]
+                )
+                
+                # Artist geo distribution
+                artist_geo_sorted = artist_geo_data.sort_values('percentage', ascending=False).head(5)
+                fig_geo_compare.add_trace(
+                    go.Bar(
+                        x=artist_geo_sorted['geo_country'],
+                        y=artist_geo_sorted['percentage'],
+                        name="Artist Overall",
+                        marker_color='#4ECDC4'
+                    ),
+                    row=1, col=1
+                )
+                
+                # Song geo distribution
+                song_geo_sorted = song_geo_data.sort_values('percentage', ascending=False).head(5)
+                fig_geo_compare.add_trace(
+                    go.Bar(
+                        x=song_geo_sorted['geo_country'],
+                        y=song_geo_sorted['percentage'],
+                        name=f"Song: {selected_song}",
+                        marker_color='#FF6B6B'
+                    ),
+                    row=1, col=2
+                )
+                
+                fig_geo_compare.update_layout(
+                    title=f"{artist_for_geo}: Geographic Distribution Comparison",
+                    height=500
+                )
+                
+                st.plotly_chart(fig_geo_compare, use_container_width=True)
+                
+                # Show strategy recommendations
+                st.subheader("Recommended Promotion Strategies")
+                
+                # Find countries with gaps
+                countries_with_gaps = []
+                artist_countries = set(artist_geo_sorted['geo_country'])
+                song_countries = set(song_geo_sorted['geo_country'])
+                
+                for country in artist_countries:
+                    if country not in song_countries:
                         countries_with_gaps.append(country)
-            
-            if countries_with_gaps:
-                st.markdown('<div class="recommendation-box">', unsafe_allow_html=True)
-                st.markdown(f"### Promotion Strategy for {artist_for_geo} - {selected_song}")
-                
-                for country in countries_with_gaps:
-                    st.markdown(f"#### {country} Market Expansion")
-                    
-                    if country == "NG":
-                        st.markdown("""
-                        - **Push Notifications**: Target Nigerian users who have engaged with similar artists
-                        - **Trending Placement**: Feature the song in Nigeria-specific trending sections
-                        - **Social Media Campaign**: Partner with Nigerian influencers for song promotion
-                        """)
-                    elif country == "GH":
-                        st.markdown("""
-                        - **Radio Partnerships**: Collaborate with top Ghanaian radio stations
-                        - **Local Events**: Feature the song in promotional events in Ghana
-                        - **Influencer Marketing**: Partner with Ghanaian social media personalities
-                        """)
-                    elif country == "US":
-                        st.markdown("""
-                        - **Diaspora Targeting**: Create targeted campaigns for the West African diaspora in major US cities
-                        - **Playlist Placement**: Push for placement in US-focused Afrobeats playlists
-                        - **College Campus Marketing**: Target universities with high international student populations
-                        """)
-                    elif country == "UK":
-                        st.markdown("""
-                        - **Club Promotion**: Partner with UK DJs and clubs with African music nights
-                        - **Community Events**: Promote at UK African cultural events and festivals
-                        - **University Marketing**: Target UK universities with high African student populations
-                        """)
-                    elif country == "JM":
-                        st.markdown("""
-                        - **Dancehall Cross-Promotion**: Partner with Jamaican dancehall artists for remixes
-                        - **Radio Placement**: Target Jamaican radio stations for song placement
-                        - **Local Influencers**: Engage with Jamaican music influencers
-                        """)
                     else:
-                        st.markdown(f"""
-                        - **Targeted Advertising**: Develop geo-specific ads for {country} market
-                        - **Local Partnerships**: Identify potential collaborators in {country}
-                        - **Platform Features**: Utilize Audiomack's geo-targeted features for promotion
-                        """)
+                        artist_pct = artist_geo_sorted[artist_geo_sorted['geo_country'] == country]['percentage'].values[0]
+                        song_country_data = song_geo_sorted[song_geo_sorted['geo_country'] == country]
+                        song_pct = song_country_data['percentage'].values[0] if not song_country_data.empty else 0
+                        
+                        if artist_pct > song_pct + 5:  # If gap is more than 5%
+                            countries_with_gaps.append(country)
                 
-                st.markdown("</div>", unsafe_allow_html=True)
+                if countries_with_gaps:
+                    st.markdown('<div class="recommendation-box">', unsafe_allow_html=True)
+                    st.markdown(f"### Promotion Strategy for {artist_for_geo} - {selected_song}")
+                    
+                    for country in countries_with_gaps:
+                        st.markdown(f"#### {country} Market Expansion")
+                        
+                        if country == "NG":
+                            st.markdown("""
+                            - **Push Notifications**: Target Nigerian users who have engaged with similar artists
+                            - **Trending Placement**: Feature the song in Nigeria-specific trending sections
+                            - **Social Media Campaign**: Partner with Nigerian influencers for song promotion
+                            """)
+                        elif country == "GH":
+                            st.markdown("""
+                            - **Radio Partnerships**: Collaborate with top Ghanaian radio stations
+                            - **Local Events**: Feature the song in promotional events in Ghana
+                            - **Influencer Marketing**: Partner with Ghanaian social media personalities
+                            """)
+                        elif country == "US":
+                            st.markdown("""
+                            - **Diaspora Targeting**: Create targeted campaigns for the West African diaspora in major US cities
+                            - **Playlist Placement**: Push for placement in US-focused Afrobeats playlists
+                            - **College Campus Marketing**: Target universities with high international student populations
+                            """)
+                        elif country == "UK":
+                            st.markdown("""
+                            - **Club Promotion**: Partner with UK DJs and clubs with African music nights
+                            - **Community Events**: Promote at UK African cultural events and festivals
+                            - **University Marketing**: Target UK universities with high African student populations
+                            """)
+                        elif country == "JM":
+                            st.markdown("""
+                            - **Dancehall Cross-Promotion**: Partner with Jamaican dancehall artists for remixes
+                            - **Radio Placement**: Target Jamaican radio stations for song placement
+                            - **Local Influencers**: Engage with Jamaican music influencers
+                            """)
+                        else:
+                            st.markdown(f"""
+                            - **Targeted Advertising**: Develop geo-specific ads for {country} market
+                            - **Local Partnerships**: Identify potential collaborators in {country}
+                            - **Platform Features**: Utilize Audiomack's geo-targeted features for promotion
+                            """)
+                    
+                    st.markdown("</div>", unsafe_allow_html=True)
+                else:
+                    st.info(f"No significant geographic distribution gaps found for {selected_song}.")
             else:
-                st.info(f"No significant geographic distribution gaps found for {selected_song}.")
+                st.warning(f"Insufficient data for {artist_for_geo} or {selected_song} to analyze geographic distribution.")
         else:
-            st.warning(f"Insufficient data for {artist_for_geo} or {selected_song} to analyze geographic distribution.")
+            st.warning(f"No songs found for {artist_for_geo}.")
     else:
-        st.warning(f"No songs found for {artist_for_geo}.")
+        st.warning("No artist data available. Please check your data sources.")
 
 # Tab 3: Editorial Playlists
 with tab3:
@@ -899,7 +920,7 @@ with tab3:
     st.markdown('<div class="insights-box">🎵 <span class="highlight">New Feature:</span> This tracker allows you to monitor AMD artist additions to editorial playlists, helping identify promotional opportunities and track curator selections.</div>', unsafe_allow_html=True)
     
     # Filter playlist data
-    filtered_playlists = editorial_playlist_df
+    filtered_playlists = editorial_playlist_df.copy()
     if selected_artists:
         filtered_playlists = filtered_playlists[filtered_playlists['artist_name'].isin(selected_artists)]
     if selected_playlists:
@@ -945,17 +966,20 @@ with tab3:
     playlist_counts.columns = ['Playlist', 'Count']
     
     # Create visualization
-    fig_playlist = px.pie(
-        playlist_counts,
-        values='Count',
-        names='Playlist',
-        title="Editorial Playlist Distribution",
-        color_discrete_sequence=px.colors.qualitative.Bold
-    )
-    
-    fig_playlist.update_traces(textinfo='percent+label', pull=[0.1 if i == 0 else 0 for i in range(len(playlist_counts))])
-    
-    st.plotly_chart(fig_playlist, use_container_width=True)
+    if not playlist_counts.empty:
+        fig_playlist = px.pie(
+            playlist_counts,
+            values='Count',
+            names='Playlist',
+            title="Editorial Playlist Distribution",
+            color_discrete_sequence=px.colors.qualitative.Bold
+        )
+        
+        fig_playlist.update_traces(textinfo='percent+label', pull=[0.1 if i == 0 else 0 for i in range(len(playlist_counts))])
+        
+        st.plotly_chart(fig_playlist, use_container_width=True)
+    else:
+        st.info("No playlist data to display with the current filters.")
     
     # Playlist additions by day
     st.subheader("Playlist Additions by Day")
@@ -966,16 +990,19 @@ with tab3:
     adds_by_day.columns = ['Date', 'Playlist', 'Count']
     
     # Create visualization
-    fig_adds_by_day = px.bar(
-        adds_by_day,
-        x='Date',
-        y='Count',
-        color='Playlist',
-        title="Editorial Playlist Additions by Day",
-        labels={'Count': 'Number of Additions'}
-    )
-    
-    st.plotly_chart(fig_adds_by_day, use_container_width=True)
+    if not adds_by_day.empty:
+        fig_adds_by_day = px.bar(
+            adds_by_day,
+            x='Date',
+            y='Count',
+            color='Playlist',
+            title="Editorial Playlist Additions by Day",
+            labels={'Count': 'Number of Additions'}
+        )
+        
+        st.plotly_chart(fig_adds_by_day, use_container_width=True)
+    else:
+        st.info("No daily addition data to display with the current filters.")
     
     # SQL Query for the Superset Chart
     st.subheader("SQL Query for Superset Implementation")
@@ -1023,7 +1050,7 @@ with tab4:
     st.markdown('<div class="insights-box">💡 <span class="highlight">Key Insight:</span> Engagement metrics like favorites, reposts, and comments offer better indicators of audience connection than raw play counts. Several AMD artists show exceptionally high engagement per user, indicating strong resonance with their audience.</div>', unsafe_allow_html=True)
     
     # Filter engagement data
-    filtered_engagement = top_engaged_artists_df
+    filtered_engagement = top_engaged_artists_df.copy()
     if selected_artists:
         filtered_engagement = filtered_engagement[filtered_engagement['artist'].isin(selected_artists)]
     
@@ -1052,62 +1079,71 @@ with tab4:
     engagement_sorted = filtered_engagement.sort_values('engagements_per_user', ascending=False)
     
     # Create visualization
-    fig_engagement = px.bar(
-        engagement_sorted.head(15),
-        x="artist",
-        y="engagements_per_user",
-        color="total_plays",
-        color_continuous_scale="Viridis",
-        title="Top 15 Artists by Engagement per User",
-        hover_data=["total_engagements", "unique_users", "total_plays"]
-    )
-    
-    fig_engagement.update_layout(
-        xaxis_title="Artist",
-        yaxis_title="Engagements per User",
-        coloraxis_colorbar_title="Total Plays"
-    )
-    
-    st.plotly_chart(fig_engagement, use_container_width=True)
+    if not engagement_sorted.empty:
+        fig_engagement = px.bar(
+            engagement_sorted.head(15),
+            x="artist",
+            y="engagements_per_user",
+            color="total_plays",
+            color_continuous_scale="Viridis",
+            title="Top 15 Artists by Engagement per User",
+            hover_data=["total_engagements", "unique_users", "total_plays"]
+        )
+        
+        fig_engagement.update_layout(
+            xaxis_title="Artist",
+            yaxis_title="Engagements per User",
+            coloraxis_colorbar_title="Total Plays"
+        )
+        
+        st.plotly_chart(fig_engagement, use_container_width=True)
+    else:
+        st.info("No engagement data available with the current filters.")
     
     # Engagement vs. plays comparison
     st.subheader("Engagement vs. Plays Analysis")
     
     # Create scatter plot
-    fig_scatter = px.scatter(
-        filtered_engagement,
-        x="total_plays",
-        y="engagements_per_user",
-        size="unique_users",
-        color="artist",
-        hover_name="artist",
-        log_x=True,
-        size_max=50,
-        title="Engagement per User vs. Total Plays (Log Scale)"
-    )
-    
-    fig_scatter.update_layout(
-        xaxis_title="Total Plays (Log Scale)",
-        yaxis_title="Engagements per User",
-        height=600
-    )
-    
-    st.plotly_chart(fig_scatter, use_container_width=True)
+    if not filtered_engagement.empty:
+        fig_scatter = px.scatter(
+            filtered_engagement,
+            x="total_plays",
+            y="engagements_per_user",
+            size="unique_users",
+            color="artist",
+            hover_name="artist",
+            log_x=True,
+            size_max=50,
+            title="Engagement per User vs. Total Plays (Log Scale)"
+        )
+        
+        fig_scatter.update_layout(
+            xaxis_title="Total Plays (Log Scale)",
+            yaxis_title="Engagements per User",
+            height=600
+        )
+        
+        st.plotly_chart(fig_scatter, use_container_width=True)
+    else:
+        st.info("No data available to display the scatter plot.")
     
     # Create a styled table of top engaged artists
     st.subheader("Detailed Engagement Metrics by Artist")
     
-    st.dataframe(
-        engagement_sorted,
-        use_container_width=True,
-        column_config={
-            "artist": st.column_config.TextColumn("Artist"),
-            "total_plays": st.column_config.NumberColumn("Total Plays", format="%d"),
-            "total_engagements": st.column_config.NumberColumn("Total Engagements", format="%d"),
-            "unique_users": st.column_config.NumberColumn("Unique Users", format="%d"),
-            "engagements_per_user": st.column_config.NumberColumn("Engagements per User", format="%.3f")
-        }
-    )
+    if not engagement_sorted.empty:
+        st.dataframe(
+            engagement_sorted,
+            use_container_width=True,
+            column_config={
+                "artist": st.column_config.TextColumn("Artist"),
+                "total_plays": st.column_config.NumberColumn("Total Plays", format="%d"),
+                "total_engagements": st.column_config.NumberColumn("Total Engagements", format="%d"),
+                "unique_users": st.column_config.NumberColumn("Unique Users", format="%d"),
+                "engagements_per_user": st.column_config.NumberColumn("Engagements per User", format="%.3f")
+            }
+        )
+    else:
+        st.info("No engagement data to display in the table.")
     
     st.markdown("""
     ### Key Engagement Insights
@@ -1132,38 +1168,44 @@ with tab5:
     st.subheader("Engagement by Source Tab")
     
     # Create visualization for source tabs
-    fig_source_tabs = px.pie(
-        source_tab_totals.sort_values('percentage', ascending=False),
-        values='percentage',
-        names='source_tab',
-        title="Engagement Distribution by Source Tab",
-        hole=0.4
-    )
-    
-    fig_source_tabs.update_traces(textinfo='percent+label')
-    
-    st.plotly_chart(fig_source_tabs, use_container_width=True)
+    if not source_tab_totals.empty:
+        fig_source_tabs = px.pie(
+            source_tab_totals.sort_values('percentage', ascending=False),
+            values='percentage',
+            names='source_tab',
+            title="Engagement Distribution by Source Tab",
+            hole=0.4
+        )
+        
+        fig_source_tabs.update_traces(textinfo='percent+label')
+        
+        st.plotly_chart(fig_source_tabs, use_container_width=True)
+    else:
+        st.info("No source tab data available to display.")
     
     # Section distribution
     st.subheader("Engagement by Section")
     
     # Create visualization for top sections
-    fig_sections = px.bar(
-        section_totals.head(10),
-        x='section',
-        y='percentage',
-        color='percentage',
-        color_continuous_scale='Viridis',
-        title="Top 10 Sections by Engagement Percentage"
-    )
-    
-    fig_sections.update_layout(
-        xaxis_title="Section",
-        yaxis_title="Percentage of Total Engagement (%)",
-        xaxis={'categoryorder': 'total descending'}
-    )
-    
-    st.plotly_chart(fig_sections, use_container_width=True)
+    if not section_totals.empty:
+        fig_sections = px.bar(
+            section_totals.head(10),
+            x='section',
+            y='percentage',
+            color='percentage',
+            color_continuous_scale='Viridis',
+            title="Top 10 Sections by Engagement Percentage"
+        )
+        
+        fig_sections.update_layout(
+            xaxis_title="Section",
+            yaxis_title="Percentage of Total Engagement (%)",
+            xaxis={'categoryorder': 'total descending'}
+        )
+        
+        st.plotly_chart(fig_sections, use_container_width=True)
+    else:
+        st.info("No section data available to display.")
     
     # Strategic recommendations
     st.subheader("Strategic Recommendations for AMD Artists")
