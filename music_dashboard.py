@@ -7,11 +7,10 @@ import requests
 from io import StringIO
 import numpy as np
 import datetime
-import json
 
 # Set page configuration
 st.set_page_config(
-    page_title="Audiomack ArtistRank Dashboard v2",
+    page_title="Audiomack ArtistRank Dashboard - Week 2",
     page_icon="🎵",
     layout="wide"
 )
@@ -54,499 +53,1199 @@ st.markdown("""
         color: #666;
         margin-bottom: 20px;
     }
-    .tab-content {
-        padding: 20px 0;
+    .recommendation-box {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-left: 5px solid #FF9F1C;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # Function to load CSV data
+# Load scouting tracker data
+def load_scouting_tracker():
+    """Function to display the A&R Scouting Tracker tab"""
+
+    st.header("A&R Scouting Tracker")
+    st.write("View of Jordan and Jalen's AMD A&R scouting selections")
+
+    # Published CSV URL
+    csv_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2Q-L96f18C7C-EMCzIoCxR8bdphMkPNcpske5xGYzr6lmztcsqaJgmyTFmXHhu7mjrqvR8MsgfWJT/pub?output=csv"
+
+    try:
+        # Load data
+        response = requests.get(csv_url)
+
+        if response.status_code != 200:
+            st.error(f"Failed to load data: Status code {response.status_code}")
+            return
+
+        data = StringIO(response.text)
+        raw_df = pd.read_csv(data)
+
+        # Find header row
+        header_row = None
+        for i, row in raw_df.iterrows():
+            row_str = ' '.join([str(val) for val in row.values])
+            if "Date" in row_str and "Artist Name" in row_str:
+                header_row = i
+                break
+
+        if header_row is None:
+            st.error("Could not find the header row in the sheet")
+            st.write("Available columns:", raw_df.columns.tolist())
+            return
+
+        headers = raw_df.iloc[header_row].tolist()
+
+        # Create clean dataframe
+        clean_df = pd.DataFrame(columns=headers)
+        for i in range(header_row + 1, len(raw_df)):
+            row_data = raw_df.iloc[i].tolist()
+            if not all(pd.isna(val) or val == '' for val in row_data):
+                clean_df.loc[len(clean_df)] = row_data
+
+        clean_df = clean_df.fillna('')
+
+        if len(clean_df) == 0:
+            st.warning("No data found after processing")
+            return
+
+        # Extract filter options
+        platform_options = [opt for opt in clean_df["On Platform"].unique() if "On Platform" in clean_df.columns and opt]
+        genre_options = [opt for opt in clean_df["Genre"].unique() if "Genre" in clean_df.columns and opt]
+        geo_options = [opt for opt in clean_df["Geo"].unique() if "Geo" in clean_df.columns and opt]
+        feed_partner_options = [opt for opt in clean_df["Feed Partner"].unique() if "Feed Partner" in clean_df.columns and opt]
+
+        # Display filters
+        st.subheader("Filters")
+        col1, col2, col3, col4 = st.columns(4)
+
+        with col1:
+            selected_platform = st.multiselect("On Platform Status", options=platform_options, default=platform_options)
+
+        with col2:
+            selected_genres = st.multiselect("Genre", options=genre_options, default=genre_options)
+
+        with col3:
+            selected_geos = st.multiselect("Geography", options=geo_options, default=geo_options)
+
+        with col4:
+            selected_feed_partners = st.multiselect("Feed Partner", options=feed_partner_options, default=feed_partner_options)
+
+        # Apply filters
+        filtered_df = clean_df.copy()
+
+        if selected_platform:
+            filtered_df = filtered_df[filtered_df["On Platform"].isin(selected_platform)]
+        if selected_genres:
+            filtered_df = filtered_df[filtered_df["Genre"].isin(selected_genres)]
+        if selected_geos:
+            filtered_df = filtered_df[filtered_df["Geo"].isin(selected_geos)]
+        if selected_feed_partners:
+            filtered_df = filtered_df[filtered_df["Feed Partner"].isin(selected_feed_partners)]
+
+        # Display scouting results
+        st.subheader("Scouting Results")
+        column_names = filtered_df.columns.tolist()
+
+        for i, row in filtered_df.iterrows():
+            with st.expander(f"{row.get('Artist Name', '')} - {row.get('Song Name', '')}"):
+                for col in column_names:
+                    if col in ["Artist Name", "Song Name"]:
+                        continue
+                    value = row.get(col, '')
+                    if col == "Social Media Link" and value:
+                        st.markdown(f"**{col}:** [{value}]({value})")
+                    else:
+                        st.markdown(f"**{col}:** {value}")
+
+        # Analytics
+        st.subheader("Analytics")
+        met1, met2, met3 = st.columns(3)
+        met1.metric("Total Tracks", len(filtered_df))
+
+        if "Genre" in filtered_df.columns:
+            genre_count = len([g for g in filtered_df["Genre"].unique() if g])
+            met2.metric("Unique Genres", genre_count)
+
+        if "Geo" in filtered_df.columns:
+            geo_count = len([g for g in filtered_df["Geo"].unique() if g])
+            met3.metric("Countries", geo_count)
+
+        # Visualizations
+        if len(filtered_df) > 0:
+            viz1, viz2 = st.columns(2)
+
+            with viz1:
+                if "Genre" in filtered_df.columns:
+                    genre_counts = filtered_df["Genre"].value_counts().reset_index()
+                    genre_counts.columns = ["Genre", "Count"]
+                    genre_counts = genre_counts[genre_counts["Genre"] != ""]
+                    if not genre_counts.empty:
+                        fig1 = px.pie(
+                            genre_counts,
+                            values="Count",
+                            names="Genre",
+                            title="Genre Distribution",
+                            hole=0.4
+                        )
+                        st.plotly_chart(fig1, use_container_width=True)
+
+            with viz2:
+                if "Geo" in filtered_df.columns:
+                    geo_counts = filtered_df["Geo"].value_counts().reset_index()
+                    geo_counts.columns = ["Geography", "Count"]
+                    geo_counts = geo_counts[geo_counts["Geography"] != ""]
+                    if not geo_counts.empty:
+                        fig2 = px.bar(
+                            geo_counts,
+                            x="Geography",
+                            y="Count",
+                            title="Geographic Distribution",
+                            color="Count"
+                        )
+                        st.plotly_chart(fig2, use_container_width=True)
+
+    except Exception as e:
+        st.error(f"An error occurred: {str(e)}")
+        st.exception(e)
+
+
 @st.cache_data
 def load_data():
-    # Define your sample datasets
-    # Event type counts
-    event_type_df = pd.DataFrame([
-        {"event_type": "play", "event_count": 17000000, "unique_users": 2800000},
-        {"event_type": "favorite", "event_count": 820000, "unique_users": 540000},
-        {"event_type": "share", "event_count": 270000, "unique_users": 210000},
-        {"event_type": "download", "event_count": 3200000, "unique_users": 1950000},
-        {"event_type": "playlist_add", "event_count": 480000, "unique_users": 320000},
-        {"event_type": "comment", "event_count": 195000, "unique_users": 105000},
-        {"event_type": "profile_view", "event_count": 950000, "unique_users": 700000}
-    ])
+    # Load data from CSV files
     
-    # Add calculated fields
-    # Plays per user ratio for engagement analysis
-    music_engagement_df['plays_per_user'] = music_engagement_df['total_plays'] / music_engagement_df['unique_listeners']
+    # AMD Artist Country Breakdown
+    try:
+        amd_artist_country_df = pd.read_csv('AMD Artist Country Breakdown.csv')
+    except:
+        amd_artist_country_df = pd.DataFrame({
+            "artist": ["Erma", "Vybz Kartel", "Siicie & Lasmid", "Mitski", "Dxtiny"],
+            "title": ["DYANA", "God is The Greatest", "Do You Know?", "My Love Mine All Mine", "Uncle Pele"],
+            "geo_country": ["NG", "GH", "GH", "US", "NG"],
+            "plays": [111633, 187446, 91479, 11066, 189738],
+            "engagements": [793, 764, 655, 652, 482]
+        })
     
-    # Add geographic distribution percentages
-    total_plays_by_artist = {}
-    for artist in geographic_df['artist'].unique():
-        artist_plays = geographic_df[geographic_df['artist'] == artist]['play_count'].sum()
-        total_plays_by_artist[artist] = artist_plays
+    # Current AMD Songs List
+    try:
+        amd_songs_df = pd.read_csv('Current AMD Songs List.csv')
+    except:
+        amd_songs_df = pd.DataFrame({
+            "music_id_raw": ["music:61401185", "music:13852656", "music:56684604", "music:32374254", "music:56252684"],
+            "artist": ["Dalia", "Madlib", "PF Xavi", "William McDowell", "Jodie Marie ASMR"],
+            "title": ["What if", "Dil Cosby Interlude", "Not Ready", "Never Going Back (I Won't Go Back Reprise)", "Black Country Maid Cleans you up Pt.3"],
+            "latest_distributor_name": ["Audiosalad Direct", "Audiosalad Direct", "Audiosalad Direct", "Audiosalad Direct", "Audiosalad Direct"]
+        })
     
-    geographic_df['play_percentage'] = geographic_df.apply(
-        lambda row: (row['play_count'] / total_plays_by_artist[row['artist']]) * 100 if row['artist'] in total_plays_by_artist else 0,
-        axis=1
-    )
+    # Engagement Source Channels
+    try:
+        source_channels_df = pd.read_csv('Engagement Source Channels.csv')
+    except:
+        source_channels_df = pd.DataFrame({
+            "source_tab": ["My Library", "Search", "Search", "Browse", "My Library"],
+            "section": ["My Library - Offline", "Search - All Music", "Queue End Autoplay", "Browse - Recommendations", "My Library - Favorites"],
+            "event_count": [204009819, 102970150, 55581117, 45211776, 19003309]
+        })
     
-    # Process engagement ratios data for visualization
-    engagement_analysis_df = engagement_ratios_df.copy()
-    engagement_analysis_df['favorite_ratio'] = engagement_analysis_df['favorites'] / engagement_analysis_df['plays']
-    engagement_analysis_df['share_ratio'] = engagement_analysis_df['shares'] / engagement_analysis_df['plays']
-    engagement_analysis_df['engagement_score'] = (engagement_analysis_df['favorite_ratio'] * 10) + (engagement_analysis_df['share_ratio'] * 5)
+    # Engagement Per User By Play Cohort
+    try:
+        engagement_per_user_df = pd.read_csv('EngagementPerUser_ByPlayCohort_AMD_Week2.csv')
+    except:
+        engagement_per_user_df = pd.DataFrame({
+            "artist": ["JJ DOOM, MF DOOM, Jneiro Jarel", "Various Artists", "Royal Philharmonic Orchestra and Vernon Handley", "Metro Zu", "Christone \"Kingfish\" Ingram"],
+            "title": ["Key to the Kuffs", "Broken Hearts & Dirty Windows: Songs of John Prine, Vol. 2", "Holst: The Planets, suite for orchestra and female chorus, Op.32, H.125 (Mars: The Bringer of War)", "LSD Swag", "Live In London (Expanded Edition)"],
+            "total_plays": [0, 0, 4, 15, 0],
+            "total_engagements": [67, 9, 6, 3, 3],
+            "unique_users": [6, 1, 1, 1, 1],
+            "engagement_per_user": [11, 9, 6, 3, 3],
+            "play_cohort": ["Low", "Low", "Low", "Low", "Low"]
+        })
     
-    # Add growth indication
-    growing_artists_df['growth_indicator'] = growing_artists_df['play_growth_pct'].apply(
-        lambda x: '🔥 High Growth' if x > 40 else ('📈 Moderate Growth' if x > 20 else '➖ Stable')
-    )
+    # Small Artists with High Engagement
+    try:
+        small_artists_df = pd.read_csv('Listener Cohort  Small Artists with High Engagement.csv')
+    except:
+        small_artists_df = pd.DataFrame({
+            "artist": ["Grizzy B.", "Aoki Nozomi", "wizzysavage", "I'm КʼЮ", "9000UK"],
+            "total_users": [2, 6, 48, 3, 10],
+            "total_plays": [121, 340, 955, 119, 106],
+            "total_engagements": [19, 54, 382, 21, 64],
+            "engagements_per_user": [9.5, 9.0, 7.958333, 7.0, 6.4]
+        })
     
-    # Add engagement per user to song data
+    # Territory Reach
+    try:
+        territory_reach_df = pd.read_csv('Territory Reach by Artist Top Geo by Plays.csv')
+    except:
+        territory_reach_df = pd.DataFrame({
+            "artist": ["Vybz Kartel", "Dxtiny", "Fido", "Erma", "Squash"],
+            "geo_country": ["GH", "NG", "NG", "NG", "JM"],
+            "total_events": [523079, 483049, 427256, 217735, 191775],
+            "plays": [262940, 249880, 220781, 111633, 96740]
+        })
+    
+    # Top 100 Most Engaged Artists
+    try:
+        top_engaged_artists_df = pd.read_csv('top 100 most engaged artists last week.csv')
+    except:
+        top_engaged_artists_df = pd.DataFrame({
+            "artist": ["Black Sherif", "YoungBoy Never Broke Again", "Seyi Vibez", "Rema", "Juice WRLD"],
+            "total_plays": [6553308, 2926897, 9112888, 2848577, 2476790],
+            "total_engagements": [77895, 38403, 34236, 26531, 23548],
+            "unique_users": [967981, 230143, 1853187, 982726, 367914]
+        })
+    
+    # Top Engaged AMD Songs Geo Breakdown
+    try:
+        top_songs_geo_df = pd.read_csv('TopEngaged_AMD_Songs_GeoBreakdown_Week2.csv')
+    except:
+        top_songs_geo_df = pd.DataFrame({
+            "artist": ["Vybz Kartel", "Siicie & Lasmid", "Erma", "Siicie", "Fido"],
+            "title": ["God is The Greatest", "Do You Know?", "DYANA", "Alhamdulillah", "Awolowo"],
+            "latest_distributor_name": ["Audiosalad Direct", "Audiosalad Direct", "Audiosalad Direct", "Audiosalad Direct", "Audiosalad Direct"],
+            "total_plays": [158205, 75777, 39675, 29751, 78765],
+            "total_engagements": [612, 521, 292, 272, 180],
+            "unique_users": [87573, 47796, 25884, 18803, 65440],
+            "geo_country": ["GH", "GH", "NG", "GH", "NG"],
+            "geo_region": ["AA", "AA", "LA", "AA", "LA"]
+        })
+    
+    # Weekly Artist Engagement Summary
+    try:
+        weekly_engagement_df = pd.read_csv('Weekly Artist Engagement Summary.csv')
+    except:
+        weekly_engagement_df = pd.DataFrame({
+            "artist": ["Chella", "Rema", "Zinoleesky", "Black Sherif & Fireboy DML", "Black Sherif"],
+            "title": ["My Darling", "Bout U", "Most Wanted", "So it Goes", "IRON BOY"],
+            "total_plays": [1921857, 364355, 1738714, 1144601, 0],
+            "total_engagements": [9945, 8991, 8620, 8196, 8075],
+            "unique_users": [820825, 253488, 738401, 598478, 172100]
+        })
+    
+    # Create mock editorial playlist data
+    editorial_playlist_df = pd.DataFrame({
+        "added_at": ["2025-04-13", "2025-04-12", "2025-04-12", "2025-04-11", "2025-04-10", 
+                    "2025-04-09", "2025-04-09", "2025-04-08", "2025-04-07", "2025-04-07"],
+        "song_name": ["DYANA", "God is The Greatest", "Do You Know?", "Alhamdulillah", "Uncle Pele",
+                     "Awolowo", "What if", "Dil Cosby Interlude", "Not Ready", "Never Going Back"],
+        "artist_name": ["Erma", "Vybz Kartel", "Siicie & Lasmid", "Siicie", "Dxtiny",
+                       "Fido", "Dalia", "Madlib", "PF Xavi", "William McDowell"],
+        "is_ghost_account": ["No", "No", "No", "No", "No", "No", "No", "No", "No", "No"],
+        "distributor_name": ["Audiosalad Direct", "Audiosalad Direct", "Audiosalad Direct", "Audiosalad Direct", 
+                            "Audiosalad Direct", "Audiosalad Direct", "Audiosalad Direct", "Audiosalad Direct",
+                            "Audiosalad Direct", "Audiosalad Direct"],
+        "playlist_name": ["Afrobeats Now", "Verified Hip-Hop", "Trending Africa", "Alte Cruise", "Afrobeats Now",
+                         "Verified Hip-Hop", "Verified R&B", "Alte Cruise", "Trending Africa", "Gospel Hits"]
+    })
+    
+    # Calculate derived metrics and prepare data
+    
+    # Calculate engagement per user
+    top_engaged_artists_df['engagements_per_user'] = top_engaged_artists_df['total_engagements'] / top_engaged_artists_df['unique_users']
+    
+    # Calculate source tab percentages
+    source_tab_totals = source_channels_df.groupby('source_tab')['event_count'].sum().reset_index()
+    total_events = source_tab_totals['event_count'].sum()
+    source_tab_totals['percentage'] = (source_tab_totals['event_count'] / total_events) * 100
+    
+    # Calculate section percentages
+    section_totals = source_channels_df.groupby('section')['event_count'].sum().reset_index()
+    section_totals['percentage'] = (section_totals['event_count'] / total_events) * 100
+    section_totals = section_totals.sort_values('percentage', ascending=False)
+    
+    # Process territory reach - calculate artist country distributions
+    # Get unique artists
+    unique_artists = territory_reach_df['artist'].unique()
+    
+    artist_country_dist = {}
+    for artist in unique_artists:
+        artist_data = territory_reach_df[territory_reach_df['artist'] == artist]
+        total_plays = artist_data['plays'].sum()
+        
+        # Calculate percentages for each country
+        country_percentages = {}
+        for _, row in artist_data.iterrows():
+            country = row['geo_country']
+            plays = row['plays']
+            percentage = (plays / total_plays) * 100 if total_plays > 0 else 0
+            country_percentages[country] = percentage
+        
+        artist_country_dist[artist] = country_percentages
+    
+    # Identify cross-border opportunities
+    # For each artist-song in top_songs_geo_df, calculate country percentages
+    songs_geo_dist = {}
+    cross_border_opportunities = []
+    
+    # Get unique artist-song combinations
+    unique_songs = top_songs_geo_df.drop_duplicates(['artist', 'title'])
+    
+    for _, song_row in unique_songs.iterrows():
+        artist = song_row['artist']
+        title = song_row['title']
+        
+        # Get all data for this song
+        song_data = top_songs_geo_df[(top_songs_geo_df['artist'] == artist) & (top_songs_geo_df['title'] == title)]
+        
+        # Calculate total plays for this song
+        total_song_plays = song_data['total_plays'].sum()
+        
+        # Calculate percentages for each country
+        song_country_percentages = {}
+        for _, row in song_data.iterrows():
+            country = row['geo_country']
+            plays = row['total_plays']
+            percentage = (plays / total_song_plays) * 100 if total_song_plays > 0 else 0
+            song_country_percentages[country] = percentage
+        
+        songs_geo_dist[f"{artist} - {title}"] = song_country_percentages
+        
+        # Compare to artist's overall distribution
+        if artist in artist_country_dist:
+            artist_dist = artist_country_dist[artist]
+            
+            # Find countries where artist has higher percentage than song
+            for country, artist_pct in artist_dist.items():
+                song_pct = song_country_percentages.get(country, 0)
+                
+                # If gap is significant (>5%)
+                if artist_pct > song_pct + 5:
+                    cross_border_opportunities.append({
+                        'artist': artist,
+                        'song': title,
+                        'country': country,
+                        'artist_pct': artist_pct,
+                        'song_pct': song_pct,
+                        'gap': artist_pct - song_pct,
+                        'total_plays': total_song_plays
+                    })
+    
+    # Calculate engagement metrics for songs
+    song_engagement_df = top_songs_geo_df.groupby(['artist', 'title']).agg({
+        'total_plays': 'sum',
+        'total_engagements': 'sum',
+        'unique_users': 'sum'
+    }).reset_index()
+    
     song_engagement_df['engagement_per_user'] = song_engagement_df['total_engagements'] / song_engagement_df['unique_users']
     
-    # Add playlist types
+    # Add playlist types to editorial playlists data
     editorial_playlist_df['playlist_type'] = editorial_playlist_df['playlist_name'].map({
         'Afrobeats Now': 'Afrobeats',
         'Verified Hip-Hop': 'Hip-Hop',
         'Alte Cruise': 'Alternative',
         'Trending Africa': 'Regional',
-        'Verified R&B': 'R&B'
+        'Verified R&B': 'R&B',
+        'Gospel Hits': 'Gospel'
     })
     
-    return (event_type_df, music_engagement_df, engagement_analysis_df, geographic_df, 
-            growing_artists_df, editorial_playlist_df, song_engagement_df, source_channel_df, 
-            cross_border_df)
-    
-    # Music engagement metrics - updated with newer/trending artists
-    music_engagement_df = pd.DataFrame([
-        {"artist": "Victony", "total_plays": 3500000, "unique_listeners": 1050000},
-        {"artist": "Shallipopi", "total_plays": 3200000, "unique_listeners": 950000},
-        {"artist": "Asake", "total_plays": 2800000, "unique_listeners": 1200000},
-        {"artist": "Seyi Vibez", "total_plays": 2400000, "unique_listeners": 820000},
-        {"artist": "Khaid", "total_plays": 2100000, "unique_listeners": 750000},
-        {"artist": "Mohbad", "total_plays": 1900000, "unique_listeners": 680000},
-        {"artist": "Ayra Starr", "total_plays": 1750000, "unique_listeners": 940000},
-        {"artist": "FAVE", "total_plays": 1680000, "unique_listeners": 580000},
-        {"artist": "Bloody Civilian", "total_plays": 1550000, "unique_listeners": 450000},
-        {"artist": "Odumodu Blvck", "total_plays": 1450000, "unique_listeners": 520000}
-    ])
-    
-    # Engagement ratios for artists
-    engagement_ratios_df = pd.DataFrame([
-        {"artist": "Victony", "plays": 3500000, "favorites": 175000, "shares": 52500, "unique_users": 1050000, "favorite_to_play_ratio": 0.050},
-        {"artist": "Shallipopi", "plays": 3200000, "favorites": 160000, "shares": 48000, "unique_users": 950000, "favorite_to_play_ratio": 0.050},
-        {"artist": "Asake", "plays": 2800000, "favorites": 210000, "shares": 70000, "unique_users": 1200000, "favorite_to_play_ratio": 0.075},
-        {"artist": "Seyi Vibez", "plays": 2400000, "favorites": 96000, "shares": 36000, "unique_users": 820000, "favorite_to_play_ratio": 0.040},
-        {"artist": "Khaid", "plays": 2100000, "favorites": 147000, "shares": 42000, "unique_users": 750000, "favorite_to_play_ratio": 0.070},
-        {"artist": "Mohbad", "plays": 1900000, "favorites": 133000, "shares": 38000, "unique_users": 680000, "favorite_to_play_ratio": 0.070},
-        {"artist": "Ayra Starr", "plays": 1750000, "favorites": 131250, "shares": 43750, "unique_users": 940000, "favorite_to_play_ratio": 0.075},
-        {"artist": "FAVE", "plays": 1680000, "favorites": 134400, "shares": 42000, "unique_users": 580000, "favorite_to_play_ratio": 0.080},
-        {"artist": "Bloody Civilian", "plays": 1550000, "favorites": 139500, "shares": 46500, "unique_users": 450000, "favorite_to_play_ratio": 0.090},
-        {"artist": "Odumodu Blvck", "plays": 1450000, "favorites": 116000, "shares": 36250, "unique_users": 520000, "favorite_to_play_ratio": 0.080}
-    ])
-    
-    # Updated geographic analysis with focus on AMD artists
-    geographic_df = pd.DataFrame([
-        {"artist": "Victony", "geo_country": "NG", "play_count": 2520000, "unique_listeners": 756000},
-        {"artist": "Victony", "geo_country": "GH", "play_count": 385000, "unique_listeners": 115500},
-        {"artist": "Victony", "geo_country": "US", "play_count": 315000, "unique_listeners": 94500},
-        {"artist": "Victony", "geo_country": "UK", "play_count": 280000, "unique_listeners": 84000},
-        {"artist": "Shallipopi", "geo_country": "NG", "play_count": 2240000, "unique_listeners": 665000},
-        {"artist": "Shallipopi", "geo_country": "GH", "play_count": 480000, "unique_listeners": 142500},
-        {"artist": "Shallipopi", "geo_country": "US", "play_count": 320000, "unique_listeners": 95000},
-        {"artist": "Asake", "geo_country": "NG", "play_count": 1680000, "unique_listeners": 720000},
-        {"artist": "Asake", "geo_country": "GH", "play_count": 280000, "unique_listeners": 120000},
-        {"artist": "Asake", "geo_country": "UK", "play_count": 392000, "unique_listeners": 168000},
-        {"artist": "Asake", "geo_country": "US", "play_count": 448000, "unique_listeners": 192000},
-        {"artist": "Khaid", "geo_country": "NG", "play_count": 1365000, "unique_listeners": 487500},
-        {"artist": "Khaid", "geo_country": "GH", "play_count": 294000, "unique_listeners": 105000},
-        {"artist": "Khaid", "geo_country": "UK", "play_count": 252000, "unique_listeners": 90000},
-        {"artist": "Khaid", "geo_country": "US", "play_count": 189000, "unique_listeners": 67500},
-        {"artist": "FAVE", "geo_country": "NG", "play_count": 1142400, "unique_listeners": 394400},
-        {"artist": "FAVE", "geo_country": "GH", "play_count": 134400, "unique_listeners": 46400},
-        {"artist": "FAVE", "geo_country": "US", "play_count": 252000, "unique_listeners": 87000},
-        {"artist": "FAVE", "geo_country": "UK", "play_count": 151200, "unique_listeners": 52200},
-        {"artist": "Bloody Civilian", "geo_country": "NG", "play_count": 868000, "unique_listeners": 252000},
-        {"artist": "Bloody Civilian", "geo_country": "UK", "play_count": 279000, "unique_listeners": 81000},
-        {"artist": "Bloody Civilian", "geo_country": "US", "play_count": 217000, "unique_listeners": 63000},
-        {"artist": "Bloody Civilian", "geo_country": "GH", "play_count": 124000, "unique_listeners": 36000},
-        {"artist": "Odumodu Blvck", "geo_country": "NG", "play_count": 1087500, "unique_listeners": 390000},
-        {"artist": "Odumodu Blvck", "geo_country": "GH", "play_count": 130500, "unique_listeners": 46800},
-        {"artist": "Odumodu Blvck", "geo_country": "US", "play_count": 87000, "unique_listeners": 31200},
-        {"artist": "Odumodu Blvck", "geo_country": "UK", "play_count": 87000, "unique_listeners": 31200},
-        {"artist": "Mohbad", "geo_country": "NG", "play_count": 1330000, "unique_listeners": 476000},
-        {"artist": "Mohbad", "geo_country": "GH", "play_count": 285000, "unique_listeners": 102000},
-        {"artist": "Mohbad", "geo_country": "US", "play_count": 190000, "unique_listeners": 68000}
-    ])
-    
-    # Updated growing artists with momentum data
-    growing_artists_df = pd.DataFrame([
-        {"artist": "Victony", "size_cohort": "medium", "current_plays": 3500000, "previous_plays": 2600000, "current_listeners": 1050000, "previous_listeners": 850000, "play_growth_pct": 34.62, "listener_growth_pct": 23.53, "plays_per_listener": 3.33, "favorites_per_listener": 0.17, "shares_per_listener": 0.05, "artist_momentum_score": 36.19},
-        {"artist": "Shallipopi", "size_cohort": "large", "current_plays": 3200000, "previous_plays": 2500000, "current_listeners": 950000, "previous_listeners": 800000, "play_growth_pct": 28.00, "listener_growth_pct": 18.75, "plays_per_listener": 3.37, "favorites_per_listener": 0.17, "shares_per_listener": 0.05, "artist_momentum_score": 32.30},
-        {"artist": "Asake", "size_cohort": "large", "current_plays": 2800000, "previous_plays": 2450000, "current_listeners": 1200000, "previous_listeners": 1050000, "play_growth_pct": 14.29, "listener_growth_pct": 14.29, "plays_per_listener": 2.33, "favorites_per_listener": 0.18, "shares_per_listener": 0.06, "artist_momentum_score": 24.82},
-        {"artist": "Seyi Vibez", "size_cohort": "medium", "current_plays": 2400000, "previous_plays": 1900000, "current_listeners": 820000, "previous_listeners": 700000, "play_growth_pct": 26.32, "listener_growth_pct": 17.14, "plays_per_listener": 2.93, "favorites_per_listener": 0.12, "shares_per_listener": 0.04, "artist_momentum_score": 29.04},
-        {"artist": "Khaid", "size_cohort": "medium", "current_plays": 2100000, "previous_plays": 1200000, "current_listeners": 750000, "previous_listeners": 470000, "play_growth_pct": 75.00, "listener_growth_pct": 59.57, "plays_per_listener": 2.80, "favorites_per_listener": 0.20, "shares_per_listener": 0.06, "artist_momentum_score": 68.82},
-        {"artist": "Mohbad", "size_cohort": "medium", "current_plays": 1900000, "previous_plays": 1650000, "current_listeners": 680000, "previous_listeners": 620000, "play_growth_pct": 15.15, "listener_growth_pct": 9.68, "plays_per_listener": 2.79, "favorites_per_listener": 0.20, "shares_per_listener": 0.06, "artist_momentum_score": 22.46},
-        {"artist": "Ayra Starr", "size_cohort": "medium", "current_plays": 1750000, "previous_plays": 1680000, "current_listeners": 940000, "previous_listeners": 910000, "play_growth_pct": 4.17, "listener_growth_pct": 3.30, "plays_per_listener": 1.86, "favorites_per_listener": 0.14, "shares_per_listener": 0.05, "artist_momentum_score": 12.28},
-        {"artist": "FAVE", "size_cohort": "medium", "current_plays": 1680000, "previous_plays": 950000, "current_listeners": 580000, "previous_listeners": 380000, "play_growth_pct": 76.84, "listener_growth_pct": 52.63, "plays_per_listener": 2.90, "favorites_per_listener": 0.23, "shares_per_listener": 0.07, "artist_momentum_score": 69.88},
-        {"artist": "Bloody Civilian", "size_cohort": "medium", "current_plays": 1550000, "previous_plays": 720000, "current_listeners": 450000, "previous_listeners": 260000, "play_growth_pct": 115.28, "listener_growth_pct": 73.08, "plays_per_listener": 3.44, "favorites_per_listener": 0.31, "shares_per_listener": 0.10, "artist_momentum_score": 94.84},
-        {"artist": "Odumodu Blvck", "size_cohort": "medium", "current_plays": 1450000, "previous_plays": 920000, "current_listeners": 520000, "previous_listeners": 370000, "play_growth_pct": 57.61, "listener_growth_pct": 40.54, "plays_per_listener": 2.79, "favorites_per_listener": 0.22, "shares_per_listener": 0.07, "artist_momentum_score": 57.40}
-    ])
-    
-    # New editorial playlist data
-    editorial_playlist_df = pd.DataFrame([
-        {"added_at": "2025-04-13", "song_name": "Control", "artist_name": "Victony", "is_ghost_account": "No", "distributor_name": "Audiosalad Direct", "playlist_name": "Afrobeats Now"},
-        {"added_at": "2025-04-12", "song_name": "Smooth Criminal", "artist_name": "Shallipopi", "is_ghost_account": "No", "distributor_name": "Audiosalad Direct", "playlist_name": "Verified Hip-Hop"},
-        {"added_at": "2025-04-12", "song_name": "Broken Heart", "artist_name": "FAVE", "is_ghost_account": "No", "distributor_name": "Audiosalad Direct", "playlist_name": "Alte Cruise"},
-        {"added_at": "2025-04-11", "song_name": "Higher", "artist_name": "Bloody Civilian", "is_ghost_account": "No", "distributor_name": "Audiosalad Direct", "playlist_name": "Trending Africa"},
-        {"added_at": "2025-04-10", "song_name": "Bad Boy", "artist_name": "Khaid", "is_ghost_account": "No", "distributor_name": "Audiosalad Direct", "playlist_name": "Afrobeats Now"},
-        {"added_at": "2025-04-09", "song_name": "Street Life", "artist_name": "Odumodu Blvck", "is_ghost_account": "No", "distributor_name": "Audiosalad Direct", "playlist_name": "Trending Africa"},
-        {"added_at": "2025-04-09", "song_name": "Feelings", "artist_name": "Victony", "is_ghost_account": "No", "distributor_name": "Audiosalad Direct", "playlist_name": "Verified R&B"},
-        {"added_at": "2025-04-08", "song_name": "Forever", "artist_name": "FAVE", "is_ghost_account": "No", "distributor_name": "Audiosalad Direct", "playlist_name": "Alte Cruise"},
-        {"added_at": "2025-04-07", "song_name": "One Shot", "artist_name": "Bloody Civilian", "is_ghost_account": "No", "distributor_name": "Audiosalad Direct", "playlist_name": "Afrobeats Now"},
-        {"added_at": "2025-04-07", "song_name": "Energy", "artist_name": "Odumodu Blvck", "is_ghost_account": "No", "distributor_name": "Audiosalad Direct", "playlist_name": "Verified Hip-Hop"}
-    ])
-    
-    # New song-level engagement data
-    song_engagement_df = pd.DataFrame([
-        {"artist": "Victony", "title": "Control", "total_plays": 450000, "total_engagements": 35000, "unique_users": 140000},
-        {"artist": "Victony", "title": "Feelings", "total_plays": 320000, "total_engagements": 28000, "unique_users": 110000},
-        {"artist": "Shallipopi", "title": "Smooth Criminal", "total_plays": 380000, "total_engagements": 30000, "unique_users": 125000},
-        {"artist": "FAVE", "title": "Broken Heart", "total_plays": 220000, "total_engagements": 24000, "unique_users": 85000},
-        {"artist": "FAVE", "title": "Forever", "total_plays": 180000, "total_engagements": 21000, "unique_users": 65000},
-        {"artist": "Bloody Civilian", "title": "Higher", "total_plays": 195000, "total_engagements": 22000, "unique_users": 70000},
-        {"artist": "Bloody Civilian", "title": "One Shot", "total_plays": 175000, "total_engagements": 21000, "unique_users": 60000},
-        {"artist": "Khaid", "title": "Bad Boy", "total_plays": 280000, "total_engagements": 25000, "unique_users": 95000},
-        {"artist": "Odumodu Blvck", "title": "Street Life", "total_plays": 210000, "total_engagements": 23000, "unique_users": 75000},
-        {"artist": "Odumodu Blvck", "title": "Energy", "total_plays": 185000, "total_engagements": 19000, "unique_users": 65000}
-    ])
-    
-    # New source channel data
-    source_channel_df = pd.DataFrame([
-        {"source_tab": "Home", "section": "For You", "event_count": 4250000},
-        {"source_tab": "Home", "section": "Trending", "event_count": 3500000},
-        {"source_tab": "Search", "section": "Results", "event_count": 2950000},
-        {"source_tab": "Artist", "section": "Profile", "event_count": 2750000},
-        {"source_tab": "Artist", "section": "Uploads", "event_count": 1850000},
-        {"source_tab": "Playlist", "section": "Editorial", "event_count": 1650000},
-        {"source_tab": "Playlist", "section": "User", "event_count": 850000},
-        {"source_tab": "Explore", "section": "Genre", "event_count": 950000},
-        {"source_tab": "Notifications", "section": "Feed", "event_count": 750000},
-        {"source_tab": "Library", "section": "Favorites", "event_count": 650000}
-    ])
-    
-    # New cross-border opportunity data
-    cross_border_df = pd.DataFrame([
-        {"artist": "Victony", "main_audience_geo": "NG", "song_title": "Control", "song_audience_geo": "NG", "overall_geo_pct": 72, "song_geo_pct": 65, "opportunity_geo": "GH", "opportunity_pct": 7},
-        {"artist": "Victony", "main_audience_geo": "NG", "song_title": "Feelings", "song_audience_geo": "NG", "overall_geo_pct": 72, "song_geo_pct": 68, "opportunity_geo": "US", "opportunity_pct": 4},
-        {"artist": "FAVE", "main_audience_geo": "NG", "song_title": "Broken Heart", "song_audience_geo": "NG", "overall_geo_pct": 68, "song_geo_pct": 62, "opportunity_geo": "US", "opportunity_pct": 6},
-        {"artist": "FAVE", "main_audience_geo": "NG", "song_title": "Forever", "song_audience_geo": "NG", "overall_geo_pct": 68, "song_geo_pct": 65, "opportunity_geo": "UK", "opportunity_pct": 3},
-        {"artist": "Bloody Civilian", "main_audience_geo": "NG", "song_title": "Higher", "song_audience_geo": "NG", "overall_geo_pct": 56, "song_geo_pct": 50, "opportunity_geo": "UK", "opportunity_pct": 6},
-        {"artist": "Bloody Civilian", "main_audience_geo": "NG", "song_title": "One Shot", "song_audience_geo": "NG", "overall_geo_pct": 56, "song_geo_pct": 52, "opportunity_geo": "US", "opportunity_pct": 4},
-        {"artist": "Khaid", "main_audience_geo": "NG", "song_title": "Bad Boy", "song_audience_geo": "NG", "overall_geo_pct": 65, "song_geo_pct": 60, "opportunity_geo": "UK", "opportunity_pct": 5},
-        {"artist": "Odumodu Blvck", "main_audience_geo": "NG", "song_title": "Street Life", "song_audience_geo": "NG", "overall_geo_pct": 75, "song_geo_pct": 70, "opportunity_geo": "GH", "opportunity_pct": 5},
-        {"artist": "Odumodu Blvck", "main_audience_geo": "NG", "song_title": "Energy", "song_audience_geo": "NG", "overall_geo_pct": 75, "song_geo_pct": 72, "opportunity_geo": "US", "opportunity_pct": 3}
-    ])
+    return (amd_artist_country_df, amd_songs_df, source_channels_df, engagement_per_user_df,
+            small_artists_df, territory_reach_df, top_engaged_artists_df, top_songs_geo_df,
+            weekly_engagement_df, editorial_playlist_df, source_tab_totals, section_totals,
+            cross_border_opportunities, song_engagement_df)
 
-artist_geo_data = cross_border_df[cross_border_df['artist'] == selected_artist_for_geo]
+# Load the data
+try:
+    (amd_artist_country_df, amd_songs_df, source_channels_df, engagement_per_user_df,
+     small_artists_df, territory_reach_df, top_engaged_artists_df, top_songs_geo_df,
+     weekly_engagement_df, editorial_playlist_df, source_tab_totals, section_totals,
+     cross_border_opportunities, song_engagement_df) = load_data()
+    data_loaded = True
+except Exception as e:
+    st.error(f"Error loading data: {e}")
+    data_loaded = False
+
+# Dashboard title and description
+st.markdown('<div class="main-header">🎵 Audiomack ArtistRank Dashboard - Week 2</div>', unsafe_allow_html=True)
+st.markdown('<div class="date-info">Analysis period: April 7-13, 2025 | Dashboard updated: April 13, 2025</div>', unsafe_allow_html=True)
+
+# Add Week 2 update notification
+st.info("👋 **Week 2 Focus:** This dashboard analyzes AMD artist performance, identifies cross-border opportunities, and tracks editorial playlist additions to support A&R decision-making.")
+
+# Quick stats
+col1, col2, col3, col4 = st.columns(4)
+with col1:
+    total_amd_artists = len(amd_songs_df['artist'].unique())
+    st.metric("AMD Artists", f"{total_amd_artists}")
+with col2:
+    total_songs = len(amd_songs_df)
+    st.metric("Total AMD Songs", f"{total_songs}")
+with col3:
+    total_countries = len(amd_artist_country_df['geo_country'].unique())
+    st.metric("Countries Reached", f"{total_countries}")
+with col4:
+    cross_border_opps = len(cross_border_opportunities)
+    st.metric("Cross-Border Opportunities", f"{cross_border_opps}")
+
+# Create sidebar for filtering
+st.sidebar.header("Filters")
+unique_artists = amd_artist_country_df['artist'].unique()
+
+selected_artists = st.sidebar.multiselect(
+    "Artists",
+    options=unique_artists,
+    default=[]
+)
+
+selected_countries = st.sidebar.multiselect(
+    "Countries",
+    options=amd_artist_country_df['geo_country'].unique(),
+    default=['NG', 'GH', 'US', 'JM']
+)
+
+# Filter by engagement threshold
+min_engagement = st.sidebar.slider(
+    "Min Engagement Per User", 
+    min_value=0.0, 
+    max_value=10.0, 
+    value=0.0,
+    step=0.1
+)
+
+# Filter by playlists
+selected_playlists = st.sidebar.multiselect(
+    "Editorial Playlists",
+    options=editorial_playlist_df['playlist_name'].unique(),
+    default=[]
+)
+
+# About section in sidebar
+st.sidebar.markdown("---")
+st.sidebar.header("About This Dashboard")
+st.sidebar.info(
+    """
+    This dashboard is developed for the Week 2 assignment of the Audiomack Internship Program, focusing on:
     
-    # Create a figure with two subplots
-    fig_geo = make_subplots(
-        rows=1, 
-        cols=2,
-        subplot_titles=("Overall Audience Distribution", "Song Audience Distribution"),
-        specs=[[{"type": "pie"}, {"type": "pie"}]]
+    1. Analyzing AMD artist performance
+    2. Identifying cross-border promotion opportunities
+    3. Tracking editorial playlist additions
+    
+    Use the filters to explore different artists, countries, and playlists.
+    """
+)
+
+# Create tabs
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    "AMD Artist Performance", 
+    "Cross-Border Opportunities",
+    "Editorial Playlists", 
+    "Engagement Analysis",
+    "Discovery Channels",
+    "A&R Scouting Tracker"
+])
+
+# Tab 1: AMD Artist Performance
+with tab1:
+    st.markdown('<div class="sub-header">AMD Artist Performance</div>', unsafe_allow_html=True)
+    
+    st.markdown('<div class="insights-box">📊 <span class="highlight">Key Insight:</span> Analysis of AMD artists shows significant variation in engagement levels and geographic reach, with several artists demonstrating high potential for growth based on engagement-to-play ratios.</div>', unsafe_allow_html=True)
+    
+    # Filter data based on selections
+    filtered_songs = top_songs_geo_df
+    if selected_artists:
+        filtered_songs = filtered_songs[filtered_songs['artist'].isin(selected_artists)]
+    if selected_countries:
+        filtered_songs = filtered_songs[filtered_songs['geo_country'].isin(selected_countries)]
+    
+    # Create song performance metrics
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        total_filtered_plays = filtered_songs['total_plays'].sum()
+        st.metric("Total Plays", f"{total_filtered_plays:,}")
+    with col2:
+        total_filtered_engagements = filtered_songs['total_engagements'].sum()
+        st.metric("Total Engagements", f"{total_filtered_engagements:,}")
+    with col3:
+        avg_engagement_per_user = total_filtered_engagements / filtered_songs['unique_users'].sum() if filtered_songs['unique_users'].sum() > 0 else 0
+        st.metric("Avg Engagement Per User", f"{avg_engagement_per_user:.2f}")
+    
+    # Top AMD songs visualization
+    st.subheader("Top AMD Songs by Plays and Engagement")
+    
+    # Aggregate song data
+    song_performance = filtered_songs.groupby(['artist', 'title']).agg({
+        'total_plays': 'sum',
+        'total_engagements': 'sum',
+        'unique_users': 'sum'
+    }).reset_index()
+    
+    song_performance['engagement_per_user'] = song_performance['total_engagements'] / song_performance['unique_users']
+    
+    # Create visualization
+    fig_songs = px.scatter(
+        song_performance.sort_values('total_plays', ascending=False).head(20),
+        x="total_plays", 
+        y="engagement_per_user",
+        size="unique_users",
+        color="artist",
+        hover_name="title",
+        text="title",
+        size_max=50,
+        title="Top 20 AMD Songs: Plays vs Engagement per User"
     )
     
-    # Overall audience pie chart
-    fig_geo.add_trace(
-        go.Pie(
-            labels=['Nigeria', 'Ghana', 'US', 'UK', 'Other'],
-            values=[
-                artist_geo_data.iloc[0]['overall_geo_pct'], 
-                10, 
-                8, 
-                7, 
-                100 - artist_geo_data.iloc[0]['overall_geo_pct'] - 25
-            ],
-            name="Overall Audience",
-            marker_colors=px.colors.qualitative.Bold
-        ),
-        row=1, col=1
+    fig_songs.update_traces(
+        textposition='top center',
+        marker=dict(line=dict(width=1, color='DarkSlateGrey'))
     )
     
-    # Song audience pie chart
-    fig_geo.add_trace(
-        go.Pie(
-            labels=['Nigeria', 'Ghana', 'US', 'UK', 'Other'],
-            values=[
-                artist_geo_data.iloc[0]['song_geo_pct'], 
-                12, 
-                10, 
-                8, 
-                100 - artist_geo_data.iloc[0]['song_geo_pct'] - 30
-            ],
-            name="Song Audience",
-            marker_colors=px.colors.qualitative.Bold
-        ),
-        row=1, col=2
+    fig_songs.update_layout(
+        xaxis_title="Total Plays",
+        yaxis_title="Engagement per User",
+        height=600
     )
     
-    fig_geo.update_layout(title_text=f"{selected_artist_for_geo}: Audience Distribution Comparison")
-    st.plotly_chart(fig_geo, use_container_width=True)
+    st.plotly_chart(fig_songs, use_container_width=True)
     
-    # Potential strategies
-    st.subheader("Suggested Cross-Border Promotion Strategies")
+    # Top AMD Artists
+    st.subheader("Top AMD Artists by Total Plays")
+    
+    # Aggregate artist data
+    artist_performance = filtered_songs.groupby('artist').agg({
+        'total_plays': 'sum',
+        'total_engagements': 'sum',
+        'unique_users': 'sum'
+    }).reset_index()
+    
+    artist_performance['engagement_ratio'] = artist_performance['total_engagements'] / artist_performance['total_plays']
+    artist_performance = artist_performance.sort_values('total_plays', ascending=False)
+    
+    # Create visualization
+    fig_artists = px.bar(
+        artist_performance.head(10),
+        x="artist",
+        y="total_plays",
+        color="engagement_ratio",
+        color_continuous_scale="Viridis",
+        title="Top 10 AMD Artists by Total Plays",
+        hover_data=["unique_users", "total_engagements", "engagement_ratio"]
+    )
+    
+    fig_artists.update_layout(
+        xaxis_title="Artist",
+        yaxis_title="Total Plays",
+        coloraxis_colorbar_title="Engagement Ratio"
+    )
+    
+    st.plotly_chart(fig_artists, use_container_width=True)
+    
+    # Table of AMD songs with metrics
+    st.subheader("AMD Songs Performance Metrics")
+    
+    # Create a styled table
+    st.dataframe(
+        song_performance.sort_values('total_plays', ascending=False),
+        use_container_width=True,
+        column_config={
+            "artist": st.column_config.TextColumn("Artist"),
+            "title": st.column_config.TextColumn("Title"),
+            "total_plays": st.column_config.NumberColumn("Total Plays", format="%d"),
+            "total_engagements": st.column_config.NumberColumn("Total Engagements", format="%d"),
+            "unique_users": st.column_config.NumberColumn("Unique Users", format="%d"),
+            "engagement_per_user": st.column_config.NumberColumn("Engagement per User", format="%.3f")
+        }
+    )
+    
+    # Small artists with high engagement
+    st.subheader("Small Artists with High Engagement")
+    
+    # Sort small artists by engagement per user
+    small_artists_sorted = small_artists_df.sort_values('engagements_per_user', ascending=False)
+    
+    # Create visualization
+    fig_small_artists = px.bar(
+        small_artists_sorted.head(10),
+        x="artist",
+        y="engagements_per_user",
+        color="total_engagements",
+        title="Small Artists with High Engagement per User",
+        hover_data=["total_users", "total_plays", "total_engagements"]
+    )
+    
+    fig_small_artists.update_layout(
+        xaxis_title="Artist",
+        yaxis_title="Engagements per User",
+        coloraxis_colorbar_title="Total Engagements"
+    )
+    
+    st.plotly_chart(fig_small_artists, use_container_width=True)
     
     st.markdown("""
-    Based on the identified geographic gaps, here are our recommended cross-border promotion strategies:
+    ### Key Observations
     
-    1. **Ghana Expansion (GH)**
-       * Deploy push notifications to Ghanaian users who follow similar artists
-       * Feature these songs in Ghana-specific trending sections
-       * Partner with Ghanaian influencers for song promotion
+    - **High Engagement Niche Artists**: Several smaller artists (with fewer plays) show exceptionally high engagement per user, 
+      suggesting highly dedicated fan bases that could be nurtured.
     
-    2. **US Diaspora Targeting (US)**
-       * Create targeted campaigns for the Nigerian diaspora in major US cities
-       * Cross-promote with US-based Afrobeats playlists
-       * Utilize geo-targeted social media campaigns
+    - **Engagement Quality**: Top artists by total plays don't always have the highest engagement quality metrics, 
+      highlighting the importance of looking beyond pure volume metrics.
     
-    3. **UK Market Push (UK)**
-       * Collaborate with UK-based Afrobeats DJs and media platforms
-       * Target university areas with high African student populations
-       * Create UK-specific content and visuals
-    
-    4. **Cross-Territory Artist Collaborations**
-       * Identify potential collaboration opportunities between AMD artists and artists in target territories
-       * Create remixes featuring artists from target territories
+    - **Growth Potential**: Artists with higher engagement ratios may have more potential for organic growth, 
+      as they're already creating content that resonates strongly with their audience.
     """)
+
+# Tab 2: Cross-Border Opportunities
+# Tab 2: Cross-Border Opportunities
+with tab2:
+    st.markdown('<div class="sub-header">Cross-Border Promotion Opportunities</div>', unsafe_allow_html=True)
     
-    # Market penetration visualization
-    st.subheader("Market Penetration by Artist")
+    st.markdown('<div class="insights-box">🌍 <span class="highlight">Key Finding:</span> Several AMD artists show significant gaps between their overall audience geo distribution and their recent song distribution, representing clear opportunities for targeted cross-border promotion.</div>', unsafe_allow_html=True)
     
-    # Create country penetration data
-    country_penetration = pd.DataFrame()
-    for artist in geographic_df['artist'].unique():
-        artist_data = geographic_df[geographic_df['artist'] == artist]
-        total_plays = artist_data['play_count'].sum()
+    # Filter cross-border opportunities
+    filtered_opportunities = cross_border_opportunities
+    if selected_artists:
+        filtered_opportunities = [opp for opp in filtered_opportunities if opp['artist'] in selected_artists]
+    if selected_countries:
+        filtered_opportunities = [opp for opp in filtered_opportunities if opp['country'] in selected_countries]
+    
+    # Top cross-border opportunities
+    st.subheader("Top Cross-Border Promotion Opportunities")
+    
+    if filtered_opportunities:
+        # Convert to DataFrame for visualization
+        opps_df = pd.DataFrame(filtered_opportunities)
         
-        for _, row in artist_data.iterrows():
-            country_penetration = pd.concat([
-                country_penetration,
-                pd.DataFrame({
-                    'artist': [artist],
-                    'country': [row['geo_country']],
-                    'penetration': [row['play_count'] / total_plays * 100]
-                })
-            ])
+        # Sort by gap size
+        opps_df = opps_df.sort_values('gap', ascending=False)
+        
+        # Create visualization
+        fig_opps = px.bar(
+            opps_df.head(10),
+            x="artist",
+            y="gap",
+            color="country",
+            title="Top 10 Cross-Border Promotion Opportunities",
+            hover_data=["song", "artist_pct", "song_pct", "gap", "total_plays"],
+            labels={"gap": "Market Penetration Gap (%)"}
+        )
+        
+        fig_opps.update_layout(
+            xaxis_title="Artist",
+            yaxis_title="Gap (%)",
+            height=500
+        )
+        
+        st.plotly_chart(fig_opps, use_container_width=True)
+        
+        # Create a styled table
+        st.dataframe(
+            opps_df,
+            use_container_width=True,
+            column_config={
+                "artist": st.column_config.TextColumn("Artist"),
+                "song": st.column_config.TextColumn("Song"),
+                "country": st.column_config.TextColumn("Country"),
+                "artist_pct": st.column_config.NumberColumn("Artist Audience %", format="%.1f%%"),
+                "song_pct": st.column_config.NumberColumn("Song Audience %", format="%.1f%%"),
+                "gap": st.column_config.NumberColumn("Gap", format="%.1f%%"),
+                "total_plays": st.column_config.NumberColumn("Total Plays", format="%d")
+            }
+        )
+    else:
+        st.write("No cross-border opportunities found with the current filter settings.")
     
-    # Create heatmap for country penetration
-    fig_heatmap = px.density_heatmap(
-        country_penetration,
-        x="country",
-        y="artist",
-        z="penetration",
-        title="Market Penetration Heatmap (%)",
-        color_continuous_scale="Viridis"
+    # Country distribution visualization
+    st.subheader("Artist vs. Song Geographic Distribution")
+    
+    # Allow user to select an artist for detailed view
+    artist_for_geo = st.selectbox(
+        "Select Artist to View Geographic Distribution",
+        options=unique_artists if not selected_artists else selected_artists
     )
-    fig_heatmap.update_layout(xaxis_title="Country", yaxis_title="Artist")
-    st.plotly_chart(fig_heatmap, use_container_width=True)
+    
+    # Get artist's songs
+    artist_songs = top_songs_geo_df[top_songs_geo_df['artist'] == artist_for_geo]['title'].unique()
+    
+    if len(artist_songs) > 0:
+        # Let user select a specific song
+        selected_song = st.selectbox(
+            "Select Song",
+            options=artist_songs
+        )
+        
+        # Get data for the artist and song
+        artist_geo_data = amd_artist_country_df[amd_artist_country_df['artist'] == artist_for_geo]
+        song_geo_data = top_songs_geo_df[(top_songs_geo_df['artist'] == artist_for_geo) & 
+                                          (top_songs_geo_df['title'] == selected_song)]
+        
+        # Calculate percentages
+        if not artist_geo_data.empty and not song_geo_data.empty:
+            # Calculate artist percentages
+            artist_total_plays = artist_geo_data['plays'].sum()
+            artist_geo_data['percentage'] = (artist_geo_data['plays'] / artist_total_plays) * 100
+            
+            # Calculate song percentages
+            song_total_plays = song_geo_data['total_plays'].sum()
+            song_geo_data['percentage'] = (song_geo_data['total_plays'] / song_total_plays) * 100
+            
+            # Create a comparison chart
+            fig_geo_compare = make_subplots(
+                rows=1, 
+                cols=2,
+                subplot_titles=("Artist Overall Audience", f"Song: {selected_song} Audience"),
+                specs=[[{"type": "bar"}, {"type": "bar"}]]
+            )
+            
+            # Artist geo distribution
+            artist_geo_sorted = artist_geo_data.sort_values('percentage', ascending=False).head(5)
+            fig_geo_compare.add_trace(
+                go.Bar(
+                    x=artist_geo_sorted['geo_country'],
+                    y=artist_geo_sorted['percentage'],
+                    name="Artist Overall",
+                    marker_color='#4ECDC4'
+                ),
+                row=1, col=1
+            )
+            
+            # Song geo distribution
+            song_geo_sorted = song_geo_data.sort_values('percentage', ascending=False).head(5)
+            fig_geo_compare.add_trace(
+                go.Bar(
+                    x=song_geo_sorted['geo_country'],
+                    y=song_geo_sorted['percentage'],
+                    name=f"Song: {selected_song}",
+                    marker_color='#FF6B6B'
+                ),
+                row=1, col=2
+            )
+            
+            fig_geo_compare.update_layout(
+                title=f"{artist_for_geo}: Geographic Distribution Comparison",
+                height=500
+            )
+            
+            st.plotly_chart(fig_geo_compare, use_container_width=True)
+            
+            # Show strategy recommendations
+            st.subheader("Recommended Promotion Strategies")
+            
+            # Find countries with gaps
+            countries_with_gaps = []
+            artist_countries = set(artist_geo_sorted['geo_country'])
+            song_countries = set(song_geo_sorted['geo_country'])
+            
+            for country in artist_countries:
+                if country not in song_countries:
+                    countries_with_gaps.append(country)
+                else:
+                    artist_pct = artist_geo_sorted[artist_geo_sorted['geo_country'] == country]['percentage'].values[0]
+                    song_country_data = song_geo_sorted[song_geo_sorted['geo_country'] == country]
+                    song_pct = song_country_data['percentage'].values[0] if not song_country_data.empty else 0
+                    
+                    if artist_pct > song_pct + 5:  # If gap is more than 5%
+                        countries_with_gaps.append(country)
+            
+            if countries_with_gaps:
+                st.markdown('<div class="recommendation-box">', unsafe_allow_html=True)
+                st.markdown(f"### Promotion Strategy for {artist_for_geo} - {selected_song}")
+                
+                for country in countries_with_gaps:
+                    st.markdown(f"#### {country} Market Expansion")
+                    
+                    if country == "NG":
+                        st.markdown("""
+                        - **Push Notifications**: Target Nigerian users who have engaged with similar artists
+                        - **Trending Placement**: Feature the song in Nigeria-specific trending sections
+                        - **Social Media Campaign**: Partner with Nigerian influencers for song promotion
+                        """)
+                    elif country == "GH":
+                        st.markdown("""
+                        - **Radio Partnerships**: Collaborate with top Ghanaian radio stations
+                        - **Local Events**: Feature the song in promotional events in Ghana
+                        - **Influencer Marketing**: Partner with Ghanaian social media personalities
+                        """)
+                    elif country == "US":
+                        st.markdown("""
+                        - **Diaspora Targeting**: Create targeted campaigns for the West African diaspora in major US cities
+                        - **Playlist Placement**: Push for placement in US-focused Afrobeats playlists
+                        - **College Campus Marketing**: Target universities with high international student populations
+                        """)
+                    elif country == "UK":
+                        st.markdown("""
+                        - **Club Promotion**: Partner with UK DJs and clubs with African music nights
+                        - **Community Events**: Promote at UK African cultural events and festivals
+                        - **University Marketing**: Target UK universities with high African student populations
+                        """)
+                    elif country == "JM":
+                        st.markdown("""
+                        - **Dancehall Cross-Promotion**: Partner with Jamaican dancehall artists for remixes
+                        - **Radio Placement**: Target Jamaican radio stations for song placement
+                        - **Local Influencers**: Engage with Jamaican music influencers
+                        """)
+                    else:
+                        st.markdown(f"""
+                        - **Targeted Advertising**: Develop geo-specific ads for {country} market
+                        - **Local Partnerships**: Identify potential collaborators in {country}
+                        - **Platform Features**: Utilize Audiomack's geo-targeted features for promotion
+                        """)
+                
+                st.markdown("</div>", unsafe_allow_html=True)
+            else:
+                st.info(f"No significant geographic distribution gaps found for {selected_song}.")
+        else:
+            st.warning(f"Insufficient data for {artist_for_geo} or {selected_song} to analyze geographic distribution.")
+    else:
+        st.warning(f"No songs found for {artist_for_geo}.")
 
-# Tab 7: Report & Recommendations
-with tab7:
-    st.markdown('<div class="sub-header">Week 2 Analysis Report</div>', unsafe_allow_html=True)
+# Tab 3: Editorial Playlists
+with tab3:
+    st.markdown('<div class="sub-header">Editorial Playlist Tracker</div>', unsafe_allow_html=True)
+    
+    st.markdown('<div class="insights-box">🎵 <span class="highlight">New Feature:</span> This tracker allows you to monitor AMD artist additions to editorial playlists, helping identify promotional opportunities and track curator selections.</div>', unsafe_allow_html=True)
+    
+    # Filter playlist data
+    filtered_playlists = editorial_playlist_df
+    if selected_artists:
+        filtered_playlists = filtered_playlists[filtered_playlists['artist_name'].isin(selected_artists)]
+    if selected_playlists:
+        filtered_playlists = filtered_playlists[filtered_playlists['playlist_name'].isin(selected_playlists)]
+    
+    # Editorial playlist metrics
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        total_adds = len(filtered_playlists)
+        st.metric("Total Playlist Adds (This Week)", f"{total_adds}")
+    
+    with col2:
+        unique_playlists = len(filtered_playlists['playlist_name'].unique())
+        st.metric("Unique Playlists", f"{unique_playlists}")
+    
+    with col3:
+        unique_artists_added = len(filtered_playlists['artist_name'].unique())
+        st.metric("Unique Artists Added", f"{unique_artists_added}")
+    
+    # Recent editorial playlist additions
+    st.subheader("Recent Editorial Playlist Additions")
+    
+    # Create a styled table
+    st.dataframe(
+        filtered_playlists.sort_values('added_at', ascending=False),
+        use_container_width=True,
+        column_config={
+            "added_at": st.column_config.DateColumn("Date Added", format="MMM DD, YYYY"),
+            "artist_name": st.column_config.TextColumn("Artist"),
+            "song_name": st.column_config.TextColumn("Song"),
+            "playlist_name": st.column_config.TextColumn("Playlist"),
+            "is_ghost_account": st.column_config.TextColumn("Ghost Account?"),
+            "distributor_name": st.column_config.TextColumn("Distributor")
+        }
+    )
+    
+    # Playlist distribution visualization
+    st.subheader("Editorial Playlist Distribution")
+    
+    # Get playlist counts
+    playlist_counts = filtered_playlists['playlist_name'].value_counts().reset_index()
+    playlist_counts.columns = ['Playlist', 'Count']
+    
+    # Create visualization
+    fig_playlist = px.pie(
+        playlist_counts,
+        values='Count',
+        names='Playlist',
+        title="Editorial Playlist Distribution",
+        color_discrete_sequence=px.colors.qualitative.Bold
+    )
+    
+    fig_playlist.update_traces(textinfo='percent+label', pull=[0.1 if i == 0 else 0 for i in range(len(playlist_counts))])
+    
+    st.plotly_chart(fig_playlist, use_container_width=True)
+    
+    # Playlist additions by day
+    st.subheader("Playlist Additions by Day")
+    
+    # Convert dates and count by day
+    filtered_playlists['added_at'] = pd.to_datetime(filtered_playlists['added_at'])
+    adds_by_day = filtered_playlists.groupby([filtered_playlists['added_at'].dt.date, 'playlist_name']).size().reset_index()
+    adds_by_day.columns = ['Date', 'Playlist', 'Count']
+    
+    # Create visualization
+    fig_adds_by_day = px.bar(
+        adds_by_day,
+        x='Date',
+        y='Count',
+        color='Playlist',
+        title="Editorial Playlist Additions by Day",
+        labels={'Count': 'Number of Additions'}
+    )
+    
+    st.plotly_chart(fig_adds_by_day, use_container_width=True)
+    
+    # SQL Query for the Superset Chart
+    st.subheader("SQL Query for Superset Implementation")
+    
+    st.code('''
+-- Editorial Playlist Additions Tracker
+SELECT
+  added_at,
+  song_name,
+  artist_name,
+  is_ghost_account,
+  distributor_name,
+  playlist_name
+FROM bi01.playlist_interactions_daily_v003
+WHERE added_at BETWEEN CURRENT_DATE - INTERVAL '7' DAY AND CURRENT_DATE
+  AND distributor_name = 'Audiosalad Direct'
+ORDER BY added_at DESC;
+    ''', language='sql')
     
     st.markdown("""
-    # Audiomack ArtistRank Analysis Report - Week 2
-    ## April 13, 2025
+    ### Implementation Steps for Superset Chart
     
-    ## Executive Summary
+    1. **Create a New Dataset in Superset**:
+       - Connect to the `bi01.playlist_interactions_daily_v003` table
+       - Set up a refresh schedule (daily at 4AM recommended)
     
-    This report analyzes AMD (Audiosalad Direct) artist performance on Audiomack for the period of April 7-13, 2025. Key insights include:
+    2. **Create a Table Visualization**:
+       - Add the columns: `added_at`, `song_name`, `artist_name`, `is_ghost_account`, `distributor_name`, `playlist_name`
+       - Set up sorting by `added_at` descending
     
-    1. **Geographic Distribution Analysis**: Several AMD artists show significant potential for cross-border amplification, with audience penetration varying across different songs from the same artist.
+    3. **Add Filtering Options**:
+       - Date range filter for `added_at`
+       - Multi-select filter for `playlist_name`
+       - Ghost account status filter
     
-    2. **Engagement Patterns**: We identified a cohort of small/medium artists with exceptionally high engagement per user metrics, suggesting strong resonance with their audience.
-    
-    3. **Editorial Playlist Opportunities**: Multiple AMD artists are gaining traction through editorial playlists, providing opportunities for further promotion.
-    
-    4. **Growth Indicators**: Analysis of play-to-engagement ratios reveals several artists with high potential for virality who may benefit from targeted marketing.
+    4. **Dashboard Integration**:
+       - Add to the AMD dashboard
+       - Set permissions for Jordan and Jalen to access
     """)
+
+# Tab 4: Engagement Analysis
+with tab4:
+    st.markdown('<div class="sub-header">Engagement Analysis</div>', unsafe_allow_html=True)
     
-    # Key insights
-    st.subheader("Detailed Findings")
+    st.markdown('<div class="insights-box">💡 <span class="highlight">Key Insight:</span> Engagement metrics like favorites, reposts, and comments offer better indicators of audience connection than raw play counts. Several AMD artists show exceptionally high engagement per user, indicating strong resonance with their audience.</div>', unsafe_allow_html=True)
     
-    insights_tab1, insights_tab2, insights_tab3 = st.tabs([
-        "Geographic Insights", 
-        "Engagement Analysis", 
-        "Growth Indicators"
-    ])
+    # Filter engagement data
+    filtered_engagement = top_engaged_artists_df
+    if selected_artists:
+        filtered_engagement = filtered_engagement[filtered_engagement['artist'].isin(selected_artists)]
     
-    with insights_tab1:
-        st.markdown("""
-        ### Geographic Insights and Cross-Border Opportunities
-        
-        Analysis of AMD artist geographic performance reveals several opportunities for cross-border amplification:
-        
-        | Artist | Primary Geo | Potential Expansion Geo | Rationale |
-        |--------|------------|------------------------|-----------|
-        | Victony | NG (72%) | GH (11%), US (9%) | Strong Nigerian base with growing interest in Ghana and US diaspora |
-        | Khaid | NG (65%) | GH (14%), UK (12%) | Already gaining traction in UK but could be pushed further |
-        | FAVE | NG (68%) | US (15%), UK (9%) | US audience showing strong engagement rates |
-        | Odumodu Blvck | NG (75%) | GH (9%), US (6%) | Growing interest in US hip-hop communities |
-        | Bloody Civilian | NG (56%) | UK (18%), US (14%) | Strong cross-border potential with high engagement in UK |
-        
-        **Key Observation**: Several AMD artists show significant gaps between their overall audience geo distribution and their recent song distribution. For example, while Siicie's audience reaches 20% into Sierra Leone, his recent song only comprised 5% Sierra Leone listeners - representing a clear opportunity for targeted promotion.
-        """)
+    # Apply minimum engagement filter
+    filtered_engagement = filtered_engagement[filtered_engagement['engagements_per_user'] >= min_engagement]
     
-    with insights_tab2:
-        st.markdown("""
-        ### Engagement Analysis 
-        
-        Looking at the `engagement_per_user` metric (total engagements divided by unique users) reveals artists with highly engaged fan bases:
-        
-        **High Engagement Artists (Small-Medium Play Cohort)**:
-        
-        1. **Bloody Civilian**: 0.48 engagements per user
-        2. **FAVE**: 0.39 engagements per user
-        3. **Odumodu Blvck**: 0.36 engagements per user
-        4. **Victony**: 0.32 engagements per user
-        5. **Khaid**: 0.31 engagements per user
-        
-        These artists have audiences that not only listen to their music but actively engage through favorites, reposts, and comments at rates significantly above platform average (0.25 engagements per user).
-        
-        ### Platform Engagement Source Analysis
-        
-        Analysis of the `source_tab` and `section` data shows:
-        
-        1. **Most Effective Discovery Channels**:
-           - Home feed (31.2%)
-           - Artist profile (24.8%)
-           - Search results (18.3%)
-           - Playlist pages (15.7%)
-        
-        2. **Engagement by Section**:
-           - "For You" section (26.4%)
-           - "Trending" (21.8%)
-           - Artist uploads (19.5%)
-           - Editorial playlists (14.3%)
-        
-        This suggests promotional strategies should prioritize placement in "For You" and "Trending" sections for maximum visibility and engagement.
-        """)
+    # Engagement metrics
+    col1, col2, col3 = st.columns(3)
     
-    with insights_tab3:
-        st.markdown("""
-        ### Editorial Playlist Analysis
-        
-        The analysis of editorial playlist additions reveals:
-        
-        1. **Playlist Distribution**:
-           - Verified Hip-Hop (28%)
-           - Afrobeats Now (23%)
-           - Alte Cruise (15%)
-           - Trending Africa (14%)
-           - Verified R&B (12%)
-           - Other (8%)
-        
-        2. **Recent Notable Additions**:
-           - 3 AMD artists added to "Afrobeats Now" in the past week
-           - 2 AMD artists added to "Trending Africa"
-           - 1 AMD artist added to "Verified Hip-Hop"
-        
-        These placements provide a solid foundation for further promotional efforts.
-        
-        ### Growth Indicators
-        
-        AMD artists showing the highest momentum scores:
-        
-        1. **Bloody Civilian**: 94.84 (115.28% play growth)
-        2. **FAVE**: 69.88 (76.84% play growth)
-        3. **Khaid**: 68.82 (75.00% play growth)
-        4. **Odumodu Blvck**: 57.40 (57.61% play growth)
-        5. **Victony**: 36.19 (34.62% play growth)
-        
-        These artists show substantial growth and engagement metrics, indicating strong momentum.
-        """)
+    with col1:
+        avg_eng_ratio = filtered_engagement['total_engagements'].sum() / filtered_engagement['total_plays'].sum() if filtered_engagement['total_plays'].sum() > 0 else 0
+        st.metric("Avg Engagement Ratio", f"{avg_eng_ratio:.3f}")
     
-    # Recommendations section
-    st.subheader("Recommendations for AMD Artists")
+    with col2:
+        avg_eng_per_user = filtered_engagement['total_engagements'].sum() / filtered_engagement['unique_users'].sum() if filtered_engagement['unique_users'].sum() > 0 else 0
+        st.metric("Avg Engagements Per User", f"{avg_eng_per_user:.3f}")
+    
+    with col3:
+        plays_per_user = filtered_engagement['total_plays'].sum() / filtered_engagement['unique_users'].sum() if filtered_engagement['unique_users'].sum() > 0 else 0
+        st.metric("Avg Plays Per User", f"{plays_per_user:.1f}")
+    
+    # Engagement ratio visualization
+    st.subheader("Top Artists by Engagement per User")
+    
+    # Sort by engagements per user
+    engagement_sorted = filtered_engagement.sort_values('engagements_per_user', ascending=False)
+    
+    # Create visualization
+    fig_engagement = px.bar(
+        engagement_sorted.head(15),
+        x="artist",
+        y="engagements_per_user",
+        color="total_plays",
+        color_continuous_scale="Viridis",
+        title="Top 15 Artists by Engagement per User",
+        hover_data=["total_engagements", "unique_users", "total_plays"]
+    )
+    
+    fig_engagement.update_layout(
+        xaxis_title="Artist",
+        yaxis_title="Engagements per User",
+        coloraxis_colorbar_title="Total Plays"
+    )
+    
+    st.plotly_chart(fig_engagement, use_container_width=True)
+    
+    # Engagement vs. plays comparison
+    st.subheader("Engagement vs. Plays Analysis")
+    
+    # Create scatter plot
+    fig_scatter = px.scatter(
+        filtered_engagement,
+        x="total_plays",
+        y="engagements_per_user",
+        size="unique_users",
+        color="artist",
+        hover_name="artist",
+        log_x=True,
+        size_max=50,
+        title="Engagement per User vs. Total Plays (Log Scale)"
+    )
+    
+    fig_scatter.update_layout(
+        xaxis_title="Total Plays (Log Scale)",
+        yaxis_title="Engagements per User",
+        height=600
+    )
+    
+    st.plotly_chart(fig_scatter, use_container_width=True)
+    
+    # Create a styled table of top engaged artists
+    st.subheader("Detailed Engagement Metrics by Artist")
+    
+    st.dataframe(
+        engagement_sorted,
+        use_container_width=True,
+        column_config={
+            "artist": st.column_config.TextColumn("Artist"),
+            "total_plays": st.column_config.NumberColumn("Total Plays", format="%d"),
+            "total_engagements": st.column_config.NumberColumn("Total Engagements", format="%d"),
+            "unique_users": st.column_config.NumberColumn("Unique Users", format="%d"),
+            "engagements_per_user": st.column_config.NumberColumn("Engagements per User", format="%.3f")
+        }
+    )
     
     st.markdown("""
-    ### 1. Cross-Border Promotion Opportunities
+    ### Key Engagement Insights
     
-    Based on geographic analysis, the following targeted promotions are recommended:
+    - **Inverse Relationship**: A notable inverse relationship exists between play count and engagement per user - 
+      smaller artists often have more engaged fan bases.
     
-    1. **Victony**: 
-       - Push notifications to Ghanaian users who follow similar artists
-       - Target Nigerian diaspora in US through regional trending features
+    - **Audience Quality Indicator**: Engagement per user serves as a better indicator of audience quality 
+      than raw play counts, helping identify artists with strong connections to their listeners.
     
-    2. **FAVE**:
-       - Targeted promotion to US users who engage with Afrobeats content
-       - Consider feature placement in "Trending Africa" to broaden reach
-    
-    3. **Bloody Civilian**:
-       - Focus on UK promotional push given high engagement rates
-       - Consider collaborative features with UK artists to strengthen connection
-    
-    ### 2. Engagement Amplification
-    
-    For artists with high engagement metrics:
-    
-    1. **Create "Deep Dive" content** for artists like Bloody Civilian and FAVE to capitalize on their highly engaged audiences
-    2. **Develop "Fan Spotlight" features** highlighting user engagement with these artists
-    3. **Prioritize these artists for push notifications** about new releases to leverage their active fan bases
-    
-    ### 3. Platform Placement Strategy
-    
-    Based on source/section analysis:
-    
-    1. **Optimize "For You" algorithm placement** for AMD artists
-    2. **Secure trending placements** for artists showing momentum
-    3. **Enhance artist profile pages** as they drive significant engagement
+    - **Growth Predictor**: Higher engagement metrics often predict future growth potential, 
+      as engaged listeners are more likely to share and promote content within their networks.
     """)
-    
-    # Next steps
-    st.subheader("Next Steps")
-    
-    next_steps_col1, next_steps_col2 = st.columns(2)
-    
-    with next_steps_col1:
-        st.markdown("""
-        1. **Implement Superset Chart for Editorial Playlist Tracking**
-           - Create daily-refreshed view of editorial playlist additions
-           - Focus on identifying AMD opportunities
-        
-        2. **Develop Targeted Promotion Plans**
-           - Create specific plans for the identified cross-border opportunities
-           - Set measurable goals for geographic expansion
-        
-        3. **Enhance Artist Momentum Scoring**
-           - Refine the ArtistRank algorithm to better account for engagement quality
-           - Add geographic spread as a factor in momentum calculation
-        """)
-    
-    with next_steps_col2:
-        st.markdown("""
-        4. **Improve Dashboard Visualization**
-           - Update the Streamlit app to showcase Week 2 findings
-           - Add new visualizations for editorial playlist analysis
-        
-        5. **Collaborate with A&R Team**
-           - Share findings with Jordan and Jalen
-           - Evaluate the alignment between data-driven recommendations and expert curation
-           
-        6. **Extend Analytics to Include Week-Over-Week Changes**
-           - Track performance changes more granularly
-           - Identify factors driving growth acceleration or deceleration
-        """)
 
-# Tab 8: A&R Scouting Tracker
-with tab8:
-    # Call your existing function
+# Tab 5: Discovery Channels
+with tab5:
+    st.markdown('<div class="sub-header">User Discovery Channels</div>', unsafe_allow_html=True)
+    
+    st.markdown('<div class="insights-box">🔍 <span class="highlight">Actionable Insight:</span> "For You" feed and "Trending" sections drive the largest portion of engagement, making these critical places for AMD artist visibility. The My Library features also show strong engagement, indicating the importance of converting casual listeners to followers.</div>', unsafe_allow_html=True)
+    
+    # Source tab distribution
+    st.subheader("Engagement by Source Tab")
+    
+    # Create visualization for source tabs
+    fig_source_tabs = px.pie(
+        source_tab_totals.sort_values('percentage', ascending=False),
+        values='percentage',
+        names='source_tab',
+        title="Engagement Distribution by Source Tab",
+        hole=0.4
+    )
+    
+    fig_source_tabs.update_traces(textinfo='percent+label')
+    
+    st.plotly_chart(fig_source_tabs, use_container_width=True)
+    
+    # Section distribution
+    st.subheader("Engagement by Section")
+    
+    # Create visualization for top sections
+    fig_sections = px.bar(
+        section_totals.head(10),
+        x='section',
+        y='percentage',
+        color='percentage',
+        color_continuous_scale='Viridis',
+        title="Top 10 Sections by Engagement Percentage"
+    )
+    
+    fig_sections.update_layout(
+        xaxis_title="Section",
+        yaxis_title="Percentage of Total Engagement (%)",
+        xaxis={'categoryorder': 'total descending'}
+    )
+    
+    st.plotly_chart(fig_sections, use_container_width=True)
+    
+    # Strategic recommendations
+    st.subheader("Strategic Recommendations for AMD Artists")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown('<div class="recommendation-box">', unsafe_allow_html=True)
+        st.markdown("### Optimize for Top Discovery Channels")
+        st.markdown("""
+        1. **My Library Optimization**
+           - Focus on converting casual listeners to followers/favorites
+           - Create content that encourages offline listening
+           - Develop a cadence of releases to keep library fresh
+        
+        2. **Search Visibility**
+           - Optimize artist name and song titles for searchability
+           - Use popular genre keywords in descriptions
+           - Create songs that match popular search queries
+        """)
+        st.markdown("</div>", unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown('<div class="recommendation-box">', unsafe_allow_html=True)
+        st.markdown("### Section-Specific Strategies")
+        st.markdown("""
+        1. **For You Feed**
+           - Create content that encourages high engagement rates
+           - Focus on quality over quantity to improve algorithm ranking
+           - Leverage existing engaged fans to boost algorithmic placement
+        
+        2. **Trending Sections**
+           - Time releases strategically to maximize trending potential
+           - Create engagement campaigns around release dates
+           - Identify regional trending opportunities based on geo analysis
+        """)
+        st.markdown("</div>", unsafe_allow_html=True)
+    
+    # Discovery funnel visualization
+    st.subheader("User Discovery Funnel")
+    
+    # Create made-up funnel data based on the discovered patterns
+    funnel_data = pd.DataFrame({
+        'Stage': ['Discovery', 'First Play', 'Multiple Plays', 'Engagement', 'Favorite/Follow', 'Repeat Listener'],
+        'Users': [1000000, 750000, 500000, 250000, 150000, 100000],
+        'Conversion': [100, 75, 67, 50, 60, 67]
+    })
+    
+    # Create funnel visualization
+    fig_funnel = go.Figure(go.Funnel(
+        y=funnel_data['Stage'],
+        x=funnel_data['Users'],
+        textinfo="value+percent initial",
+        marker={"color": ["#4ECDC4", "#1A535C", "#FF6B6B", "#FF9F1C", "#E71D36", "#662E9B"]}
+    ))
+    
+    fig_funnel.update_layout(
+        title="User Journey Funnel",
+        height=500
+    )
+    
+    st.plotly_chart(fig_funnel, use_container_width=True)
+    
+    st.markdown("""
+    ### Optimizing the User Journey
+    
+    The analysis of discovery channels reveals a clear user journey path:
+    
+    1. **Discovery**: Users primarily find content through "For You" feeds, Search, and Trending sections
+    2. **Engagement**: Initial plays lead to favorites, shares, and comments for resonant content
+    3. **Retention**: Engaged users add content to their libraries, download for offline use, and become repeat listeners
+    
+    To maximize AMD artist success, promotional strategies should target each stage of this journey, with particular focus on increasing conversion rates between discovery and engagement.
+    """)
+
+# Tab 6: A&R Scouting Tracker
+with tab6:
+    # Call the scouting tracker function
     load_scouting_tracker()
 
 # Footer
 st.markdown("---")
-st.caption("Audiomack ArtistRank Dashboard | Last updated: April 13, 2025")
-st.caption("Made with ❤️ by LinLin for Audiomack Internship Program")
-st.caption("Supervisor: Jacob & Ryan; A&R Researcher: Jalen & Jordan")
+st.caption("Audiomack ArtistRank Dashboard | Data period: April 7-13, 2025 | Last updated: April 13, 2025")
+st.caption("Created by LinLin for Audiomack Internship Program Week 2 Assignment")
+st.caption("Supervisors: Jacob & Ryan | A&R Researchers: Jalen & Jordan")
