@@ -1509,6 +1509,8 @@ with week_tabs[1]:
                     clean_df.loc[len(clean_df)] = row_data
     
             clean_df = clean_df.fillna('')
+            clean_df.columns = [col.strip() for col in clean_df.columns]
+
     
             if len(clean_df) == 0:
                 st.warning("No data found after processing")
