@@ -586,7 +586,7 @@ with week_tabs[0]:
         "🌟 Discovery Channels",
         "📊 A&R Scouting Tracker",
         "💬 Chatbot",
-        "😈 linlin Weekly Report"
+        "😈 linlin Weekly Report",
         "🚀 Momentum Score"  # New tab
     ])
     
