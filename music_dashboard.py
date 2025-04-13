@@ -579,13 +579,14 @@ with week_tabs[0]:
     )
     
     # Create tabs
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7= st.tabs([
         "AMD Artist Performance", 
         "Cross-Border Opportunities",
         "Editorial Playlists", 
         "Engagement Analysis",
         "Discovery Channels",
-        "A&R Scouting Tracker"
+        "A&R Scouting Tracker",
+        "💬 Chatbot"
     ])
     
     # Tab 1: AMD Artist Performance
@@ -1331,6 +1332,41 @@ with week_tabs[0]:
     with tab6:
         # Call the scouting tracker function
         load_scouting_tracker()
+
+
+    #still debuggggg!
+    with tab7:
+        st.title("💬 Chatbot Assistant")
+    
+        with st.sidebar:
+            openai_api_key = st.text_input("OpenAI API Key", key="chatbot_api_key", type="password")
+            st.markdown("[Get an OpenAI API key](https://platform.openai.com/account/api-keys)")
+    
+        if "messages" not in st.session_state:
+            st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you with this dashboard?"}]
+    
+        for msg in st.session_state.messages:
+            st.chat_message(msg["role"]).write(msg["content"])
+    
+        if prompt := st.chat_input():
+            if not openai_api_key:
+                st.info("Please add your OpenAI API key to continue.")
+                st.stop()
+    
+            from openai import OpenAI
+            client = OpenAI(api_key=openai_api_key)
+    
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            st.chat_message("user").write(prompt)
+    
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=st.session_state.messages
+            )
+            msg = response.choices[0].message.content
+            st.session_state.messages.append({"role": "assistant", "content": msg})
+            st.chat_message("assistant").write(msg)
+
 
 
 # Week 1 content (previous)
