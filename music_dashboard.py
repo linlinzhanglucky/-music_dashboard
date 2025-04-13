@@ -255,6 +255,8 @@ def load_scouting_tracker():
         st.exception(e)
 
 
+
+
 @st.cache_data
 def load_data():
     # Load data from CSV files
@@ -263,6 +265,7 @@ def load_data():
     try:
         amd_artist_country_df = pd.read_csv('AMD Artist Country Breakdown.csv')
     except:
+        st.warning("⚠️ Could not load 'your_file.csv'. Using fallback data.")
         amd_artist_country_df = pd.DataFrame({
             "artist": ["Erma", "Vybz Kartel", "Siicie & Lasmid", "Mitski", "Dxtiny"],
             "title": ["DYANA", "God is The Greatest", "Do You Know?", "My Love Mine All Mine", "Uncle Pele"],

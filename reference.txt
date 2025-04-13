@@ -1,0 +1,12 @@
+# Step 1: Add all changes (deleted + new)
+git add .
+
+# Step 2: Commit with a message
+git commit -m "Refactor: moved unused CSVs to not-use/"
+
+# Step 3: Push to GitHub
+git push origin main
+
+#If you’re still testing file moves and not ready to push, you can also just do:
+git add -u      # Only stages deletions/renames
+git commit -m "Clean up old CSVs"
