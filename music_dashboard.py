@@ -92,7 +92,7 @@ def load_scouting_tracker():
             return
 
         data = StringIO(response.text)
-        raw_df = pd.read_csv(data)
+        raw_df = pd.read_csv(data, header=None)  # Don't assume header
 
         # Find header row
         header_row = None
