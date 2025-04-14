@@ -21,7 +21,7 @@ st.set_page_config(
 
 
 # Create main tab structure to separate Week 1 and Week 2
-week_tabs = st.tabs(["Week2 (Meeting)", "Week 2 (Current)", "Week 1 (Previous)"])
+week_tabs = st.tabs(["Week2 (Meeting)", "Week 2 (Draft)", "Week 1 (Previous)"])
 # week_tabs = st.tabs(["Week 2 (Current)", "Week 1 (Previous)"])
 
 
