@@ -501,9 +501,9 @@ except Exception as e:
 
 
 # Week2 (Meeting)
-    with week_tabs[2]:
+with week_tabs[2]:
     # Sidebar section
-    with st.sidebar:
+    st.sidebar:
         st.title("Week 2 AMD Dashboard")
         st.markdown("**Audiosalad Direct Analytics**")
         
