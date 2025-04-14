@@ -16,7 +16,7 @@ st.set_page_config(
 )
 
 # Create main tab structure to separate Week 1 and Week 2
-week_tabs = st.tabs(["Week 2 (Apr 7-13, 2025)", "Week 2 (Update)", "Week 1 (Previous)"])
+week_tabs = st.tabs([""Week 2 (Update)", Week 2 (Apr 7-13, 2025)", "Week 1 (Previous)"])
 
 # Add custom CSS
 st.markdown("""
