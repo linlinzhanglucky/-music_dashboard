@@ -621,6 +621,50 @@ with week_tabs[0]:
             "event_count": [145678, 123456, 108765, 98765, 87654, 76543, 65432, 54321, 43210, 32109]
         }
         return pd.DataFrame(data)
+# Add this function to your music_dashboard.py file
+# It should replace or fix the current style_metric_cards() function
+
+    def style_metric_cards():
+        """Add custom styling to metric cards"""
+        st.markdown("""
+        <style>
+        div[data-testid="metric-container"] {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        div[data-testid="metric-container"] > div {
+            background-color: transparent;
+        }
+        
+        div[data-testid="metric-container"] label {
+            color: #4ECDC4;
+            font-weight: bold;
+        }
+        
+        div[data-testid="metric-container"] p {
+            color: #1A535C;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        div[data-testid="stMetricDelta"] p {
+            font-size: 0.9rem;
+            color: #FF6B6B;
+        }
+        
+        div[data-testid="stMetricDelta"] svg {
+            color: #FF6B6B;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+    
+
+
+
+    
     
     # Load data
     top_artists_df = load_top_artists()
@@ -669,7 +713,7 @@ with week_tabs[0]:
                 delta="+5.2%",
                 delta_color="normal"
             )
-        
+            
         style_metric_cards()
         
         st.markdown("---")
