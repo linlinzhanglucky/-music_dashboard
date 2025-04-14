@@ -12,7 +12,7 @@ import datetime
 
 
 # Set page configuration
-st.set_page_config(c
+st.set_page_config(
     page_title="Audiomack ArtistRank Dashboard - Week 2",
     page_icon="🎵",
     layout="wide"
