@@ -500,669 +500,669 @@ except Exception as e:
     data_loaded = False
 
 
-# Week2 (Meeting)
-with week_tabs[0]:
-    # Add sidebar content properly
-    with st.sidebar:
-        st.title("Week 2 AMD Dashboard")
-        st.markdown("**Audiosalad Direct Analytics**")
+# # Week2 (Meeting)
+# with week_tabs[0]:
+#     # Add sidebar content properly
+#     with st.sidebar:
+#         st.title("Week 2 AMD Dashboard")
+#         st.markdown("**Audiosalad Direct Analytics**")
         
-        st.markdown("---")
-        st.markdown("### Data Timeframe")
-        st.write("April 7-13, 2025")
+#         st.markdown("---")
+#         st.markdown("### Data Timeframe")
+#         st.write("April 7-13, 2025")
         
-        st.markdown("---")
-        st.markdown("### Quick Links")
-        st.markdown("* [Monthly Plays Dashboard](https://link-to-dashboard)")
-        st.markdown("* [Performance Dashboard](https://link-to-dashboard)")
-        st.markdown("* [Old ArtistRank Dashboard](https://link-to-dashboard)")
-        st.markdown("* [Marketing Tracker](https://link-to-dashboard)")
+#         st.markdown("---")
+#         st.markdown("### Quick Links")
+#         st.markdown("* [Monthly Plays Dashboard](https://link-to-dashboard)")
+#         st.markdown("* [Performance Dashboard](https://link-to-dashboard)")
+#         st.markdown("* [Old ArtistRank Dashboard](https://link-to-dashboard)")
+#         st.markdown("* [Marketing Tracker](https://link-to-dashboard)")
         
-        st.markdown("---")
-        st.markdown("### Team")
-        st.markdown("* Linlin (Data Analytics)")
-        st.markdown("* Jordan (A&R Curator)")
-        st.markdown("* Jalen (A&R Curator)")
+#         st.markdown("---")
+#         st.markdown("### Team")
+#         st.markdown("* Linlin (Data Analytics)")
+#         st.markdown("* Jordan (A&R Curator)")
+#         st.markdown("* Jalen (A&R Curator)")
         
-        st.markdown("---")
-        st.info("Dashboard created: April 14, 2025")
+#         st.markdown("---")
+#         st.info("Dashboard created: April 14, 2025")
     
-    # Main tabs
-    tab1, tab2, tab3, tab4 = st.tabs(["📊 Overview", "🌎 Geographic Analysis", "📈 Engagement Metrics", "✅ TODO List"])
+#     # Main tabs
+#     tab1, tab2, tab3, tab4 = st.tabs(["📊 Overview", "🌎 Geographic Analysis", "📈 Engagement Metrics", "✅ TODO List"])
     
-    # Load mock data (in a real scenario, you'd connect to your database or load CSVs)
-    # Top 10 Most Engaged Artists
-    @st.cache_data
-    def load_top_artists():
-        data = {
-            "artist": ["Vybz Kartel", "Davido", "Burna Boy", "WizKid", "Stonebwoy", 
-                       "Angelique Kidjo", "Diamond Platnumz", "Kizz Daniel", "Fireboy DML", "Joeboy"],
-            "total_plays": [21534, 19234, 18756, 17865, 15643, 14532, 13987, 12876, 12345, 11987],
-            "total_engagements": [5432, 4754, 4532, 4231, 3987, 3654, 3421, 3210, 3109, 2987],
-            "unique_users": [9876, 8765, 8543, 8234, 7654, 7432, 7210, 6987, 6543, 6321]
-        }
-        return pd.DataFrame(data)
+#     # Load mock data (in a real scenario, you'd connect to your database or load CSVs)
+#     # Top 10 Most Engaged Artists
+#     @st.cache_data
+#     def load_top_artists():
+#         data = {
+#             "artist": ["Vybz Kartel", "Davido", "Burna Boy", "WizKid", "Stonebwoy", 
+#                        "Angelique Kidjo", "Diamond Platnumz", "Kizz Daniel", "Fireboy DML", "Joeboy"],
+#             "total_plays": [21534, 19234, 18756, 17865, 15643, 14532, 13987, 12876, 12345, 11987],
+#             "total_engagements": [5432, 4754, 4532, 4231, 3987, 3654, 3421, 3210, 3109, 2987],
+#             "unique_users": [9876, 8765, 8543, 8234, 7654, 7432, 7210, 6987, 6543, 6321]
+#         }
+#         return pd.DataFrame(data)
     
-    # Top AMD Songs Geo Breakdown
-    @st.cache_data
-    def load_amd_geo():
-        data = {
-            "artist": ["Kizz Daniel", "Burna Boy", "WizKid", "Davido", "Fireboy DML", 
-                       "Joeboy", "Rema", "Tiwa Savage", "Stonebwoy", "Mr Eazi"],
-            "title": ["Buga", "Last Last", "Essence", "Unavailable", "Peru", 
-                     "Sip", "Calm Down", "Stamina", "Therapy", "Legalize"],
-            "latest_distributor_name": ["Audiosalad Direct"] * 10,
-            "total_plays": [15432, 14321, 13987, 12876, 12543, 11987, 11654, 11321, 10987, 10654],
-            "total_engagements": [4321, 4109, 3987, 3765, 3654, 3543, 3421, 3309, 3198, 3087],
-            "unique_users": [7432, 7109, 6987, 6765, 6654, 6432, 6321, 6109, 5987, 5876],
-            "geo_country": ["Nigeria", "Ghana", "Kenya", "South Africa", "United States", 
-                            "United Kingdom", "Canada", "France", "Germany", "Australia"],
-            "geo_region": ["Africa", "Africa", "Africa", "Africa", "North America", 
-                          "Europe", "North America", "Europe", "Europe", "Oceania"]
-        }
-        return pd.DataFrame(data)
+#     # Top AMD Songs Geo Breakdown
+#     @st.cache_data
+#     def load_amd_geo():
+#         data = {
+#             "artist": ["Kizz Daniel", "Burna Boy", "WizKid", "Davido", "Fireboy DML", 
+#                        "Joeboy", "Rema", "Tiwa Savage", "Stonebwoy", "Mr Eazi"],
+#             "title": ["Buga", "Last Last", "Essence", "Unavailable", "Peru", 
+#                      "Sip", "Calm Down", "Stamina", "Therapy", "Legalize"],
+#             "latest_distributor_name": ["Audiosalad Direct"] * 10,
+#             "total_plays": [15432, 14321, 13987, 12876, 12543, 11987, 11654, 11321, 10987, 10654],
+#             "total_engagements": [4321, 4109, 3987, 3765, 3654, 3543, 3421, 3309, 3198, 3087],
+#             "unique_users": [7432, 7109, 6987, 6765, 6654, 6432, 6321, 6109, 5987, 5876],
+#             "geo_country": ["Nigeria", "Ghana", "Kenya", "South Africa", "United States", 
+#                             "United Kingdom", "Canada", "France", "Germany", "Australia"],
+#             "geo_region": ["Africa", "Africa", "Africa", "Africa", "North America", 
+#                           "Europe", "North America", "Europe", "Europe", "Oceania"]
+#         }
+#         return pd.DataFrame(data)
     
-    # 10 Most Engaged Songs
-    @st.cache_data
-    def load_engaged_songs():
-        data = {
-            "artist": ["Kizz Daniel", "Burna Boy", "WizKid", "Davido", "Fireboy DML", 
-                      "Joeboy", "Rema", "Tiwa Savage", "Stonebwoy", "Mr Eazi"],
-            "title": ["Buga", "Last Last", "Essence", "Unavailable", "Peru", 
-                     "Sip", "Calm Down", "Stamina", "Therapy", "Legalize"],
-            "total_plays": [15432, 14321, 13987, 12876, 12543, 11987, 11654, 11321, 10987, 10654],
-            "total_engagements": [4321, 4109, 3987, 3765, 3654, 3543, 3421, 3309, 3198, 3087],
-            "unique_users": [7432, 7109, 6987, 6765, 6654, 6432, 6321, 6109, 5987, 5876],
-            "engagement_per_user": [0.58, 0.58, 0.57, 0.56, 0.55, 0.55, 0.54, 0.54, 0.53, 0.53],
-            "play_cohort": ["High", "High", "High", "High", "High", "Medium", "Medium", "Medium", "Medium", "Medium"]
-        }
-        return pd.DataFrame(data)
+#     # 10 Most Engaged Songs
+#     @st.cache_data
+#     def load_engaged_songs():
+#         data = {
+#             "artist": ["Kizz Daniel", "Burna Boy", "WizKid", "Davido", "Fireboy DML", 
+#                       "Joeboy", "Rema", "Tiwa Savage", "Stonebwoy", "Mr Eazi"],
+#             "title": ["Buga", "Last Last", "Essence", "Unavailable", "Peru", 
+#                      "Sip", "Calm Down", "Stamina", "Therapy", "Legalize"],
+#             "total_plays": [15432, 14321, 13987, 12876, 12543, 11987, 11654, 11321, 10987, 10654],
+#             "total_engagements": [4321, 4109, 3987, 3765, 3654, 3543, 3421, 3309, 3198, 3087],
+#             "unique_users": [7432, 7109, 6987, 6765, 6654, 6432, 6321, 6109, 5987, 5876],
+#             "engagement_per_user": [0.58, 0.58, 0.57, 0.56, 0.55, 0.55, 0.54, 0.54, 0.53, 0.53],
+#             "play_cohort": ["High", "High", "High", "High", "High", "Medium", "Medium", "Medium", "Medium", "Medium"]
+#         }
+#         return pd.DataFrame(data)
     
-    # Fast Rising Artists
-    @st.cache_data
-    def load_fast_rising():
-        data = {
-            "artist": ["Joeboy", "Ayra Starr", "Tems", "Asake", "Zinoleesky", 
-                      "Victony", "Omah Lay", "BNXN", "Ruger", "Seyi Vibez"],
-            "plays": [11987, 10876, 10543, 10321, 9876, 9543, 9321, 9109, 8987, 8765],
-            "unique_listeners": [6432, 6109, 5987, 5876, 5654, 5543, 5321, 5109, 4987, 4876],
-            "favorites": [3543, 3321, 3198, 3087, 2987, 2876, 2765, 2654, 2543, 2432],
-            "shares": [1543, 1432, 1398, 1354, 1298, 1265, 1243, 1209, 1187, 1154],
-            "country_count": [32, 28, 27, 25, 24, 22, 21, 19, 18, 17],
-            "play_growth_pct": [156.43, 142.76, 135.54, 127.65, 118.32, 112.54, 108.76, 103.54, 97.65, 92.43],
-            "listener_growth_pct": [132.65, 124.54, 118.76, 112.43, 105.67, 98.76, 95.43, 91.23, 87.65, 83.54],
-            "fav_per_listener": [0.55, 0.54, 0.53, 0.53, 0.53, 0.52, 0.52, 0.52, 0.51, 0.50],
-            "share_per_listener": [0.24, 0.23, 0.23, 0.23, 0.23, 0.23, 0.23, 0.24, 0.24, 0.24],
-            "momentum_score": [87.65, 83.54, 79.87, 76.54, 73.21, 69.87, 67.54, 64.32, 61.54, 59.87]
-        }
-        return pd.DataFrame(data)
+#     # Fast Rising Artists
+#     @st.cache_data
+#     def load_fast_rising():
+#         data = {
+#             "artist": ["Joeboy", "Ayra Starr", "Tems", "Asake", "Zinoleesky", 
+#                       "Victony", "Omah Lay", "BNXN", "Ruger", "Seyi Vibez"],
+#             "plays": [11987, 10876, 10543, 10321, 9876, 9543, 9321, 9109, 8987, 8765],
+#             "unique_listeners": [6432, 6109, 5987, 5876, 5654, 5543, 5321, 5109, 4987, 4876],
+#             "favorites": [3543, 3321, 3198, 3087, 2987, 2876, 2765, 2654, 2543, 2432],
+#             "shares": [1543, 1432, 1398, 1354, 1298, 1265, 1243, 1209, 1187, 1154],
+#             "country_count": [32, 28, 27, 25, 24, 22, 21, 19, 18, 17],
+#             "play_growth_pct": [156.43, 142.76, 135.54, 127.65, 118.32, 112.54, 108.76, 103.54, 97.65, 92.43],
+#             "listener_growth_pct": [132.65, 124.54, 118.76, 112.43, 105.67, 98.76, 95.43, 91.23, 87.65, 83.54],
+#             "fav_per_listener": [0.55, 0.54, 0.53, 0.53, 0.53, 0.52, 0.52, 0.52, 0.51, 0.50],
+#             "share_per_listener": [0.24, 0.23, 0.23, 0.23, 0.23, 0.23, 0.23, 0.24, 0.24, 0.24],
+#             "momentum_score": [87.65, 83.54, 79.87, 76.54, 73.21, 69.87, 67.54, 64.32, 61.54, 59.87]
+#         }
+#         return pd.DataFrame(data)
     
-    # Top Country Pairs
-    @st.cache_data
-    def load_country_pairs():
-        data = {
-            "artist": ["Burna Boy", "Davido", "WizKid", "Kizz Daniel", "Burna Boy", 
-                      "WizKid", "Davido", "Fireboy DML", "Rema", "Burna Boy"],
-            "geo_country": ["Nigeria", "Nigeria", "Nigeria", "Nigeria", "United Kingdom", 
-                           "United Kingdom", "United States", "Nigeria", "United States", "United States"],
-            "total_events": [25432, 23987, 22543, 21987, 18765, 17654, 16987, 16543, 15987, 15432],
-            "plays": [21543, 20321, 19876, 18765, 16543, 15432, 14987, 14654, 14321, 13987]
-        }
-        return pd.DataFrame(data)
+#     # Top Country Pairs
+#     @st.cache_data
+#     def load_country_pairs():
+#         data = {
+#             "artist": ["Burna Boy", "Davido", "WizKid", "Kizz Daniel", "Burna Boy", 
+#                       "WizKid", "Davido", "Fireboy DML", "Rema", "Burna Boy"],
+#             "geo_country": ["Nigeria", "Nigeria", "Nigeria", "Nigeria", "United Kingdom", 
+#                            "United Kingdom", "United States", "Nigeria", "United States", "United States"],
+#             "total_events": [25432, 23987, 22543, 21987, 18765, 17654, 16987, 16543, 15987, 15432],
+#             "plays": [21543, 20321, 19876, 18765, 16543, 15432, 14987, 14654, 14321, 13987]
+#         }
+#         return pd.DataFrame(data)
     
-    # Engagement Sources
-    @st.cache_data
-    def load_engagement_sources():
-        data = {
-            "source_tab": ["Home", "Search", "Library", "Trending", "Artist Page", 
-                          "Playlist", "Feed", "Explore", "Notifications", "Profile"],
-            "section": ["Recommended", "Results", "Recent", "Weekly Chart", "Songs", 
-                       "Track List", "Following", "Genres", "Activity", "Uploads"],
-            "event_count": [145678, 123456, 108765, 98765, 87654, 76543, 65432, 54321, 43210, 32109]
-        }
-        return pd.DataFrame(data)
-# Add this function to your music_dashboard.py file
-# It should replace or fix the current style_metric_cards() function
+#     # Engagement Sources
+#     @st.cache_data
+#     def load_engagement_sources():
+#         data = {
+#             "source_tab": ["Home", "Search", "Library", "Trending", "Artist Page", 
+#                           "Playlist", "Feed", "Explore", "Notifications", "Profile"],
+#             "section": ["Recommended", "Results", "Recent", "Weekly Chart", "Songs", 
+#                        "Track List", "Following", "Genres", "Activity", "Uploads"],
+#             "event_count": [145678, 123456, 108765, 98765, 87654, 76543, 65432, 54321, 43210, 32109]
+#         }
+#         return pd.DataFrame(data)
+# # Add this function to your music_dashboard.py file
+# # It should replace or fix the current style_metric_cards() function
 
-    def style_metric_cards():
-        """Add custom styling to metric cards"""
-        st.markdown("""
-        <style>
-        div[data-testid="metric-container"] {
-            background-color: #f8f9fa;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
+#     def style_metric_cards():
+#         """Add custom styling to metric cards"""
+#         st.markdown("""
+#         <style>
+#         div[data-testid="metric-container"] {
+#             background-color: #f8f9fa;
+#             border-radius: 10px;
+#             padding: 20px;
+#             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+#         }
         
-        div[data-testid="metric-container"] > div {
-            background-color: transparent;
-        }
+#         div[data-testid="metric-container"] > div {
+#             background-color: transparent;
+#         }
         
-        div[data-testid="metric-container"] label {
-            color: #4ECDC4;
-            font-weight: bold;
-        }
+#         div[data-testid="metric-container"] label {
+#             color: #4ECDC4;
+#             font-weight: bold;
+#         }
         
-        div[data-testid="metric-container"] p {
-            color: #1A535C;
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
+#         div[data-testid="metric-container"] p {
+#             color: #1A535C;
+#             font-weight: bold;
+#             font-size: 1.2rem;
+#         }
         
-        div[data-testid="stMetricDelta"] p {
-            font-size: 0.9rem;
-            color: #FF6B6B;
-        }
+#         div[data-testid="stMetricDelta"] p {
+#             font-size: 0.9rem;
+#             color: #FF6B6B;
+#         }
         
-        div[data-testid="stMetricDelta"] svg {
-            color: #FF6B6B;
-        }
-        </style>
-        """, unsafe_allow_html=True)
+#         div[data-testid="stMetricDelta"] svg {
+#             color: #FF6B6B;
+#         }
+#         </style>
+#         """, unsafe_allow_html=True)
     
 
 
 
     
     
-    # Load data
-    top_artists_df = load_top_artists()
-    amd_geo_df = load_amd_geo()
-    engaged_songs_df = load_engaged_songs()
-    fast_rising_df = load_fast_rising()
-    country_pairs_df = load_country_pairs()
-    engagement_sources_df = load_engagement_sources()
+#     # Load data
+#     top_artists_df = load_top_artists()
+#     amd_geo_df = load_amd_geo()
+#     engaged_songs_df = load_engaged_songs()
+#     fast_rising_df = load_fast_rising()
+#     country_pairs_df = load_country_pairs()
+#     engagement_sources_df = load_engagement_sources()
     
-    # TAB 1: OVERVIEW
-    with tab1:
-        st.header("AMD Artist Analytics Overview")
-        st.subheader("Week of April 7-13, 2025")
+#     # TAB 1: OVERVIEW
+#     with tab1:
+#         st.header("AMD Artist Analytics Overview")
+#         st.subheader("Week of April 7-13, 2025")
         
-        # Top metrics row
-        col1, col2, col3, col4 = st.columns(4)
+#         # Top metrics row
+#         col1, col2, col3, col4 = st.columns(4)
         
-        with col1:
-            st.metric(
-                label="Total Plays (AMD Artists)",
-                value=f"{sum(top_artists_df['total_plays'].head(5)):,}",
-                delta="+12.4%",
-                delta_color="normal"
-            )
+#         with col1:
+#             st.metric(
+#                 label="Total Plays (AMD Artists)",
+#                 value=f"{sum(top_artists_df['total_plays'].head(5)):,}",
+#                 delta="+12.4%",
+#                 delta_color="normal"
+#             )
         
-        with col2:
-            st.metric(
-                label="Total Engagements",
-                value=f"{sum(top_artists_df['total_engagements'].head(5)):,}",
-                delta="+18.7%",
-                delta_color="normal"
-            )
+#         with col2:
+#             st.metric(
+#                 label="Total Engagements",
+#                 value=f"{sum(top_artists_df['total_engagements'].head(5)):,}",
+#                 delta="+18.7%",
+#                 delta_color="normal"
+#             )
         
-        with col3:
-            st.metric(
-                label="Unique Users",
-                value=f"{sum(top_artists_df['unique_users'].head(5)):,}",
-                delta="+8.3%",
-                delta_color="normal"
-            )
+#         with col3:
+#             st.metric(
+#                 label="Unique Users",
+#                 value=f"{sum(top_artists_df['unique_users'].head(5)):,}",
+#                 delta="+8.3%",
+#                 delta_color="normal"
+#             )
         
-        with col4:
-            st.metric(
-                label="Avg. Engagement Per User",
-                value=f"{sum(top_artists_df['total_engagements'].head(5)) / sum(top_artists_df['unique_users'].head(5)):.2f}",
-                delta="+5.2%",
-                delta_color="normal"
-            )
+#         with col4:
+#             st.metric(
+#                 label="Avg. Engagement Per User",
+#                 value=f"{sum(top_artists_df['total_engagements'].head(5)) / sum(top_artists_df['unique_users'].head(5)):.2f}",
+#                 delta="+5.2%",
+#                 delta_color="normal"
+#             )
             
-        style_metric_cards()
+#         style_metric_cards()
         
-        st.markdown("---")
+#         st.markdown("---")
         
-        # Top Artists visualization
-        colored_header(
-            label="Top 10 Most Engaged Artists",
-            description="Based on total engagement (favorites, reposts, comments)",
-            color_name="blue-70"
-        )
+#         # Top Artists visualization
+#         colored_header(
+#             label="Top 10 Most Engaged Artists",
+#             description="Based on total engagement (favorites, reposts, comments)",
+#             color_name="blue-70"
+#         )
         
-        col1, col2 = st.columns([2, 1])
+#         col1, col2 = st.columns([2, 1])
         
-        with col1:
-            fig = px.bar(
-                top_artists_df,
-                x="artist",
-                y=["total_plays", "total_engagements"],
-                title="Top Artists by Plays and Engagements",
-                barmode="group",
-                color_discrete_sequence=["#4ecb71", "#4e8df5"]
-            )
-            fig.update_layout(
-                xaxis_title="Artist",
-                yaxis_title="Count",
-                legend_title="Metric",
-                height=400
-            )
-            st.plotly_chart(fig, use_container_width=True)
+#         with col1:
+#             fig = px.bar(
+#                 top_artists_df,
+#                 x="artist",
+#                 y=["total_plays", "total_engagements"],
+#                 title="Top Artists by Plays and Engagements",
+#                 barmode="group",
+#                 color_discrete_sequence=["#4ecb71", "#4e8df5"]
+#             )
+#             fig.update_layout(
+#                 xaxis_title="Artist",
+#                 yaxis_title="Count",
+#                 legend_title="Metric",
+#                 height=400
+#             )
+#             st.plotly_chart(fig, use_container_width=True)
         
-        with col2:
-            # Create a combined dataframe for user metrics
-            user_metrics = top_artists_df[["artist", "unique_users"]].sort_values("unique_users", ascending=False).head(10)
+#         with col2:
+#             # Create a combined dataframe for user metrics
+#             user_metrics = top_artists_df[["artist", "unique_users"]].sort_values("unique_users", ascending=False).head(10)
             
-            fig = px.pie(
-                user_metrics,
-                names="artist",
-                values="unique_users",
-                title="Share of Unique Users by Artist",
-                hole=0.4,
-                color_discrete_sequence=px.colors.qualitative.Bold
-            )
-            fig.update_traces(textposition='inside', textinfo='percent+label')
-            fig.update_layout(height=400)
-            st.plotly_chart(fig, use_container_width=True)
+#             fig = px.pie(
+#                 user_metrics,
+#                 names="artist",
+#                 values="unique_users",
+#                 title="Share of Unique Users by Artist",
+#                 hole=0.4,
+#                 color_discrete_sequence=px.colors.qualitative.Bold
+#             )
+#             fig.update_traces(textposition='inside', textinfo='percent+label')
+#             fig.update_layout(height=400)
+#             st.plotly_chart(fig, use_container_width=True)
         
-        st.markdown("---")
+#         st.markdown("---")
         
-        # Fast Rising Artists
-        colored_header(
-            label="Fast Rising Artists (Momentum Score)",
-            description="Based on growth metrics and engagement",
-            color_name="blue-70"
-        )
+#         # Fast Rising Artists
+#         colored_header(
+#             label="Fast Rising Artists (Momentum Score)",
+#             description="Based on growth metrics and engagement",
+#             color_name="blue-70"
+#         )
         
-        col1, col2 = st.columns([3, 1])
+#         col1, col2 = st.columns([3, 1])
         
-        with col1:
-            fig = px.bar(
-                fast_rising_df.sort_values("momentum_score", ascending=False),
-                x="artist",
-                y="momentum_score",
-                title="Artists by Momentum Score",
-                color="momentum_score",
-                color_continuous_scale="Viridis"
-            )
-            fig.update_layout(height=400)
-            st.plotly_chart(fig, use_container_width=True)
+#         with col1:
+#             fig = px.bar(
+#                 fast_rising_df.sort_values("momentum_score", ascending=False),
+#                 x="artist",
+#                 y="momentum_score",
+#                 title="Artists by Momentum Score",
+#                 color="momentum_score",
+#                 color_continuous_scale="Viridis"
+#             )
+#             fig.update_layout(height=400)
+#             st.plotly_chart(fig, use_container_width=True)
         
-        with col2:
-            st.markdown("### Top Growth Metrics")
-            for i, row in fast_rising_df.sort_values("play_growth_pct", ascending=False).head(5).iterrows():
-                st.markdown(f"""
-                <div class="task-box priority-high">
-                    <strong>{row['artist']}</strong><br>
-                    Play Growth: {row['play_growth_pct']:.1f}%<br>
-                    Listener Growth: {row['listener_growth_pct']:.1f}%
-                </div>
-                """, unsafe_allow_html=True)
+#         with col2:
+#             st.markdown("### Top Growth Metrics")
+#             for i, row in fast_rising_df.sort_values("play_growth_pct", ascending=False).head(5).iterrows():
+#                 st.markdown(f"""
+#                 <div class="task-box priority-high">
+#                     <strong>{row['artist']}</strong><br>
+#                     Play Growth: {row['play_growth_pct']:.1f}%<br>
+#                     Listener Growth: {row['listener_growth_pct']:.1f}%
+#                 </div>
+#                 """, unsafe_allow_html=True)
     
-    # TAB 2: GEOGRAPHIC ANALYSIS
-    with tab2:
-        st.header("Geographic Analysis")
-        st.subheader("Regional Performance of AMD Artists")
+#     # TAB 2: GEOGRAPHIC ANALYSIS
+#     with tab2:
+#         st.header("Geographic Analysis")
+#         st.subheader("Regional Performance of AMD Artists")
         
-        # Country distribution
-        colored_header(
-            label="Top Artist-Country Pairs",
-            description="Based on play counts and engagement",
-            color_name="green-70"
-        )
+#         # Country distribution
+#         colored_header(
+#             label="Top Artist-Country Pairs",
+#             description="Based on play counts and engagement",
+#             color_name="green-70"
+#         )
         
-        col1, col2 = st.columns([3, 1])
+#         col1, col2 = st.columns([3, 1])
         
-        with col1:
-            # Group by country and sum plays
-            country_plays = country_pairs_df.groupby("geo_country")["plays"].sum().reset_index()
-            country_plays = country_plays.sort_values("plays", ascending=False)
+#         with col1:
+#             # Group by country and sum plays
+#             country_plays = country_pairs_df.groupby("geo_country")["plays"].sum().reset_index()
+#             country_plays = country_plays.sort_values("plays", ascending=False)
             
-            fig = px.choropleth(
-                country_plays,
-                locations="geo_country",
-                locationmode="country names",
-                color="plays",
-                hover_name="geo_country",
-                title="Total Plays by Country",
-                color_continuous_scale="Viridis"
-            )
-            fig.update_layout(height=500)
-            st.plotly_chart(fig, use_container_width=True)
+#             fig = px.choropleth(
+#                 country_plays,
+#                 locations="geo_country",
+#                 locationmode="country names",
+#                 color="plays",
+#                 hover_name="geo_country",
+#                 title="Total Plays by Country",
+#                 color_continuous_scale="Viridis"
+#             )
+#             fig.update_layout(height=500)
+#             st.plotly_chart(fig, use_container_width=True)
         
-        with col2:
-            st.markdown("### Top Countries")
-            for i, row in country_plays.head(5).iterrows():
-                st.markdown(f"""
-                <div class="task-box">
-                    <strong>{row['geo_country']}</strong><br>
-                    Total Plays: {row['plays']:,}
-                </div>
-                """, unsafe_allow_html=True)
+#         with col2:
+#             st.markdown("### Top Countries")
+#             for i, row in country_plays.head(5).iterrows():
+#                 st.markdown(f"""
+#                 <div class="task-box">
+#                     <strong>{row['geo_country']}</strong><br>
+#                     Total Plays: {row['plays']:,}
+#                 </div>
+#                 """, unsafe_allow_html=True)
         
-        st.markdown("---")
+#         st.markdown("---")
         
-        # Top Artist-Country Pairs
-        colored_header(
-            label="Top Artist-Country Performance",
-            description="Detailed breakdown of plays by artist and country",
-            color_name="green-70"
-        )
+#         # Top Artist-Country Pairs
+#         colored_header(
+#             label="Top Artist-Country Performance",
+#             description="Detailed breakdown of plays by artist and country",
+#             color_name="green-70"
+#         )
         
-        fig = px.bar(
-            country_pairs_df,
-            x="artist",
-            y="plays",
-            color="geo_country",
-            title="Top Artist-Country Pairs by Play Count",
-            barmode="group"
-        )
-        fig.update_layout(height=500)
-        st.plotly_chart(fig, use_container_width=True)
+#         fig = px.bar(
+#             country_pairs_df,
+#             x="artist",
+#             y="plays",
+#             color="geo_country",
+#             title="Top Artist-Country Pairs by Play Count",
+#             barmode="group"
+#         )
+#         fig.update_layout(height=500)
+#         st.plotly_chart(fig, use_container_width=True)
         
-        # AMD Songs Geo Breakdown
-        colored_header(
-            label="AMD Songs by Region",
-            description="Geographic distribution of engagement for top AMD songs",
-            color_name="green-70"
-        )
+#         # AMD Songs Geo Breakdown
+#         colored_header(
+#             label="AMD Songs by Region",
+#             description="Geographic distribution of engagement for top AMD songs",
+#             color_name="green-70"
+#         )
         
-        # Group by region
-        region_plays = amd_geo_df.groupby("geo_region")[["total_plays", "total_engagements"]].sum().reset_index()
+#         # Group by region
+#         region_plays = amd_geo_df.groupby("geo_region")[["total_plays", "total_engagements"]].sum().reset_index()
         
-        col1, col2 = st.columns(2)
+#         col1, col2 = st.columns(2)
         
-        with col1:
-            fig = px.pie(
-                region_plays,
-                names="geo_region",
-                values="total_plays",
-                title="Plays by Region",
-                color_discrete_sequence=px.colors.qualitative.Bold
-            )
-            fig.update_traces(textposition='inside', textinfo='percent+label')
-            st.plotly_chart(fig, use_container_width=True)
+#         with col1:
+#             fig = px.pie(
+#                 region_plays,
+#                 names="geo_region",
+#                 values="total_plays",
+#                 title="Plays by Region",
+#                 color_discrete_sequence=px.colors.qualitative.Bold
+#             )
+#             fig.update_traces(textposition='inside', textinfo='percent+label')
+#             st.plotly_chart(fig, use_container_width=True)
         
-        with col2:
-            fig = px.pie(
-                region_plays,
-                names="geo_region",
-                values="total_engagements",
-                title="Engagements by Region",
-                color_discrete_sequence=px.colors.qualitative.Set2
-            )
-            fig.update_traces(textposition='inside', textinfo='percent+label')
-            st.plotly_chart(fig, use_container_width=True)
+#         with col2:
+#             fig = px.pie(
+#                 region_plays,
+#                 names="geo_region",
+#                 values="total_engagements",
+#                 title="Engagements by Region",
+#                 color_discrete_sequence=px.colors.qualitative.Set2
+#             )
+#             fig.update_traces(textposition='inside', textinfo='percent+label')
+#             st.plotly_chart(fig, use_container_width=True)
     
-    # TAB 3: ENGAGEMENT METRICS
-    with tab3:
-        st.header("Engagement Analysis")
-        st.subheader("User Interaction Metrics")
+#     # TAB 3: ENGAGEMENT METRICS
+#     with tab3:
+#         st.header("Engagement Analysis")
+#         st.subheader("User Interaction Metrics")
         
-        # Most Engaged Songs
-        colored_header(
-            label="Most Engaged Songs",
-            description="Songs with highest engagement per user",
-            color_name="orange-70"
-        )
+#         # Most Engaged Songs
+#         colored_header(
+#             label="Most Engaged Songs",
+#             description="Songs with highest engagement per user",
+#             color_name="orange-70"
+#         )
         
-        col1, col2 = st.columns([3, 1])
+#         col1, col2 = st.columns([3, 1])
         
-        with col1:
-            fig = px.scatter(
-                engaged_songs_df,
-                x="total_plays",
-                y="engagement_per_user",
-                size="unique_users",
-                color="play_cohort",
-                hover_name="title",
-                hover_data=["artist", "total_engagements"],
-                title="Engagement per User vs. Plays",
-                size_max=50
-            )
-            fig.update_layout(height=400)
-            st.plotly_chart(fig, use_container_width=True)
+#         with col1:
+#             fig = px.scatter(
+#                 engaged_songs_df,
+#                 x="total_plays",
+#                 y="engagement_per_user",
+#                 size="unique_users",
+#                 color="play_cohort",
+#                 hover_name="title",
+#                 hover_data=["artist", "total_engagements"],
+#                 title="Engagement per User vs. Plays",
+#                 size_max=50
+#             )
+#             fig.update_layout(height=400)
+#             st.plotly_chart(fig, use_container_width=True)
         
-        with col2:
-            st.markdown("### Engagement Cohorts")
-            cohort_counts = engaged_songs_df["play_cohort"].value_counts().reset_index()
-            cohort_counts.columns = ["play_cohort", "count"]
+#         with col2:
+#             st.markdown("### Engagement Cohorts")
+#             cohort_counts = engaged_songs_df["play_cohort"].value_counts().reset_index()
+#             cohort_counts.columns = ["play_cohort", "count"]
             
-            fig = px.pie(
-                cohort_counts,
-                names="play_cohort",
-                values="count",
-                title="Distribution by Play Cohort",
-                color="play_cohort",
-                color_discrete_map={
-                    "High": "#4ecb71",
-                    "Medium": "#ffa64b",
-                    "Low": "#ff4b4b"
-                }
-            )
-            fig.update_traces(textposition='inside', textinfo='percent+label')
-            st.plotly_chart(fig, use_container_width=True)
+#             fig = px.pie(
+#                 cohort_counts,
+#                 names="play_cohort",
+#                 values="count",
+#                 title="Distribution by Play Cohort",
+#                 color="play_cohort",
+#                 color_discrete_map={
+#                     "High": "#4ecb71",
+#                     "Medium": "#ffa64b",
+#                     "Low": "#ff4b4b"
+#                 }
+#             )
+#             fig.update_traces(textposition='inside', textinfo='percent+label')
+#             st.plotly_chart(fig, use_container_width=True)
         
-        st.markdown("---")
+#         st.markdown("---")
         
-        # Engagement Source Analysis
-        colored_header(
-            label="Engagement Sources",
-            description="Where user engagement comes from within the app",
-            color_name="orange-70"
-        )
+#         # Engagement Source Analysis
+#         colored_header(
+#             label="Engagement Sources",
+#             description="Where user engagement comes from within the app",
+#             color_name="orange-70"
+#         )
         
-        # Top 10 source tabs
-        top_sources = engagement_sources_df.sort_values("event_count", ascending=False).head(10)
+#         # Top 10 source tabs
+#         top_sources = engagement_sources_df.sort_values("event_count", ascending=False).head(10)
         
-        col1, col2 = st.columns(2)
+#         col1, col2 = st.columns(2)
         
-        with col1:
-            fig = px.bar(
-                top_sources,
-                x="source_tab",
-                y="event_count",
-                title="Top Engagement Sources by Tab",
-                color="event_count",
-                color_continuous_scale="Viridis"
-            )
-            fig.update_layout(height=400)
-            st.plotly_chart(fig, use_container_width=True)
+#         with col1:
+#             fig = px.bar(
+#                 top_sources,
+#                 x="source_tab",
+#                 y="event_count",
+#                 title="Top Engagement Sources by Tab",
+#                 color="event_count",
+#                 color_continuous_scale="Viridis"
+#             )
+#             fig.update_layout(height=400)
+#             st.plotly_chart(fig, use_container_width=True)
         
-        with col2:
-            fig = px.bar(
-                top_sources,
-                x="section",
-                y="event_count",
-                title="Top Engagement by Section",
-                color="source_tab",
-                color_discrete_sequence=px.colors.qualitative.Bold
-            )
-            fig.update_layout(height=400)
-            st.plotly_chart(fig, use_container_width=True)
+#         with col2:
+#             fig = px.bar(
+#                 top_sources,
+#                 x="section",
+#                 y="event_count",
+#                 title="Top Engagement by Section",
+#                 color="source_tab",
+#                 color_discrete_sequence=px.colors.qualitative.Bold
+#             )
+#             fig.update_layout(height=400)
+#             st.plotly_chart(fig, use_container_width=True)
         
-        st.markdown("---")
+#         st.markdown("---")
         
-        # Small-to-Medium Artists with High Engagement
-        colored_header(
-            label="Emerging Artists with High Engagement",
-            description="Small to mid-sized artists with strong user engagement",
-            color_name="orange-70"
-        )
+#         # Small-to-Medium Artists with High Engagement
+#         colored_header(
+#             label="Emerging Artists with High Engagement",
+#             description="Small to mid-sized artists with strong user engagement",
+#             color_name="orange-70"
+#         )
         
-        # Create a mock dataset for this
-        emerging_artists = pd.DataFrame({
-            "artist": ["Victony", "Seyi Vibez", "BNXN", "Ruger", "Omah Lay", 
-                       "Young Jonn", "Lojay", "Buju", "Zinoleesky", "Chike"],
-            "total_users": [5543, 4876, 5109, 4987, 5321, 4765, 4654, 4543, 5654, 4432],
-            "total_plays": [543, 876, 765, 654, 987, 543, 432, 321, 765, 654],
-            "total_engagements": [321, 432, 398, 376, 465, 321, 287, 265, 432, 376],
-            "engagements_per_user": [0.058, 0.089, 0.078, 0.075, 0.087, 0.067, 0.062, 0.058, 0.076, 0.085]
-        })
+#         # Create a mock dataset for this
+#         emerging_artists = pd.DataFrame({
+#             "artist": ["Victony", "Seyi Vibez", "BNXN", "Ruger", "Omah Lay", 
+#                        "Young Jonn", "Lojay", "Buju", "Zinoleesky", "Chike"],
+#             "total_users": [5543, 4876, 5109, 4987, 5321, 4765, 4654, 4543, 5654, 4432],
+#             "total_plays": [543, 876, 765, 654, 987, 543, 432, 321, 765, 654],
+#             "total_engagements": [321, 432, 398, 376, 465, 321, 287, 265, 432, 376],
+#             "engagements_per_user": [0.058, 0.089, 0.078, 0.075, 0.087, 0.067, 0.062, 0.058, 0.076, 0.085]
+#         })
         
-        fig = px.scatter(
-            emerging_artists,
-            x="total_plays",
-            y="engagements_per_user",
-            size="total_users",
-            hover_name="artist",
-            text="artist",
-            title="Emerging Artists: Engagement per User vs. Plays",
-            size_max=50
-        )
-        fig.update_traces(textposition='top center')
-        fig.update_layout(height=500)
-        st.plotly_chart(fig, use_container_width=True)
+#         fig = px.scatter(
+#             emerging_artists,
+#             x="total_plays",
+#             y="engagements_per_user",
+#             size="total_users",
+#             hover_name="artist",
+#             text="artist",
+#             title="Emerging Artists: Engagement per User vs. Plays",
+#             size_max=50
+#         )
+#         fig.update_traces(textposition='top center')
+#         fig.update_layout(height=500)
+#         st.plotly_chart(fig, use_container_width=True)
     
-    # TAB 4: TODO LIST
-    with tab4:
-        st.header("Week 2 Tasks & TODO List")
+#     # TAB 4: TODO LIST
+#     with tab4:
+#         st.header("Week 2 Tasks & TODO List")
         
-        # Assignment section
-        colored_header(
-            label="Week 2 Assignments",
-            description="Tasks to complete by next week",
-            color_name="red-70"
-        )
+#         # Assignment section
+#         colored_header(
+#             label="Week 2 Assignments",
+#             description="Tasks to complete by next week",
+#             color_name="red-70"
+#         )
         
-        col1, col2 = st.columns(2)
+#         col1, col2 = st.columns(2)
         
-        with col1:
-            st.markdown("### Explore Superset")
-            st.markdown("""
-            <div class="task-box priority-high">
-                <input type="checkbox" disabled> Explore the Monthly Plays Dashboard
-            </div>
-            <div class="task-box priority-high">
-                <input type="checkbox" disabled> Explore AMD dashboards (Performance)
-            </div>
-            <div class="task-box priority-high">
-                <input type="checkbox" disabled> Explore old ArtistRank dashboard
-            </div>
-            """, unsafe_allow_html=True)
+#         with col1:
+#             st.markdown("### Explore Superset")
+#             st.markdown("""
+#             <div class="task-box priority-high">
+#                 <input type="checkbox" disabled> Explore the Monthly Plays Dashboard
+#             </div>
+#             <div class="task-box priority-high">
+#                 <input type="checkbox" disabled> Explore AMD dashboards (Performance)
+#             </div>
+#             <div class="task-box priority-high">
+#                 <input type="checkbox" disabled> Explore old ArtistRank dashboard
+#             </div>
+#             """, unsafe_allow_html=True)
             
-            st.markdown("### Linlin's Tasks")
-            st.markdown("""
-            <div class="task-box priority-high">
-                <input type="checkbox" disabled> Make superset chart within AMD dash
-            </div>
-            <div class="task-box priority-medium">
-                <input type="checkbox" disabled> Query AM editorial playlists (refresh daily)
-            </div>
-            <div class="task-box priority-medium">
-                <input type="checkbox" disabled> Pull song & artist data
-            </div>
-            """, unsafe_allow_html=True)
+#             st.markdown("### Linlin's Tasks")
+#             st.markdown("""
+#             <div class="task-box priority-high">
+#                 <input type="checkbox" disabled> Make superset chart within AMD dash
+#             </div>
+#             <div class="task-box priority-medium">
+#                 <input type="checkbox" disabled> Query AM editorial playlists (refresh daily)
+#             </div>
+#             <div class="task-box priority-medium">
+#                 <input type="checkbox" disabled> Pull song & artist data
+#             </div>
+#             """, unsafe_allow_html=True)
         
-        with col2:
-            st.markdown("### Jordan & Jalen's Tasks")
-            st.markdown("""
-            <div class="task-box priority-high">
-                <input type="checkbox" disabled> Comb playlist tables for viable songs
-            </div>
-            <div class="task-box priority-high">
-                <input type="checkbox" disabled> Vet unsigned songs
-            </div>
-            <div class="task-box priority-medium">
-                <input type="checkbox" disabled> Identify songs for AMD recommendation
-            </div>
-            <div class="task-box priority-low">
-                <input type="checkbox" disabled> Send their playlist
-            </div>
-            <div class="task-box priority-medium">
-                <input type="checkbox" disabled> Discuss and play top 3 picks
-            </div>
-            """, unsafe_allow_html=True)
+#         with col2:
+#             st.markdown("### Jordan & Jalen's Tasks")
+#             st.markdown("""
+#             <div class="task-box priority-high">
+#                 <input type="checkbox" disabled> Comb playlist tables for viable songs
+#             </div>
+#             <div class="task-box priority-high">
+#                 <input type="checkbox" disabled> Vet unsigned songs
+#             </div>
+#             <div class="task-box priority-medium">
+#                 <input type="checkbox" disabled> Identify songs for AMD recommendation
+#             </div>
+#             <div class="task-box priority-low">
+#                 <input type="checkbox" disabled> Send their playlist
+#             </div>
+#             <div class="task-box priority-medium">
+#                 <input type="checkbox" disabled> Discuss and play top 3 picks
+#             </div>
+#             """, unsafe_allow_html=True)
         
-        st.markdown("---")
+#         st.markdown("---")
         
-        # TODO checklist with current status
-        colored_header(
-            label="AMD Artist Performance Evaluation",
-            description="Weekly task to evaluate AMD song performance",
-            color_name="red-70"
-        )
+#         # TODO checklist with current status
+#         colored_header(
+#             label="AMD Artist Performance Evaluation",
+#             description="Weekly task to evaluate AMD song performance",
+#             color_name="red-70"
+#         )
         
-        st.markdown("""
-        ### Evaluation Checklist
+#         st.markdown("""
+#         ### Evaluation Checklist
         
-        For each AMD song, analyze:
+#         For each AMD song, analyze:
         
-        1. ✅ Stream counts (collect from 'Current AMD Songs with Engagement Metrics' data)
-        2. ✅ Engagement metrics (favorites, reposts, comments)
-        3. ✅ Geographic performance (identify top performing territories)
-        4. ⬜ Marketing campaigns assessment (refer to marketing tracker)
-        5. ⬜ Post mortem review (found in marketing tracker)
-        6. ⬜ Audience/demographic analysis
-        7. ⬜ Amplification recommendations
-        """)
+#         1. ✅ Stream counts (collect from 'Current AMD Songs with Engagement Metrics' data)
+#         2. ✅ Engagement metrics (favorites, reposts, comments)
+#         3. ✅ Geographic performance (identify top performing territories)
+#         4. ⬜ Marketing campaigns assessment (refer to marketing tracker)
+#         5. ⬜ Post mortem review (found in marketing tracker)
+#         6. ⬜ Audience/demographic analysis
+#         7. ⬜ Amplification recommendations
+#         """)
         
-        # Timeline for remaining tasks
-        colored_header(
-            label="Timeline & Next Steps",
-            description="Planning for completion of remaining tasks",
-            color_name="red-70"
-        )
+#         # Timeline for remaining tasks
+#         colored_header(
+#             label="Timeline & Next Steps",
+#             description="Planning for completion of remaining tasks",
+#             color_name="red-70"
+#         )
         
-        col1, col2 = st.columns(2)
+#         col1, col2 = st.columns(2)
         
-        with col1:
-            st.markdown("### Implementation Plan")
-            st.markdown("""
-            1. **April 15:** Complete Superset exploration
-            2. **April 16:** Develop AM editorial playlist query
-            3. **April 17:** Integrate query into AMD dashboard
-            4. **April 18-19:** Complete marketing analysis for top AMD songs
-            5. **April 20:** Prepare recommendations for cross-border amplification
-            6. **April 21:** Meeting to discuss findings and next steps
-            """)
+#         with col1:
+#             st.markdown("### Implementation Plan")
+#             st.markdown("""
+#             1. **April 15:** Complete Superset exploration
+#             2. **April 16:** Develop AM editorial playlist query
+#             3. **April 17:** Integrate query into AMD dashboard
+#             4. **April 18-19:** Complete marketing analysis for top AMD songs
+#             5. **April 20:** Prepare recommendations for cross-border amplification
+#             6. **April 21:** Meeting to discuss findings and next steps
+#             """)
         
-        with col2:
-            st.markdown("### Focus Areas")
-            st.markdown("""
-            **For Next Week:**
+#         with col2:
+#             st.markdown("### Focus Areas")
+#             st.markdown("""
+#             **For Next Week:**
             
-            1. Cross-territory promotion for top AMD artists
-               - Identify diaspora audiences (e.g., Nigerian diaspora in US, UK, CA)
-               - Target specific regions with high engagement potential
+#             1. Cross-territory promotion for top AMD artists
+#                - Identify diaspora audiences (e.g., Nigerian diaspora in US, UK, CA)
+#                - Target specific regions with high engagement potential
                
-            2. Audience cohort analysis
-               - Build segmentation by engagement level
-               - Identify engagement patterns in different territories
+#             2. Audience cohort analysis
+#                - Build segmentation by engagement level
+#                - Identify engagement patterns in different territories
                
-            3. Playlist inclusion opportunities
-               - Review editorial playlist data
-               - Target specific playlist opportunities for unsigned artists
-            """)
+#             3. Playlist inclusion opportunities
+#                - Review editorial playlist data
+#                - Target specific playlist opportunities for unsigned artists
+#             """)
         
-        # Insights section
-        colored_header(
-            label="Key Insights & Opportunities",
-            description="Initial findings from Week 2 data analysis",
-            color_name="red-70"
-        )
+#         # Insights section
+#         colored_header(
+#             label="Key Insights & Opportunities",
+#             description="Initial findings from Week 2 data analysis",
+#             color_name="red-70"
+#         )
         
-        st.markdown("""
-        ### Early Insights
+#         st.markdown("""
+#         ### Early Insights
         
-        1. **Geographic Expansion Opportunity:**
-           - Several AMD artists have strong performance in specific African countries but show potential for growth in diaspora territories.
-           - Example: Artist with 20% reach in Sierra Leone, but only 5% for their recent song.
+#         1. **Geographic Expansion Opportunity:**
+#            - Several AMD artists have strong performance in specific African countries but show potential for growth in diaspora territories.
+#            - Example: Artist with 20% reach in Sierra Leone, but only 5% for their recent song.
         
-        2. **Emerging Artist Opportunity:**
-           - Small-to-medium sized artists (100-1000 plays) with high engagement per user represent potential breakthrough artists.
-           - These artists could benefit from targeted editorial playlist inclusion.
+#         2. **Emerging Artist Opportunity:**
+#            - Small-to-medium sized artists (100-1000 plays) with high engagement per user represent potential breakthrough artists.
+#            - These artists could benefit from targeted editorial playlist inclusion.
         
-        3. **Platform Engagement Patterns:**
-           - Most engagement comes from Home and Search tabs.
-           - Potential to improve engagement through better Explore and Feed tab optimization.
-        """)
+#         3. **Platform Engagement Patterns:**
+#            - Most engagement comes from Home and Search tabs.
+#            - Potential to improve engagement through better Explore and Feed tab optimization.
+#         """)
         
-        # Add a quick form for notes
-        st.markdown("---")
-        st.subheader("Add Notes for Next Week")
+#         # Add a quick form for notes
+#         st.markdown("---")
+#         st.subheader("Add Notes for Next Week")
         
-        note_text = st.text_area("Notes", height=100)
-        priority = st.selectbox("Priority", ["High", "Medium", "Low"])
-        assignee = st.selectbox("Assign to", ["Linlin", "Jordan", "Jalen", "Team"])
+#         note_text = st.text_area("Notes", height=100)
+#         priority = st.selectbox("Priority", ["High", "Medium", "Low"])
+#         assignee = st.selectbox("Assign to", ["Linlin", "Jordan", "Jalen", "Team"])
         
-        if st.button("Save Note"):
-            st.success("Note saved! (Demo only - no actual saving occurs)")
+#         if st.button("Save Note"):
+#             st.success("Note saved! (Demo only - no actual saving occurs)")
 
 
 
