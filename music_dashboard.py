@@ -12,7 +12,7 @@ import datetime
 
 
 # Set page configuration
-st.set_page_config(
+st.set_page_config(c
     page_title="Audiomack ArtistRank Dashboard - Week 2",
     page_icon="🎵",
     layout="wide"
@@ -528,7 +528,7 @@ with week_tabs[0]:
         
         
         st.markdown("---")
-        st.info("Dashboard created: April 14, 2025")
+        st.info("Dashboard updated: April 14, 2025")
     
     # Main tabs
     tab1, tab2, tab3, tab4 = st.tabs(["📊 Overview", "🌎 Geographic Analysis", "📈 Engagement Metrics", "✅ TODO List"])
