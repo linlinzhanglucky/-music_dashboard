@@ -1174,7 +1174,7 @@ with week_tabs[0]:
 
 
 # Week 2 content (current)
-with week_tabs[0]:
+with week_tabs[1]:
     # Dashboard title and description
     st.markdown('<div class="main-header">🎵 Audiomack ArtistRank Dashboard - Week 2</div>', unsafe_allow_html=True)
     st.markdown('<div class="date-info">Analysis period: April 7-13, 2025 | Dashboard updated: April 13, 2025</div>', unsafe_allow_html=True)
@@ -2706,7 +2706,7 @@ with week_tabs[0]:
 
 
 # Week 1 content (previous)
-with week_tabs[1]:
+with week_tabs[2]:
 
 
     # # Set page configuration
