@@ -520,10 +520,12 @@ with week_tabs[0]:
         st.markdown("* [Marketing Tracker](https://link-to-dashboard)")
         
         st.markdown("---")
-        st.markdown("### Team")
-        st.markdown("* Linlin (Data Analytics)")
-        st.markdown("* Jordan (A&R Curator)")
-        st.markdown("* Jalen (A&R Curator)")
+        st.markdown("### Contract")
+        st.markdown("* Jacob & Ryan (Supervisor)")
+        st.markdown("* Jalen & Jordan (A&R Curator)")
+        st.markdown("* Linlin (Data Analytics Intern)")
+        # st.markdown("* Jalen (A&R Curator)")
+        
         
         st.markdown("---")
         st.info("Dashboard created: April 14, 2025")
