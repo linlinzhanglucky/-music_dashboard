@@ -37,77 +37,93 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Function to load data
+# Function to generate hardcoded sample data based on the expected CSV structure
 @st.cache_data
 def load_data():
-    try:
-        # Load data from CSV files
-        top_artists_df = pd.read_csv('Top 100 Most Engaged Artists4.14.17.csv')
-        geo_breakdown_df = pd.read_csv('AMD Songs Geographic Breakdown New4.14.17.csv')
-        cohort_engagement_df = pd.read_csv('CohortBased Engagement Per User4.14.17.csv')
-        momentum_score_df = pd.read_csv('Weekly Momentum Score Improved for Week 2  4.14.17.csv')
-        discovery_channel_df = pd.read_csv('Engagement by Discovery Channel4.14.17.csv')
-        
-        return top_artists_df, geo_breakdown_df, cohort_engagement_df, momentum_score_df, discovery_channel_df
+    # Top 100 Most Engaged Artists
+    artists = ["Wizkid", "Davido", "Burna Boy", "Asake", "Shallipopi", "Seyi Vibez", "Rema", "Omah Lay", 
+               "Tems", "Ayra Starr", "Fireboy DML", "Tiwa Savage", "Joeboy", "Adekunle Gold", "Kizz Daniel",
+               "Olamide", "Mohbad", "Victony", "Spyro", "Zinoleesky"] * 5
     
-    except Exception as e:
-        st.error(f"Error loading data: {e}")
-        
-        # Create sample data for demonstration if files can't be loaded
-        # Top 100 Most Engaged Artists
-        top_artists_df = pd.DataFrame({
-            "artist": [f"Artist {i}" for i in range(1, 101)],
-            "total_plays": np.random.randint(50000, 5000000, 100),
-            "total_engagements": np.random.randint(5000, 500000, 100),
-            "unique_users": np.random.randint(1000, 100000, 100)
-        })
-        
-        # AMD Songs Geographic Breakdown
-        geo_breakdown_df = pd.DataFrame({
-            "artist": np.random.choice([f"Artist {i}" for i in range(1, 30)], 100),
-            "title": [f"Song {i}" for i in range(1, 101)],
-            "latest_distributor_name": ["Audiosalad Direct"] * 100,
-            "geo_country": np.random.choice(["US", "NG", "GH", "UK", "CA", "ZA", "KE"], 100),
-            "geo_region": np.random.choice(["NA", "AF", "EU", "AS", "SA", "OC"], 100),
-            "total_plays": np.random.randint(1000, 1000000, 100),
-            "total_engagements": np.random.randint(100, 100000, 100),
-            "unique_users": np.random.randint(100, 50000, 100)
-        })
-        
-        # Cohort-Based Engagement Per User
-        cohort_engagement_df = pd.DataFrame({
-            "artist": np.random.choice([f"Artist {i}" for i in range(1, 30)], 100),
-            "title": [f"Song {i}" for i in range(1, 101)],
-            "total_plays": np.random.randint(500, 500000, 100),
-            "total_engagements": np.random.randint(50, 50000, 100),
-            "unique_users": np.random.randint(100, 10000, 100),
-            "engagement_per_user": np.random.uniform(0.1, 2.0, 100),
-            "play_cohort": np.random.choice(["Low", "Medium", "High"], 100)
-        })
-        
-        # Weekly Momentum Score
-        momentum_score_df = pd.DataFrame({
-            "artist": [f"Artist {i}" for i in range(1, 11)],
-            "plays": np.random.randint(10000, 500000, 10),
-            "unique_listeners": np.random.randint(5000, 100000, 10),
-            "favorites": np.random.randint(500, 50000, 10),
-            "shares": np.random.randint(100, 10000, 10),
-            "country_count": np.random.randint(5, 50, 10),
-            "play_growth_pct": np.random.uniform(10, 100, 10),
-            "listener_growth_pct": np.random.uniform(5, 80, 10),
-            "fav_per_listener": np.random.uniform(0.05, 0.5, 10),
-            "share_per_listener": np.random.uniform(0.01, 0.1, 10),
-            "momentum_score": np.random.uniform(20, 100, 10)
-        })
-        
-        # Engagement by Discovery Channel
-        discovery_channel_df = pd.DataFrame({
-            "source_tab": np.random.choice(["Home", "Feed", "Browse", "Search", "Trending", "Profile"], 100),
-            "section": np.random.choice(["Top Songs", "For You", "Trending", "New Releases", "Top Albums", "Genres", "Charts"], 100),
-            "event_count": np.random.randint(1000, 1000000, 100)
-        })
-        
-        return top_artists_df, geo_breakdown_df, cohort_engagement_df, momentum_score_df, discovery_channel_df
+    top_artists_df = pd.DataFrame({
+        "artist": artists[:100],
+        "total_plays": np.random.randint(50000, 5000000, 100),
+        "total_engagements": np.random.randint(5000, 500000, 100),
+        "unique_users": np.random.randint(1000, 100000, 100)
+    })
+    
+    # AMD Songs Geographic Breakdown
+    titles = [
+        "Cast", "Lonely At The Top", "Essence", "Rush", "Happiness", "Calm Down", "Last Last", 
+        "Sungba Remix", "Peru", "Who's Your Guy", "Love Damini", "Sability", "Soso", "Common Person", 
+        "Bandana", "Buga", "Peace Be Unto You", "Finesse", "Terminator", "Tesinapot", "Ku Lo Sa", 
+        "Girlfriend", "Feel", "Organise", "Joha", "Like", "Holy Father", "Ginger", "Dull", "Philo"
+    ] * 4
+    
+    countries = ["NG", "GH", "US", "UK", "CA", "ZA", "KE", "TZ", "UG", "FR"]
+    regions = ["West Africa", "East Africa", "Southern Africa", "North America", "Europe", "Other"]
+    
+    geo_breakdown_df = pd.DataFrame({
+        "artist": np.random.choice(artists[:30], 100),
+        "title": titles[:100],
+        "latest_distributor_name": ["Audiosalad Direct"] * 100,
+        "geo_country": np.random.choice(countries, 100),
+        "geo_region": np.random.choice(regions, 100),
+        "total_plays": np.random.randint(1000, 1000000, 100),
+        "total_engagements": np.random.randint(100, 100000, 100),
+        "unique_users": np.random.randint(100, 50000, 100)
+    })
+    
+    # Cohort-Based Engagement Per User
+    cohort_engagement_df = pd.DataFrame({
+        "artist": np.random.choice(artists[:30], 100),
+        "title": np.random.choice(titles[:50], 100),
+        "total_plays": np.random.randint(500, 500000, 100),
+        "total_engagements": np.random.randint(50, 50000, 100),
+        "unique_users": np.random.randint(100, 10000, 100),
+        "engagement_per_user": np.random.uniform(0.1, 2.0, 100),
+        "play_cohort": np.random.choice(["Low", "Medium", "High"], 100)
+    })
+    
+    # Weekly Momentum Score
+    momentum_artists = ["Wizkid", "Davido", "Burna Boy", "Asake", "Shallipopi", 
+                        "Seyi Vibez", "Rema", "Omah Lay", "Tems", "Ayra Starr"]
+    
+    momentum_score_df = pd.DataFrame({
+        "artist": momentum_artists,
+        "plays": np.random.randint(10000, 500000, 10),
+        "unique_listeners": np.random.randint(5000, 100000, 10),
+        "favorites": np.random.randint(500, 50000, 10),
+        "shares": np.random.randint(100, 10000, 10),
+        "country_count": np.random.randint(5, 50, 10),
+        "play_growth_pct": np.random.uniform(10, 100, 10),
+        "listener_growth_pct": np.random.uniform(5, 80, 10),
+        "fav_per_listener": np.random.uniform(0.05, 0.5, 10),
+        "share_per_listener": np.random.uniform(0.01, 0.1, 10),
+        "momentum_score": np.random.uniform(20, 100, 10)
+    })
+    
+    # Make momentum score more realistic (sorting by momentum score)
+    momentum_score_df = momentum_score_df.sort_values("momentum_score", ascending=False).reset_index(drop=True)
+    
+    # Engagement by Discovery Channel
+    source_tabs = ["Home", "Feed", "Browse", "Search", "Trending", "Profile", "Charts", "Library"]
+    sections = ["Top Songs", "For You", "Trending", "New Releases", "Top Albums", "Genres", "Charts", 
+                "Recently Played", "Recommended Artists", "Popular in Nigeria", "Popular in Ghana", 
+                "Popular in US", "Verified", "Top 10", "New Artists", "DJ Mixes", "Playlists"]
+    
+    # Create realistic distribution with a long tail
+    n_samples = 200  # Using a smaller sample for demonstration
+    discovery_channel_df = pd.DataFrame({
+        "source_tab": np.random.choice(source_tabs, n_samples, p=[0.25, 0.2, 0.15, 0.15, 0.1, 0.05, 0.05, 0.05]),
+        "section": np.random.choice(sections, n_samples),
+        "event_count": np.random.randint(1000, 1000000, n_samples)
+    })
+    
+    # Aggregate counts for same tab/section combinations
+    discovery_channel_df = discovery_channel_df.groupby(["source_tab", "section"], as_index=False)["event_count"].sum()
+    
+    return top_artists_df, geo_breakdown_df, cohort_engagement_df, momentum_score_df, discovery_channel_df
 
 # Load data
 top_artists_df, geo_breakdown_df, cohort_engagement_df, momentum_score_df, discovery_channel_df = load_data()
@@ -964,9 +980,6 @@ with tab6:
 st.markdown("---")
 st.caption("Audiomack Music Analytics Dashboard | Last updated: April 17, 2025")
 st.caption("Created for music data analysis based on Athena queries")
-
-
-
 
 
 
