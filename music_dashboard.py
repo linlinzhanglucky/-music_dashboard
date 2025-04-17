@@ -1,5 +1,666 @@
 # Week3-Apr17
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import numpy as np
 
+# Set page configuration
+st.set_page_config(
+    page_title="Audiomack Music Analytics Dashboard",
+    page_icon="🎵",
+    layout="wide"
+)
+
+# Custom CSS
+st.markdown("""
+<style>
+    .main-header {
+        font-size: 2.5rem;
+        color: #FF4500;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .section-header {
+        font-size: 1.8rem;
+        color: #FF4500;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+    }
+    .metric-card {
+        background-color: #f8f9fa;
+        border-left: 5px solid #FF4500;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Function to load data
+@st.cache_data
+def load_data():
+    try:
+        # In a real implementation, these would be loaded from actual CSV files
+        # For now, we'll create sample DataFrames based on the Athena query structure
+        
+        # Top 100 Most Engaged Artists
+        top_artists_df = pd.DataFrame({
+            "artist": [f"Artist {i}" for i in range(1, 101)],
+            "total_plays": np.random.randint(50000, 5000000, 100),
+            "total_engagements": np.random.randint(5000, 500000, 100),
+            "unique_users": np.random.randint(1000, 100000, 100)
+        })
+        
+        # AMD Songs Geographic Breakdown
+        geo_breakdown_df = pd.DataFrame({
+            "artist": np.random.choice([f"Artist {i}" for i in range(1, 30)], 100),
+            "title": [f"Song {i}" for i in range(1, 101)],
+            "latest_distributor_name": ["Audiosalad Direct"] * 100,
+            "geo_country": np.random.choice(["US", "NG", "GH", "UK", "CA", "ZA", "KE"], 100),
+            "geo_region": np.random.choice(["NA", "AF", "EU", "AS", "SA", "OC"], 100),
+            "total_plays": np.random.randint(1000, 1000000, 100),
+            "total_engagements": np.random.randint(100, 100000, 100),
+            "unique_users": np.random.randint(100, 50000, 100)
+        })
+        
+        # Cohort-Based Engagement Per User
+        cohort_engagement_df = pd.DataFrame({
+            "artist": np.random.choice([f"Artist {i}" for i in range(1, 30)], 100),
+            "title": [f"Song {i}" for i in range(1, 101)],
+            "total_plays": np.random.randint(500, 500000, 100),
+            "total_engagements": np.random.randint(50, 50000, 100),
+            "unique_users": np.random.randint(100, 10000, 100),
+            "engagement_per_user": np.random.uniform(0.1, 2.0, 100),
+            "play_cohort": np.random.choice(["Low", "Medium", "High"], 100)
+        })
+        
+        # Weekly Momentum Score
+        momentum_score_df = pd.DataFrame({
+            "artist": [f"Artist {i}" for i in range(1, 11)],
+            "plays": np.random.randint(10000, 500000, 10),
+            "unique_listeners": np.random.randint(5000, 100000, 10),
+            "favorites": np.random.randint(500, 50000, 10),
+            "shares": np.random.randint(100, 10000, 10),
+            "country_count": np.random.randint(5, 50, 10),
+            "play_growth_pct": np.random.uniform(10, 100, 10),
+            "listener_growth_pct": np.random.uniform(5, 80, 10),
+            "fav_per_listener": np.random.uniform(0.05, 0.5, 10),
+            "share_per_listener": np.random.uniform(0.01, 0.1, 10),
+            "momentum_score": np.random.uniform(20, 100, 10)
+        })
+        
+        # Engagement by Discovery Channel
+        discovery_channel_df = pd.DataFrame({
+            "source_tab": np.random.choice(["Home", "Feed", "Browse", "Search", "Trending", "Profile"], 100),
+            "section": np.random.choice(["Top Songs", "For You", "Trending", "New Releases", "Top Albums", "Genres", "Charts"], 100),
+            "event_count": np.random.randint(1000, 1000000, 100)
+        })
+        
+        return top_artists_df, geo_breakdown_df, cohort_engagement_df, momentum_score_df, discovery_channel_df
+    
+    except Exception as e:
+        st.error(f"Error loading data: {e}")
+        return None, None, None, None, None
+
+# Load data
+top_artists_df, geo_breakdown_df, cohort_engagement_df, momentum_score_df, discovery_channel_df = load_data()
+
+# Dashboard title
+st.markdown("<h1 class='main-header'>Audiomack Music Analytics Dashboard</h1>", unsafe_allow_html=True)
+st.write("Analysis of music engagement data from April 1-17, 2025")
+
+# Sidebar
+with st.sidebar:
+    st.header("Filters")
+    
+    # Date range (for demonstration purposes)
+    st.date_input("Date Range", [pd.to_datetime("2025-04-01"), pd.to_datetime("2025-04-17")], disabled=True)
+    
+    # Artist filter
+    all_artists = sorted(top_artists_df["artist"].unique())
+    selected_artists = st.multiselect("Filter by Artist", all_artists, default=all_artists[:5])
+    
+    # Country filter
+    all_countries = sorted(geo_breakdown_df["geo_country"].unique())
+    selected_countries = st.multiselect("Filter by Country", all_countries, default=all_countries[:3])
+    
+    # Cohort filter
+    all_cohorts = sorted(cohort_engagement_df["play_cohort"].unique())
+    selected_cohorts = st.multiselect("Filter by Play Cohort", all_cohorts, default=all_cohorts)
+    
+    # About section
+    st.markdown("---")
+    st.header("About")
+    st.info(
+        """
+        This dashboard analyzes music engagement metrics to identify emerging artists and songs with high engagement potential.
+        
+        Data sources:
+        - Event data from dw01.events
+        - Music metadata from dw01.music
+        
+        All metrics reflect activity from April 1-17, 2025.
+        """
+    )
+    
+    # Theme selector
+    st.markdown("---")
+    st.header("Dashboard Theme")
+    theme = st.radio("Select Theme", ["Light", "Dark"], index=0)
+
+# Create tabs
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    "Overview", 
+    "Artist Performance", 
+    "Geographical Analysis", 
+    "Engagement Metrics", 
+    "Momentum Scores",
+    "Discovery Channels"
+])
+
+# Tab 1: Overview
+with tab1:
+    st.markdown("<h2 class='section-header'>Dashboard Overview</h2>", unsafe_allow_html=True)
+    
+    # Key metrics
+    col1, col2, col3, col4 = st.columns(4)
+    
+    total_plays = top_artists_df["total_plays"].sum()
+    total_engagements = top_artists_df["total_engagements"].sum()
+    total_unique_users = top_artists_df["unique_users"].sum()
+    engagement_ratio = total_engagements / total_plays if total_plays > 0 else 0
+    
+    col1.metric("Total Plays", f"{total_plays:,}")
+    col2.metric("Total Engagements", f"{total_engagements:,}")
+    col3.metric("Unique Users", f"{total_unique_users:,}")
+    col4.metric("Engagement Ratio", f"{engagement_ratio:.4f}")
+    
+    # Top artists chart
+    st.markdown("<h3 class='section-header'>Top 10 Artists by Total Engagements</h3>", unsafe_allow_html=True)
+    
+    top_10_artists = top_artists_df.sort_values("total_engagements", ascending=False).head(10)
+    
+    fig1 = px.bar(
+        top_10_artists,
+        x="artist",
+        y="total_engagements",
+        title="",
+        color_discrete_sequence=["#FF4500"],
+        hover_data=["total_plays", "unique_users"]
+    )
+    fig1.update_layout(xaxis_title="Artist", yaxis_title="Total Engagements")
+    st.plotly_chart(fig1, use_container_width=True)
+    
+    # Engagement distribution by cohort
+    st.markdown("<h3 class='section-header'>Engagement Distribution by Play Cohort</h3>", unsafe_allow_html=True)
+    
+    cohort_stats = cohort_engagement_df.groupby("play_cohort").agg({
+        "total_plays": "sum",
+        "total_engagements": "sum",
+        "unique_users": "sum",
+        "engagement_per_user": "mean"
+    }).reset_index()
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        fig2 = px.pie(
+            cohort_stats,
+            values="total_engagements",
+            names="play_cohort",
+            title="Engagements by Play Cohort",
+            color_discrete_sequence=px.colors.qualitative.Bold
+        )
+        fig2.update_traces(textposition="inside", textinfo="percent+label")
+        st.plotly_chart(fig2, use_container_width=True)
+    
+    with col2:
+        fig3 = px.bar(
+            cohort_stats,
+            x="play_cohort",
+            y="engagement_per_user",
+            title="Average Engagement per User by Cohort",
+            color="play_cohort",
+            color_discrete_sequence=px.colors.qualitative.Bold
+        )
+        st.plotly_chart(fig3, use_container_width=True)
+    
+    # Top discovery channels
+    st.markdown("<h3 class='section-header'>Top Discovery Channels</h3>", unsafe_allow_html=True)
+    
+    top_channels = discovery_channel_df.groupby("source_tab")["event_count"].sum().reset_index().sort_values("event_count", ascending=False)
+    
+    fig4 = px.bar(
+        top_channels,
+        x="source_tab",
+        y="event_count",
+        title="Event Count by Source Tab",
+        color="source_tab",
+        color_discrete_sequence=px.colors.qualitative.Pastel
+    )
+    st.plotly_chart(fig4, use_container_width=True)
+
+# Tab 2: Artist Performance
+with tab2:
+    st.markdown("<h2 class='section-header'>Artist Performance Analysis</h2>", unsafe_allow_html=True)
+    
+    # Filter data based on selected artists
+    filtered_artists_df = top_artists_df[top_artists_df["artist"].isin(selected_artists)]
+    
+    # Artist selection for detailed view
+    selected_artist = st.selectbox("Select Artist for Detailed Analysis", selected_artists)
+    
+    # Artist performance metrics
+    artist_data = filtered_artists_df[filtered_artists_df["artist"] == selected_artist].iloc[0]
+    
+    col1, col2, col3 = st.columns(3)
+    
+    col1.metric("Total Plays", f"{artist_data['total_plays']:,}")
+    col2.metric("Total Engagements", f"{artist_data['total_engagements']:,}")
+    col3.metric("Unique Users", f"{artist_data['unique_users']:,}")
+    
+    # Get artist's songs from cohort engagement data
+    artist_songs = cohort_engagement_df[cohort_engagement_df["artist"] == selected_artist]
+    
+    # Top songs by engagement
+    st.markdown("<h3 class='section-header'>Top Songs by Engagement</h3>", unsafe_allow_html=True)
+    
+    if not artist_songs.empty:
+        top_songs = artist_songs.sort_values("engagement_per_user", ascending=False)
+        
+        fig5 = px.bar(
+            top_songs,
+            x="title",
+            y="engagement_per_user",
+            title=f"Songs by {selected_artist} - Engagement per User",
+            color="play_cohort",
+            hover_data=["total_plays", "total_engagements", "unique_users"]
+        )
+        st.plotly_chart(fig5, use_container_width=True)
+        
+        # Song engagement breakdown
+        st.markdown("<h3 class='section-header'>Song Performance Details</h3>", unsafe_allow_html=True)
+        
+        st.dataframe(
+            top_songs[["title", "total_plays", "total_engagements", "unique_users", "engagement_per_user", "play_cohort"]],
+            use_container_width=True,
+            hide_index=True
+        )
+    else:
+        st.info(f"No song data available for {selected_artist}")
+    
+    # Artist comparison
+    st.markdown("<h3 class='section-header'>Artist Comparison</h3>", unsafe_allow_html=True)
+    
+    fig6 = px.scatter(
+        filtered_artists_df,
+        x="total_plays",
+        y="total_engagements",
+        size="unique_users",
+        color="artist",
+        title="Artist Performance Comparison",
+        hover_name="artist",
+        size_max=60
+    )
+    st.plotly_chart(fig6, use_container_width=True)
+
+# Tab 3: Geographical Analysis
+with tab3:
+    st.markdown("<h2 class='section-header'>Geographical Analysis</h2>", unsafe_allow_html=True)
+    
+    # Filter data based on selected countries
+    filtered_geo_df = geo_breakdown_df[geo_breakdown_df["geo_country"].isin(selected_countries)]
+    
+    # Country metrics
+    st.markdown("<h3 class='section-header'>Country Performance Metrics</h3>", unsafe_allow_html=True)
+    
+    country_metrics = filtered_geo_df.groupby("geo_country").agg({
+        "total_plays": "sum",
+        "total_engagements": "sum",
+        "unique_users": "sum"
+    }).reset_index()
+    
+    country_metrics["engagement_ratio"] = country_metrics["total_engagements"] / country_metrics["total_plays"]
+    country_metrics["avg_plays_per_user"] = country_metrics["total_plays"] / country_metrics["unique_users"]
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        fig7 = px.pie(
+            country_metrics,
+            values="total_plays",
+            names="geo_country",
+            title="Total Plays by Country",
+            color_discrete_sequence=px.colors.qualitative.Safe
+        )
+        fig7.update_traces(textposition="inside", textinfo="percent+label")
+        st.plotly_chart(fig7, use_container_width=True)
+    
+    with col2:
+        fig8 = px.bar(
+            country_metrics,
+            x="geo_country",
+            y=["engagement_ratio", "avg_plays_per_user"],
+            title="Engagement Metrics by Country",
+            barmode="group"
+        )
+        st.plotly_chart(fig8, use_container_width=True)
+    
+    # Country-specific artist performance
+    st.markdown("<h3 class='section-header'>Artist Performance by Country</h3>", unsafe_allow_html=True)
+    
+    country_artist_metrics = filtered_geo_df.groupby(["geo_country", "artist"]).agg({
+        "total_plays": "sum",
+        "total_engagements": "sum",
+        "unique_users": "sum"
+    }).reset_index()
+    
+    selected_country = st.selectbox("Select Country for Detailed Analysis", selected_countries)
+    
+    country_data = country_artist_metrics[country_artist_metrics["geo_country"] == selected_country]
+    top_country_artists = country_data.sort_values("total_plays", ascending=False).head(10)
+    
+    fig9 = px.bar(
+        top_country_artists,
+        x="artist",
+        y="total_plays",
+        title=f"Top Artists in {selected_country} by Total Plays",
+        color="artist",
+        hover_data=["total_engagements", "unique_users"]
+    )
+    st.plotly_chart(fig9, use_container_width=True)
+    
+    # Regional analysis
+    st.markdown("<h3 class='section-header'>Regional Analysis</h3>", unsafe_allow_html=True)
+    
+    region_metrics = filtered_geo_df.groupby(["geo_country", "geo_region"]).agg({
+        "total_plays": "sum",
+        "total_engagements": "sum",
+        "unique_users": "sum"
+    }).reset_index()
+    
+    fig10 = px.sunburst(
+        region_metrics,
+        path=["geo_country", "geo_region"],
+        values="total_plays",
+        title="Total Plays by Country and Region",
+        color="total_plays",
+        color_continuous_scale="RdBu"
+    )
+    st.plotly_chart(fig10, use_container_width=True)
+
+# Tab 4: Engagement Metrics
+with tab4:
+    st.markdown("<h2 class='section-header'>Engagement Metrics Analysis</h2>", unsafe_allow_html=True)
+    
+    # Filter data based on selected cohorts
+    filtered_cohort_df = cohort_engagement_df[cohort_engagement_df["play_cohort"].isin(selected_cohorts)]
+    
+    # Engagement distribution
+    st.markdown("<h3 class='section-header'>Engagement Distribution</h3>", unsafe_allow_html=True)
+    
+    fig11 = px.histogram(
+        filtered_cohort_df,
+        x="engagement_per_user",
+        nbins=50,
+        title="Distribution of Engagement per User",
+        color="play_cohort",
+        marginal="box"
+    )
+    st.plotly_chart(fig11, use_container_width=True)
+    
+    # Engagement vs plays
+    st.markdown("<h3 class='section-header'>Engagement vs. Plays</h3>", unsafe_allow_html=True)
+    
+    fig12 = px.scatter(
+        filtered_cohort_df,
+        x="total_plays",
+        y="engagement_per_user",
+        color="play_cohort",
+        size="unique_users",
+        hover_name="title",
+        hover_data=["artist"],
+        title="Engagement per User vs. Total Plays",
+        log_x=True,
+        size_max=50
+    )
+    st.plotly_chart(fig12, use_container_width=True)
+    
+    # Top songs by engagement
+    st.markdown("<h3 class='section-header'>Top Songs by Engagement</h3>", unsafe_allow_html=True)
+    
+    top_engaged_songs = filtered_cohort_df.sort_values("engagement_per_user", ascending=False).head(10)
+    
+    fig13 = px.bar(
+        top_engaged_songs,
+        x="title",
+        y="engagement_per_user",
+        title="Top 10 Songs by Engagement per User",
+        color="play_cohort",
+        hover_data=["artist", "total_plays", "total_engagements", "unique_users"]
+    )
+    st.plotly_chart(fig13, use_container_width=True)
+    
+    # Engagement metrics table
+    st.markdown("<h3 class='section-header'>Engagement Metrics Details</h3>", unsafe_allow_html=True)
+    
+    cohort_summary = filtered_cohort_df.groupby("play_cohort").agg({
+        "engagement_per_user": ["mean", "median", "min", "max", "std"],
+        "total_plays": "sum",
+        "total_engagements": "sum",
+        "unique_users": "sum"
+    }).reset_index()
+    
+    # Flatten multi-level columns
+    cohort_summary.columns = [' '.join(col).strip() for col in cohort_summary.columns.values]
+    
+    st.dataframe(cohort_summary, use_container_width=True)
+
+# Tab 5: Momentum Scores
+with tab5:
+    st.markdown("<h2 class='section-header'>Artist Momentum Analysis</h2>", unsafe_allow_html=True)
+    
+    # Artist momentum overview
+    st.markdown("<h3 class='section-header'>Weekly Momentum Score Overview</h3>", unsafe_allow_html=True)
+    
+    fig14 = px.bar(
+        momentum_score_df.sort_values("momentum_score", ascending=False),
+        x="artist",
+        y="momentum_score",
+        title="Artist Momentum Scores",
+        color="momentum_score",
+        color_continuous_scale="Viridis",
+        hover_data=["plays", "unique_listeners", "play_growth_pct", "listener_growth_pct"]
+    )
+    st.plotly_chart(fig14, use_container_width=True)
+    
+    # Growth metrics
+    st.markdown("<h3 class='section-header'>Growth Metrics Comparison</h3>", unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        fig15 = px.scatter(
+            momentum_score_df,
+            x="play_growth_pct",
+            y="listener_growth_pct",
+            size="plays",
+            color="momentum_score",
+            hover_name="artist",
+            title="Growth Metrics Bubble Chart",
+            size_max=60
+        )
+        st.plotly_chart(fig15, use_container_width=True)
+    
+    with col2:
+        fig16 = px.scatter(
+            momentum_score_df,
+            x="fav_per_listener",
+            y="share_per_listener",
+            size="plays",
+            color="momentum_score",
+            hover_name="artist",
+            title="Engagement Quality Metrics",
+            size_max=60
+        )
+        st.plotly_chart(fig16, use_container_width=True)
+    
+    # Momentum score components
+    st.markdown("<h3 class='section-header'>Momentum Score Components</h3>", unsafe_allow_html=True)
+    
+    # Select an artist for detailed view
+    selected_momentum_artist = st.selectbox("Select Artist for Momentum Analysis", momentum_score_df["artist"].tolist())
+    
+    artist_momentum_data = momentum_score_df[momentum_score_df["artist"] == selected_momentum_artist].iloc[0]
+    
+    # Calculate component scores based on the formula
+    play_growth_contribution = artist_momentum_data["play_growth_pct"] * 0.4
+    listener_growth_contribution = artist_momentum_data["listener_growth_pct"] * 0.3
+    favorites_contribution = artist_momentum_data["fav_per_listener"] * 15
+    shares_contribution = artist_momentum_data["share_per_listener"] * 10
+    country_contribution = artist_momentum_data["country_count"] * 0.5
+    
+    # Create a DataFrame for the component breakdown
+    components_df = pd.DataFrame({
+        "Component": ["Play Growth", "Listener Growth", "Favorites", "Shares", "Country Reach"],
+        "Contribution": [play_growth_contribution, listener_growth_contribution, favorites_contribution, shares_contribution, country_contribution],
+        "Weight": ["40%", "30%", "15x", "10x", "0.5x"],
+        "Raw Value": [
+            f"{artist_momentum_data['play_growth_pct']:.2f}%",
+            f"{artist_momentum_data['listener_growth_pct']:.2f}%",
+            f"{artist_momentum_data['fav_per_listener']:.4f}",
+            f"{artist_momentum_data['share_per_listener']:.4f}",
+            str(artist_momentum_data["country_count"])
+        ]
+    })
+    
+    fig17 = px.bar(
+        components_df,
+        x="Component",
+        y="Contribution",
+        title=f"Momentum Score Components for {selected_momentum_artist} (Total: {artist_momentum_data['momentum_score']:.2f})",
+        color="Component",
+        hover_data=["Weight", "Raw Value"]
+    )
+    st.plotly_chart(fig17, use_container_width=True)
+    
+    # Momentum score explanation
+    st.markdown("<h3 class='section-header'>Momentum Score Methodology</h3>", unsafe_allow_html=True)
+    
+    st.markdown("""
+    The Momentum Score is calculated using the following formula:
+    
+    ```
+    Momentum Score = (Play Growth % × 0.4) + (Listener Growth % × 0.3) + (Favorites per Listener × 15) + (Shares per Listener × 10) + (Country Count × 0.5)
+    ```
+    
+    This weighted formula combines:
+    
+    - **Growth metrics** (70% of weight) - How quickly an artist is gaining plays and listeners
+    - **Engagement quality** (25% of weight) - How deeply listeners are connecting with the content
+    - **Geographic spread** (5% of weight) - How broadly the artist's appeal extends across territories
+    """)
+
+# Tab 6: Discovery Channels
+with tab6:
+    st.markdown("<h2 class='section-header'>Discovery Channel Analysis</h2>", unsafe_allow_html=True)
+    
+    # Top discovery channels
+    st.markdown("<h3 class='section-header'>Top Source Tabs</h3>", unsafe_allow_html=True)
+    
+    source_tab_counts = discovery_channel_df.groupby("source_tab")["event_count"].sum().reset_index().sort_values("event_count", ascending=False)
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        fig18 = px.pie(
+            source_tab_counts,
+            values="event_count",
+            names="source_tab",
+            title="Event Distribution by Source Tab",
+            hole=0.4
+        )
+        st.plotly_chart(fig18, use_container_width=True)
+    
+    with col2:
+        fig19 = px.bar(
+            source_tab_counts,
+            x="source_tab",
+            y="event_count",
+            title="Event Counts by Source Tab",
+            color="source_tab"
+        )
+        st.plotly_chart(fig19, use_container_width=True)
+    
+    # Top sections
+    st.markdown("<h3 class='section-header'>Top Sections</h3>", unsafe_allow_html=True)
+    
+    section_counts = discovery_channel_df.groupby("section")["event_count"].sum().reset_index().sort_values("event_count", ascending=False).head(10)
+    
+    fig20 = px.bar(
+        section_counts,
+        x="section",
+        y="event_count",
+        title="Top 10 Sections by Event Count",
+        color="section"
+    )
+    st.plotly_chart(fig20, use_container_width=True)
+    
+    # Section performance by tab
+    st.markdown("<h3 class='section-header'>Section Performance by Source Tab</h3>", unsafe_allow_html=True)
+    
+    # Select a source tab for detailed view
+    selected_tab = st.selectbox("Select Source Tab", discovery_channel_df["source_tab"].unique())
+    
+    tab_sections = discovery_channel_df[discovery_channel_df["source_tab"] == selected_tab]
+    top_tab_sections = tab_sections.groupby("section")["event_count"].sum().reset_index().sort_values("event_count", ascending=False).head(10)
+    
+    fig21 = px.bar(
+        top_tab_sections,
+        x="section",
+        y="event_count",
+        title=f"Top Sections in {selected_tab} Tab",
+        color="section"
+    )
+    st.plotly_chart(fig21, use_container_width=True)
+    
+    # Cross-tab analysis
+    st.markdown("<h3 class='section-header'>Cross-Tab Section Analysis</h3>", unsafe_allow_html=True)
+    
+    top_sections_overall = discovery_channel_df.groupby("section")["event_count"].sum().reset_index().sort_values("event_count", ascending=False).head(5)["section"].tolist()
+    cross_tab_df = discovery_channel_df[discovery_channel_df["section"].isin(top_sections_overall)]
+    
+    cross_tab_pivot = cross_tab_df.pivot_table(
+        index="section",
+        columns="source_tab",
+        values="event_count",
+        aggfunc="sum",
+        fill_value=0
+    ).reset_index()
+    
+    # Melt the pivot table for visualization
+    cross_tab_melted = pd.melt(
+        cross_tab_pivot,
+        id_vars=["section"],
+        var_name="source_tab",
+        value_name="event_count"
+    )
+    
+    fig22 = px.bar(
+        cross_tab_melted,
+        x="section",
+        y="event_count",
+        color="source_tab",
+        title="Top Sections Across Source Tabs",
+        barmode="group"
+    )
+    st.plotly_chart(fig22, use_container_width=True)
+
+# Footer
+st.markdown("---")
+st.caption("Audiomack Music Analytics Dashboard | Last updated: April 17, 2025")
+st.caption("Created for music data analysis based on Athena queries")
 
 
 
